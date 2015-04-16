@@ -1,0 +1,22 @@
+
+stores are stateful reducers 
+
+
+var myStore = store(function(state, action, ...args){
+	
+})
+
+
+myStore() // -> current state
+
+// there's no setState() concept! immutability ftw!
+
+myStore.on('change', fn) // -> easy
+
+var actions = {
+	list:{
+		search: function(query){
+			dispatch('search:start')
+		}		
+	}
+}

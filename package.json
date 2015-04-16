@@ -1,0 +1,16 @@
+{
+  "name": "disto",
+  "version": "1.0.0",
+  "description": "yet another flux thing ",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests"
+  },
+  "keywords": [
+    "flux",
+    "reduce",
+    "functional"
+  ],
+  "author": "Sunil Pai <threepointone@gmail.com>",
+  "license": "ISC"
+}
