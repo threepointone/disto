@@ -1,4 +1,5 @@
 "use strict";
+
 var EventEmitter = require('events').EventEmitter;
 var log = require('debug')('eterna:dispatcher');
 var invariant = require('invariant');
@@ -19,20 +20,17 @@ class Dispatcher extends EventEmitter{
 		this.stores.push(store);
 		// because the dispatcher is a central point for the stores, 
 		// it makes sense to have a change listener here
-		return store.on('change', (...args) => this.onStoreChange);
-
+		var fn = (e, ...args) => this.emit('change', store, ...args)
+		store.on('change', fn);
+		var t = this;
+		return {
+			off() {
+					t.stores = t.stores.filter(x=> x!=store);		
+					store.off('change', fn)
+			}
+		}
 	}
 
-	@autobind
-	onStoreChange(...args){
-		this.emit('change', store, ...args);
-	}
-
-	@autobind
-	unregister(store){
-		this.stores = this.stores.filter(x=> x!=store);	
-		store.off('change', this.onStoreChange);
-	}
 
 	@autobind
 	waitfor(...stores){
@@ -54,7 +52,7 @@ class Dispatcher extends EventEmitter{
 
 	@autobind
 	dispatch(action, ...args){
-		// log('action:', action._ || action, args);
+		console.log('action:', action+'', args);
 		invariant(!this.running, 'cannot dispatch while another\'s going on');
 		invariant(action, 'cannot dispatch a blank action');
 		this.running = true;

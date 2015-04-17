@@ -1,5 +1,8 @@
+"use strict";
+
 module.exports = {
-	Dis: require('./dis'),
-	sto: require('./sto'),
-	act: require('./act')
-}
+	...require('./sto'),
+	Dis: require('./dis'),	
+	act: require('./act'),	
+	mix: require('./mix')
+};

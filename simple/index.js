@@ -1,0 +1,82 @@
+"use strict";
+require("babelify/polyfill");
+
+// window.debug = require("debug");
+// window.debug.enable('example*');
+// const log = window.debug('example');
+
+const React = require('react'), imm = require('immutable'), ImmutableRenderMixin = require('react-immutable-render-mixin');
+window.React = React;
+
+const disto = require('../index');
+const	{sto, Dis, act, mix, toObs, toOb} = disto;
+
+
+
+// make a new dispatcher
+const dis = new Dis(),
+	{fn, dispatch, register, waitfor} = dis;
+
+// declare some actions
+const $ = act(`{tick toggle _}`);
+
+// action creators
+const $$ = {
+	toggle: (function(){
+		var intval;
+		return function(){
+			dispatch($.toggle);
+			if(!$toggle().now){ clearInterval(intval); intval = null; }
+			else{ intval = setInterval(()=> dispatch($.tick), 100)}
+		}
+	})()
+};
+
+// stores
+const	$tick = sto({
+	soFar:0, 
+	ticks: 0,
+	start:Date.now()
+}, function(o, action){
+	if(action===$.tick){
+		waitfor($toggle);
+		if($toggle().now){
+			return Object.assign(o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
+		}
+	}
+	return o;
+});
+register($tick);
+	
+const $toggle = sto({now:false, times:0}, function(o, action){
+	if(action === $.toggle){
+		return Object.assign(o,  {now: !o.now, times: o.times+1 });	
+	}
+	return o;
+});
+register($toggle);
+
+
+// views
+var App = React.createClass({
+	mixins: [mix],
+	observe(){ 
+		return {tick: toOb($tick), toggle: toOb($toggle)}; 
+	},
+	render() {
+		const data = this.state.data;
+		return (
+			<div className="App">
+				time: {data.tick.soFar},
+				clicks: {data.toggle.times}
+				<button onClick={$$.toggle}/>
+			</div>
+		);
+	}
+});
+
+React.render(<App/>, document.getElementById('container'));
+
+dis.on('change', ()=>{
+	console.log($tick(), $toggle());
+});

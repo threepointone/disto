@@ -1,14 +1,23 @@
-var {EventEmitter} = require('events');
+"use strict";
 
-export function sto(fn, initial){
+var emitMixin = require('emitter-mixin');
+
+export function sto(initial, fn, displayName){
 	var state = initial;
-	return EventEmitter(function(action, ...args){
+	var F = function(action, ...args){
 		if(action){
 			state = fn(state, action, ...args);
-			this.emit('change', state);
+			if(state === undefined){
+				console.warn('have you forgotten to return state?')
+			}
+			F.emit('change', state);
 		}
 		return state;
-	});
+	};
+	F.displayName = displayName;
+
+	emitMixin(F);
+	return F;
 }
 
 
@@ -22,6 +31,7 @@ export function toOb(store){
 
 			var fn = ()=> opts.onNext(store());
 			store.on('change', fn);
+			fn();
 			return {
 				dispose(){
 					store.off('change', fn);
@@ -31,7 +41,6 @@ export function toOb(store){
 	}
 }
 
-export function toObs(o){
-	return Object.keys(stores).reduce((o, key) => 
-		Object.assign(o, {[key]: toOb(stores[key]) }));
+export function toObs(ko){
+	return Object.keys(ko).reduce((o, key) => Object.assign(o, {[key]: toOb(ko[key]) }), {});
 }

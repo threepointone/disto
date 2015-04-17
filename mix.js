@@ -1,20 +1,4 @@
-// module.exports = function(dispatcher, fn){
-// 	return {
-// 		getInitialState: function(){
-// 			return fn();
-// 		},
-// 		$state: function(){
-// 			this.setState(fn());
-// 		},
-// 		componentDidMount: function() {
-// 			dispatcher.on('change', this.$state);
-// 		},
-// 		componentWillUnmount: function() {
-// 			dispatcher.off('change', this.$state);	
-// 		}
-// 	}
-// }
-
+"use strict";
 
 export default {
   getInitialState() {
