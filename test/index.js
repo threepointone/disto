@@ -47,6 +47,6 @@ describe('act', ()=>{
 })
 
 describe('mix', ()=>{
-
+  it('can mixin observables onto react components')
 })
 
