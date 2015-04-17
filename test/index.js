@@ -48,6 +48,7 @@ describe('Dis', ()=>{
     s3().should.eql(3);
   })
 
+  it('should not allow circular dependencies')
 })
 
 describe('act', ()=>{
@@ -57,6 +58,7 @@ describe('act', ()=>{
     stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');    
     act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
   })
+  
   it('has dev friendly string representations', ()=>{
     act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
   })
