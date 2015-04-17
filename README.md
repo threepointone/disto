@@ -125,6 +125,3 @@ var App = React.createClass({
 });
 ```
 
-
-We also have tests!
-
