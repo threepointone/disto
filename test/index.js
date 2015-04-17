@@ -25,9 +25,6 @@ describe('sto', ()=>{
 })
 
 describe('Dis', ()=>{
-  // const dis = new Dis(),
-  //   {dispatch, register, unregister, waitfor} = dis;
-
   it('can register|unregister stores, and send messages to all registered stores', ()=>{
     var d = new Dis(), s = sto(0, state => state+1);
     var h = d.register(s);
