@@ -3,7 +3,7 @@
 another take on flux, influenced by observables 
 ---
 
-(flux)[http://facebook.github.io/flux], facebook's take on app architecture
+[flux](http://facebook.github.io/flux), facebook's take on app architecture
 
 Here, stores are represented as reduce functions on every [actions, ...args] message that passes through the "system".
 
@@ -106,7 +106,7 @@ var store = sto({}, (state, action, ...args)=>{
 
 ```
 
-Also included is @gaearon's superb take on a polyfill for (side loading data)[https://github.com/facebook/react/issues/3398]
+Also included is @gaearon's superb take on a polyfill for [side loading data](https://github.com/facebook/react/issues/3398)
 ```js
 var App = React.createClass({
 	mixins: [mix],
