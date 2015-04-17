@@ -1,9 +1,8 @@
 (work in progress)
 
-another take on flux, influenced by observables 
+disto 
 ---
-
-[flux](http://facebook.github.io/flux), facebook's take on app architecture
+another take on [flux](http://facebook.github.io/flux), influenced by observables.
 
 Here, stores are represented as reduce functions on every [actions, ...args] message that passes through the "system".
 
