@@ -33,7 +33,7 @@ store(action, ...args) // triggers the reduce function
 
 // notice the conspicuous lack of a .setState()
 
-There are also a couple of helpers to convert this to an rxjs style observable
+// there are also a couple of helpers to convert this to an rxjs style observable
 toOb(store)  // "to Observable"
 toObs({store1, store2, ...stores})  // to Observables
 
@@ -51,7 +51,7 @@ dis.unregister(store)
 
 dis.dispatch(action,...args)
 
-dis.waitfor(stores)
+dis.waitfor(...stores)
 
 ```
 
@@ -117,8 +117,8 @@ var App = React.createClass({
   render: function() {
     return (
       <div className="App">
-        {this.state.data.store1.toJS()}
-        {this.state.data.store2.toJS()}
+        {this.state.data.store1}
+        {this.state.data.store2}
       </div>
     );
   }
