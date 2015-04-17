@@ -24,7 +24,7 @@ class Dispatcher extends EventEmitter{
     store.on('change', fn);
     var t = this;
     return {
-      off() {
+      unregister() {
           t.stores = t.stores.filter(x=> x!=store);    
           store.off('change', fn)
       }

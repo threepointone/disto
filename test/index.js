@@ -3,7 +3,6 @@ require('chai').should();
 
 const {sto, Dis, act, mix, toObs, toOb} = require('../index');
 
-
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{
     var s = sto({x:1, y:2})().should.eql({x:1, y:2})
@@ -26,23 +25,43 @@ describe('sto', ()=>{
 })
 
 describe('Dis', ()=>{
-  const dis = new Dis(),
-    {dispatch, register, unregister, waitfor} = dis;
+  // const dis = new Dis(),
+  //   {dispatch, register, unregister, waitfor} = dis;
 
-   it('can register stores')
-   it('can unregister stores')
-   it('can dispatch messages to all registered stores')
-   it('can waitfor stores before proceeding')
+  it('can register|unregister stores, and send messages to all registered stores', ()=>{
+    var d = new Dis(), s = sto(0, state => state+1);
+    var h = d.register(s);
+    
+    d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
+    
+    s().should.eql(3);
+    h.unregister();
+
+    d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
+    s().should.eql(3);
+  })
+
+  it('can waitfor stores before proceeding', ()=>{
+    var d = new Dis();
+    var s1 = sto(0, x => x+1);
+    var s2 = sto(0, x => x+2);
+    var s3 = sto(0, x => {d.waitfor(s1, s2); return (s1() + s2())});
+    [s3, s1, s2].map(d.register);
+    d.dispatch('xyz');
+    s3().should.eql(3);
+  })
 
 })
 
 describe('act', ()=>{
-  it('can parse descriptor strings',  ()=>{
+  it('can parse descriptor strings', ()=>{
     var stringify = JSON.stringify;
     stringify(act(`{a {done} b c {done1 done2}}`)).should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
-    stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');
-    act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
+    stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');    
     act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
+  })
+  it('has dev friendly string representations', ()=>{
+    act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
   })
 })
 

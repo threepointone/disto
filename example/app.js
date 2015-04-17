@@ -22,10 +22,12 @@ const fetch = require('whatwg-fetch');
 // services
 const services = {
   search(query, callback){   
-    return fetch(`http://localhost:3000/list/${query}?rows=20`).then(res => callback(null, res)).catch(err => callback(err))
+    return fetch(`http://localhost:3000/list/${query}?rows=20`)
+    	.then(res => callback(null, res)).catch(err => callback(err))
   },
   details(id, callback){
-    return fetch(`http://localhost:3000/product/${id}`).then(res => callback(null, res)).catch(err => callback(err))
+    return fetch(`http://localhost:3000/product/${id}`)
+    	.then(res => callback(null, res)).catch(err => callback(err))
   }    
 }
 
