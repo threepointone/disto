@@ -16,10 +16,11 @@ var store = sto({q: '', res:[], err: null},
         return Object.assign(state, {q: q});
       case actions.query.done:
         let [err, res] = args;
-        Object.assign(state, err || res.error ? 
+        return Object.assign(state, err || res.error ? 
           {err : err || res.error, res: []} : 
           {err : null, res: res.body.data})
     }
+    return state;
   })
 
 // These are observable event emitters, with the following apis
