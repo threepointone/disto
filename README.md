@@ -4,9 +4,9 @@ disto
 ---
 another take on [flux](http://facebook.github.io/flux), influenced by observables.
 
-Here, stores are represented as reduce functions on every [actions, ...args] message that passes through the "system".
-
 ```js
+// Here, stores are represented as reduce functions on every [actions, ...args] message that passes through the "system".
+
 var store = sto({q: '', res:[], err: null},
   (state, action, ...args)=>{
     switch(action){
@@ -36,13 +36,10 @@ store(action, ...args) // triggers the reduce function
 toOb(store)  // "to Observable"
 toObs({store1, store2, ...stores})  // to Observables
 
-```
+// Neat!
 
-Neat!
+// We also have a dispatcher. There are many like it, but this is mine. 
 
-We also have a dispatcher. There are many like it, but this is mine. 
-
-```js
 var dis = new Dis()
 
 dis.register(store)
@@ -52,10 +49,7 @@ dis.dispatch(action,...args)
 
 dis.waitfor(...stores)
 
-```
-
-Actions are plain functions / whatever you please. However, we have a helper to generate action constants. 
-```js
+// Actions are plain functions / whatever you please. However, we have a helper to generate nested action constants. 
 var $ = act(`{
   search { done } 
   details { done } 

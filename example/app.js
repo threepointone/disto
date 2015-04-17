@@ -18,6 +18,7 @@ const dis = new Dis(),
   {fn, dispatch, register, waitfor} = dis;
 
 
+const fetch = require('whatwg-fetch');
 // services
 const services = {
   search(query, callback){   
@@ -29,11 +30,10 @@ const services = {
 }
 
 
-
 // actions
 
 // declare the constants
-export const $ = act(`{
+const $ = act(`{
   search { done } 
   details { done } 
   select 
@@ -41,7 +41,7 @@ export const $ = act(`{
   some { nested { action1, action2 }}}`);
 
 // now expose a bunch of actions
-export const $$ = {
+const $$ = {
   // search for a string
    search(query){
      dispatch($.search, query);
@@ -191,15 +191,15 @@ const Details = React.createClass({
     $$.backToList();
   },
   render: function() {
-    
+    var props = this.props, {details} = props;
     return (
-      <div className='Details-cnt' style={this.props.style}>
+      <div className='Details-cnt' style={props.style}>
         <span style={{cursor:'pointer'}} onClick={this.onBack}>back to list page</span> 
-        {this.props.details.get('loading') ? 
+        {details.get('loading') ? 
           <span>loading...</span> : 
           <div className="Details">
-            <img src={this.props.details.getIn(['details', 'styleImages', 'default', 'imageURL'])} style={{maxWidth:200}}/>
-            <span>{this.props.details.getIn(['details', 'productDisplayName'])}</span>
+            <img src={details.getIn(['details', 'styleImages', 'default', 'imageURL'])} style={{maxWidth:200}}/>
+            <span>{details.getIn(['details', 'productDisplayName'])}</span>
           </div>}
       </div>   
     );
