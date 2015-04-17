@@ -11,9 +11,11 @@ another take on [flux](http://facebook.github.io/flux), influenced by observable
 var store = sto({q: '', res:[], err: null},
   (state, action, ...args)=>{
     switch(action){
+      
       case actions.query: 
         let [q] = args;
         return Object.assign(state, {q: q});
+      
       case actions.query.done:
         let [err, res] = args;
         return Object.assign(state, err || res.error ? 
