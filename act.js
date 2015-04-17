@@ -1,32 +1,27 @@
 "use strict";
 // https://gist.github.com/threepointone/57ec4e29e2770e67c24b
-var [BRA, KET, IDENT] = ['BRA', 'KET', 'IDENT'];
+let [BRA, KET, IDENT] = ['BRA', 'KET', 'IDENT'];
 
 function last(arr){ return arr[arr.length -1] };
 
 export default function parse(src, prefix){
-  var tree = src.split('').reduce((tokens, char)=> {
-
-
+  let tree = src.split('').reduce((tokens, char)=> {
     if(char==='{' || char==='}' || /\s/.test(char)){
       if(tokens.identBuffer){
         tokens.push({type: IDENT, val: tokens.identBuffer.join('')});
         tokens.identBuffer= null;
       }
     }
-
     if(char==='{'){    
       tokens.push({type: BRA});
     }
     if(char==='}'){
       tokens.push({type: KET});
     }
-
     if(/[a-z0-9]/i.test(char)){
       tokens.identBuffer = tokens.identBuffer || [];
       tokens.identBuffer.push(char);
     }
-
     return tokens;
   }, [])
   .reduce((stack, token) => {

@@ -31,7 +31,6 @@ class Dispatcher extends EventEmitter{
     }
   }
 
-
   @autobind
   waitfor(...stores){
     invariant(this.running, 'cannot waitfor when no message is being sent');

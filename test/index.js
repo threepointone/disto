@@ -41,8 +41,8 @@ describe('act', ()=>{
 		var stringify = JSON.stringify;
 		stringify(act(`{a {done} b c {done1 done2}}`)).should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
 		stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');
-
-
+		act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
+		act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
 	})
 })
 
