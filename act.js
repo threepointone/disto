@@ -6,18 +6,22 @@ function last(arr){ return arr[arr.length -1] };
 
 export default function parse(src, prefix){
   var tree = src.split('').reduce((tokens, char)=> {
-    if(char==='{'){
-      tokens.push({type: BRA});
-    }
-    if(char==='}'){
-      tokens.push({type: KET});
-    }
-    if(/\s/.test(char)){
+
+
+    if(char==='{' || char==='}' || /\s/.test(char)){
       if(tokens.identBuffer){
         tokens.push({type: IDENT, val: tokens.identBuffer.join('')});
         tokens.identBuffer= null;
       }
     }
+
+    if(char==='{'){    
+      tokens.push({type: BRA});
+    }
+    if(char==='}'){
+      tokens.push({type: KET});
+    }
+
     if(/[a-z0-9]/i.test(char)){
       tokens.identBuffer = tokens.identBuffer || [];
       tokens.identBuffer.push(char);

@@ -5,13 +5,14 @@ require("babelify/polyfill");
 // window.debug.enable('example*');
 // const log = window.debug('example');
 
-const React = require('react'), imm = require('immutable'), ImmutableRenderMixin = require('react-immutable-render-mixin');
+const React = require('react'), 
+	imm = require('immutable'), 
+	ImmutableRenderMixin = require('react-immutable-render-mixin');
+
 window.React = React;
 
 const disto = require('../index');
 const  {sto, Dis, act, mix, toObs, toOb} = disto;
-
-
 
 // make a new dispatcher
 const dis = new Dis(),
