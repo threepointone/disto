@@ -50,7 +50,6 @@ class Dispatcher extends EventEmitter{
 
 	@autobind
 	dispatch(action, ...args){
-		console.log('action:', action+'', args);
 		invariant(!this.running, 'cannot dispatch while another\'s going on');
 		invariant(action, 'cannot dispatch a blank action');
 		this.running = true;
@@ -64,7 +63,8 @@ class Dispatcher extends EventEmitter{
 		delete this._currentAction;
 		delete this._currentArgs;
 
-		this.running = false
+		this.running = false;
+		this.emit('action', action, ...args);
 	}
 
 	@autobind

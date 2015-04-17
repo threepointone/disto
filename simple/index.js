@@ -27,7 +27,7 @@ const $$ = {
 		return function(){
 			dispatch($.toggle);
 			if(!$toggle().now){ clearInterval(intval); intval = null; }
-			else{ intval = setInterval(()=> dispatch($.tick), 100)}
+			else{ intval = setInterval(()=> dispatch($.tick), 0)}
 		}
 	})()
 };
@@ -78,5 +78,5 @@ var App = React.createClass({
 React.render(<App/>, document.getElementById('container'));
 
 dis.on('change', ()=>{
-	console.log($tick(), $toggle());
+	// console.log($tick(), $toggle());
 });

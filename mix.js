@@ -1,5 +1,7 @@
 "use strict";
 
+// via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
+
 export default {
   getInitialState() {
     const data = {};
