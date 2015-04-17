@@ -1,5 +1,5 @@
 "use strict";
-
+// https://gist.github.com/threepointone/57ec4e29e2770e67c24b
 var [BRA, KET, IDENT] = ['BRA', 'KET', 'IDENT'];
 
 function last(arr){ return arr[arr.length -1] };
@@ -55,51 +55,3 @@ export default function parse(src, prefix){
 }
 
 
-
-// function print(o){
-//   console.log(JSON.stringify(o, null, ' '));
-// }
-
-// var src = `{
-//   search { done } 
-//   details { done } 
-//   select 
-//   backToList 
-//   some { nested { action1 action2 }}}`;
-
-// var $ = act(src, 'myApp');
-
-// console.log($)
-// // {
-// // 	"search": {
-// // 		"done": {}
-// // 	},
-// // 	"details": {
-// // 		"done": {}
-// // 	},
-// // 	"select": {},
-// // 	"backToList": {},
-// // 	"some": {
-// // 		"nested": {
-// // 			"action1": {},
-// // 			"action2": {}
-// // 		}
-// // 	}
-// // }
-
-// $.search.done === $.details.done;
-// // false
-
-// console.log($.some.nested.action1 + '');
-// // "myApp:some:nested:action1"
-
-// // use with a dispatcher
-// myDispatcher.dispatch($.search, "red shoes");
-
-// // use with a store action handler
-// function storeHandler(action, ...args){
-//   if(action===$.search){
-//     let [query, ...rest] = args;
-//     this.setState({ loading: true, query: query})
-//   }
-// }

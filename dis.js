@@ -42,9 +42,7 @@ class Dispatcher extends EventEmitter{
 
 	_process(store, action, ...args){
 		invariant(this.running, 'cannot process when not running');
-
-		if(!this._processed.get(store)){
-			
+		if(!this._processed.get(store)){			
 			store(action, ...args);
 			this._processed.set(store, true);	
 		}
@@ -79,53 +77,3 @@ class Dispatcher extends EventEmitter{
 }
 
 module.exports = Dispatcher;
-
-
-// function(){
-
-// 	var emitter = new EventEmitter();
-
-// 	var running, $action, $args;
-
-// 	var stores = [];
-
-// 	function onStoreChange(){
-// 		emitter.emit('change');
-// 	}
-
-	
-
-// 	return Object.assign(emitter, {
-// 		register(store){
-// 			stores.push(store);
-// 			return store.on('change', (...args) => onStoreChange);
-
-// 		}
-// 		unregister(store){
-// 			stores = stores.filter(x=> x!=store);	
-// 			store.off('change', onStoreChange);
-
-// 		}
-// 		dispatch(action, ...args){
-// 			// log('action:', action._ || action, args);
-// 			invariant(!running, 'cannot dispatch while another\'s going on');
-// 			invariant(action, 'cannot dispatch a blank action');
-// 			running = true;
-// 			$action = action;
-// 			$args = args;
-
-// 			var processed = new WeakMap();
-// 			this.stores.map(store => this._process(store, action, ...args));
-			
-// 			delete this._processed;
-// 			delete this._currentAction;
-// 			delete this._currentArgs;
-
-// 			this.running = false
-// 		}
-// 		waitfor(...stores){
-
-// 		}
-// 	});
-// }
-
