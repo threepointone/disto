@@ -106,7 +106,7 @@ var store = sto({}, (state, action, ...args)=>{
 
 ```
 
-Also included is @gaearon's superb take on a polyfill for [side loading data](https://github.com/facebook/react/issues/3398)
+Also included is @gaearon's [superb take](https://gist.github.com/gaearon/7d94c9f38fdd34a6e690) on a polyfill for [side loading data](https://github.com/facebook/react/issues/3398)
 ```js
 var App = React.createClass({
   mixins: [mix],
