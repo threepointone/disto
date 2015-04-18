@@ -1,24 +1,29 @@
 "use strict";
-require("babelify/polyfill");
 
-const React = require('react'), 
-	imm = require('immutable'), 
-	ImmutableRenderMixin = require('react-immutable-render-mixin');
+// get some dependencies
+import "babelify/polyfill"; // for some es6 goodness
+import 'whatwg-fetch'; // polyfill for w3c .fetch() api
+import React from 'react';
 
-window.React = React;
-
-const disto = require('../index');
-const {sto, Dis, act, mix, toObs, toOb} = disto;
+// pull out the magic 6
+import {
+  sto,    // creates stores
+  Dis,    // dispatcher class
+  act,    // action constant creator
+  mix,    // mixin for .observe()
+  toObs,  // create observables from a keyed collection of stores
+  toOb    // create observable from a store
+} from '../index';
 
 // make a new dispatcher
-const dis = new Dis(),
-  {fn, dispatch, register, waitFor} = dis;
+var dis = new Dis(),
+  {dispatch, register, waitFor} = dis;
 
 // declare some actions
-const $ = act(`{tick toggle}`);
+var $ = act(`{tick toggle}`);
 
 // action creators
-const $$ = {
+var $$ = {
   toggle: (function(){
     var intval;
     return function(){
@@ -30,7 +35,7 @@ const $$ = {
 };
 
 // stores
-const tickStore = sto({
+var tickStore = sto({
   soFar:0, 
   ticks: 0,
   start:Date.now()
@@ -38,16 +43,25 @@ const tickStore = sto({
   if(action===$.tick){
     waitFor(toggleStore);
     if(toggleStore().now){
-      return Object.assign({}, o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
+      return Object.assign({}, o, {
+        soFar: o.soFar + (Date.now() - o.start), 
+        ticks: o.ticks+1
+      });
     }
   }
   return o;
 });
 register(tickStore);
   
-const toggleStore = sto({now:false, times:0}, function(o, action){
+var toggleStore = sto({
+  now:false, 
+  times:0
+}, function(o, action){
   if(action === $.toggle){
-    return Object.assign({}, o,  {now: !o.now, times: o.times+1 });  
+    return Object.assign({}, o, {
+      now: !o.now, 
+      times: o.times+1 
+    });  
   }
   return o;
 });
@@ -58,10 +72,14 @@ register(toggleStore);
 var App = React.createClass({
   mixins: [mix],
   observe(){ 
-    return toObs({tick: tickStore, toggle: toggleStore}); 
+    // attach our observables here
+    return toObs({
+      tick: tickStore, 
+      toggle: toggleStore
+    }); 
   },
   render() {
-    const data = this.state.data;
+    var data = this.state.data;
     return (
       <div className="App">
         time: {data.tick.soFar},

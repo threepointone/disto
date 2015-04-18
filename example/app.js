@@ -1,18 +1,26 @@
 "use strict";
-require("babelify/polyfill");
+require("babelify/polyfill"); // for some es6 goodness
 
-const React = require('react'),
-  imm = require('immutable'),
-  ImmutableRenderMixin = require('react-immutable-render-mixin');
+// get some dependencies
+// in addition to disto, we're using immutable to hold our store data
 
-const disto = require('../index'),
-  {sto, Dis, act, mix, toObs, toOb} = disto;
+const React = require('react'), imm = require('immutable'), ImmutableRenderMixin = require('react-immutable-render-mixin');
+
+// pull out the magic 6
+const disto = require('../index'), {
+  sto,    // creates stores
+  Dis,    // dispatcher class
+  act,    // action constant creator
+  mix,    // mixin for .observe()
+  toObs,  // create observables from a keyed collection of stores
+  toOb    // create observable from a store
+} = disto;
 
 window.React = React;
 
 // make a new dispatcher
 var dis = new Dis(),
-  {fn, dispatch, register, waitFor} = dis;
+  {dispatch, register, waitFor} = dis;
 
 require('whatwg-fetch');
 
@@ -31,12 +39,7 @@ const services = {
 // actions
 
 // declare the constants
-const $ = act(`{
-  search { done } 
-  details { done } 
-  select 
-  backToList 
-  some { nested { action1, action2 }}}`);
+const $ = act(`{ search { done } details { done } select backToList }`);
 
 // now expose a bunch of actions
 const $$ = {
