@@ -96,7 +96,7 @@ var Dispatcher = (function (_EventEmitter) {
   function Dispatcher() {
     _classCallCheck(this, Dispatcher);
 
-    _get(Object.getPrototypeOf(Dispatcher.prototype), 'constructor', this).call(this);this.stores = [];
+    _get(Object.getPrototypeOf(Dispatcher.prototype), 'constructor', this).call(this);this.stores = [];this.registers = new WeakMap();
   }
 
   _inherits(Dispatcher, _EventEmitter);
@@ -105,7 +105,7 @@ var Dispatcher = (function (_EventEmitter) {
     key: 'register',
     decorators: [_autobind2['default']],
     value: function register(store) {
-      var _this2 = this;
+      var _this = this;
 
       invariant(store instanceof Function, 'store must be a valid function');
       this.stores.push(store);
@@ -116,27 +116,25 @@ var Dispatcher = (function (_EventEmitter) {
           args[_key - 1] = arguments[_key];
         }
 
-        return _this2.emit.apply(_this2, ['change', store].concat(args));
+        return _this.emit.apply(_this, ['change', store].concat(args));
       };
       store.on('change', fn);
-      var t = this;
-      return {
-        unregister: function unregister() {
-          t.stores = t.stores.filter(function (x) {
-            return x != store;
-          });
-          store.off('change', fn);
-        }
-      };
+      this.registers.set(store, fn);
+    }
+  }, {
+    key: 'unregister',
+    decorators: [_autobind2['default']],
+    value: function unregister(store) {
+      var fn = this.registers.get(store);
+      !fn && console.warn('this store is not registered');
+      store.off('change', fn);
+      this.stores = this.stores.filter(function (x) {
+        return x != store;
+      });
+      this.registers['delete'](store);
     }
   }, {
     key: '_process',
-
-    // @autobind
-    // unregister(store){
-
-    // }
-
     value: function _process(store, action) {
       for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
         args[_key2 - 2] = arguments[_key2];
@@ -152,7 +150,7 @@ var Dispatcher = (function (_EventEmitter) {
     key: 'dispatch',
     decorators: [_autobind2['default']],
     value: function dispatch(action) {
-      var _this3 = this;
+      var _this2 = this;
 
       for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
         args[_key3 - 1] = arguments[_key3];
@@ -166,7 +164,7 @@ var Dispatcher = (function (_EventEmitter) {
 
       this._processed = new WeakMap();
       this.stores.map(function (store) {
-        return _this3._process.apply(_this3, [store, action].concat(args));
+        return _this2._process.apply(_this2, [store, action].concat(args));
       });
 
       delete this._processed;
@@ -180,7 +178,7 @@ var Dispatcher = (function (_EventEmitter) {
     key: 'waitfor',
     decorators: [_autobind2['default']],
     value: function waitfor() {
-      var _this4 = this;
+      var _this3 = this;
 
       for (var _len4 = arguments.length, stores = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
         stores[_key4] = arguments[_key4];
@@ -189,7 +187,7 @@ var Dispatcher = (function (_EventEmitter) {
       invariant(this.running, 'cannot waitfor when no message is being sent');
       invariant(stores.length > 0, 'cannot wait for no stores');
       stores.forEach(function (store) {
-        return _this4._process.apply(_this4, [store, _this4._currentAction].concat(_toConsumableArray(_this4._currentArgs)));
+        return _this3._process.apply(_this3, [store, _this3._currentAction].concat(_toConsumableArray(_this3._currentArgs)));
       });
     }
   }]);
