@@ -27,8 +27,10 @@ export default {
   },
 
   setData(key, value) {
-    this.setState({
-      data: {...this.state.data, [key]: value }
+    this.setState(function(prevState, currProps){
+      return {
+        data: {...prevState.data, [key]: value }
+      }
     });
   },
 

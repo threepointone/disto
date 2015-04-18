@@ -1,5 +1,7 @@
 "use strict";
 
+import invariant from 'flux/lib/invariant';
+
 import { Dispatcher } from 'flux';
 import emitMixin from 'emitter-mixin';
 import { EventEmitter } from 'events';
@@ -13,7 +15,7 @@ export function sto(initial, fn = x => x, areEqual = (a, b) => a === b) {
       if (state === undefined) {
         console.warn('have you forgotten to return state?')
       }      
-      F.emit('action', action, ...args);
+      F.emit('action', action, ...args);      
       if(!areEqual(state, oldState)){
         F.emit('change', state, oldState);
       }
@@ -33,6 +35,7 @@ export class Dis extends EventEmitter{
   }
 
   register(store) {
+    invariant(store, 'cannot register a blank store')
     // implicit test - if store is undefined, the next line throws
     this.tokens.set(store, this.$.register(function(payload){
       store(payload.action, ...payload.args);
@@ -45,10 +48,12 @@ export class Dis extends EventEmitter{
   }
 
   dispatch(action, ...args) {
+    invariant(action, 'cannot dispatch a blank action');
     return this.$.dispatch({action, args});    
   }
 
   waitfor(...stores) {
+    invariant(stores.length>0, 'cannot wait for no stores');
     return this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
   }
 }

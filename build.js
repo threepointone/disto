@@ -99,6 +99,10 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.sto = sto;
 
+var _invariant = require('flux/lib/invariant');
+
+var _invariant2 = _interopRequireWildcard(_invariant);
+
 var _Dispatcher = require('flux');
 
 var _emitMixin = require('emitter-mixin');
@@ -168,6 +172,7 @@ var Dis = (function (_EventEmitter) {
   _createClass(Dis, [{
     key: 'register',
     value: function register(store) {
+      _invariant2['default'](store, 'cannot register a blank store');
       // implicit test - if store is undefined, the next line throws
       this.tokens.set(store, this.$.register(function (payload) {
         store.apply(undefined, [payload.action].concat(_toConsumableArray(payload.args)));
@@ -186,6 +191,7 @@ var Dis = (function (_EventEmitter) {
         args[_key2 - 1] = arguments[_key2];
       }
 
+      _invariant2['default'](action, 'cannot dispatch a blank action');
       return this.$.dispatch({ action: action, args: args });
     }
   }, {
@@ -197,6 +203,7 @@ var Dis = (function (_EventEmitter) {
         stores[_key3] = arguments[_key3];
       }
 
+      _invariant2['default'](stores.length > 0, 'cannot wait for no stores');
       return this.$.waitFor([].concat(_toConsumableArray(stores.map(function (store) {
         return _this2.tokens.get(store);
       }))));
@@ -208,7 +215,7 @@ var Dis = (function (_EventEmitter) {
 
 exports.Dis = Dis;
 
-},{"emitter-mixin":5,"events":10,"flux":6}],3:[function(require,module,exports){
+},{"emitter-mixin":5,"events":10,"flux":6,"flux/lib/invariant":8}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -263,8 +270,10 @@ exports["default"] = {
   },
 
   setData: function setData(key, value) {
-    this.setState({
-      data: _extends({}, this.state.data, _defineProperty({}, key, value))
+    this.setState(function (prevState, currProps) {
+      return {
+        data: _extends({}, prevState.data, _defineProperty({}, key, value))
+      };
     });
   },
 
@@ -726,21 +735,17 @@ exports.toObs = toObs;
 function toOb(store) {
   return {
     subscribe: function subscribe(opts) {
-      opts = Object.assign({
-        onNext: function onNext() {}
-      }, opts);
+      opts = Object.assign({ onNext: function onNext() {} }, opts);
 
-      var fn = function fn() {
-        return opts.onNext(store());
+      var fn = function fn(state) {
+        return opts.onNext(state);
       };
       store.on('change', fn);
       // run it once to send initial value
-      fn();
-      return {
-        dispose: function dispose() {
+      fn(store());
+      return { dispose: function dispose() {
           store.off('change', fn);
-        }
-      };
+        } };
     }
   };
 }

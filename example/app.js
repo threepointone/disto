@@ -6,20 +6,16 @@ const React = require('react'),
   ImmutableRenderMixin = require('react-immutable-render-mixin');
 
 const disto = require('../index'),
-  {sto, Dis, act, mix, toObs} = disto;
+  {sto, Dis, act, mix, toObs, toOb} = disto;
 
 window.React = React;
-window.debug = require("debug");
-window.debug.enable('example*');
-const log = window.debug('example');
 
 // make a new dispatcher
 const dis = new Dis(),
   {fn, dispatch, register, waitfor} = dis;
 
+require('whatwg-fetch');
 
-const fetch = require('whatwg-fetch');
-// services
 const services = {
   search(query, callback){   
     return fetch(`http://localhost:3000/list/${query}?rows=20`)
@@ -47,7 +43,7 @@ const $$ = {
   // search for a string
    search(query){
      dispatch($.search, query);
-     services.search(query, (...args) => dispatch($.search.done, ...args))
+     // services.search(query, (...args) => dispatch($.search.done, ...args))
    },
 
    select(id){ 
@@ -66,11 +62,12 @@ const $$ = {
 
 // stores
 
-const list = sto(imm.Map({loading: false, query: '', results: [], selected: false}), 
+const listStore = sto(imm.Map({loading: false, query: '', results: [], selected: false}), 
   (state, action, ...args) => {
     switch(action){
       case $.search: 
-        return state.merge({selected: false, loading: true, query, error: null});
+        let [query] = args;
+        return state.merge({selected: false, loading: true, query:query, error: null});
 
       case $.search.done: 
         const [err, res] = args;
@@ -87,11 +84,11 @@ const list = sto(imm.Map({loading: false, query: '', results: [], selected: fals
       default: 
         return state;
     }
-  });
-register(list);
+  }, imm.is);
+register(listStore);
 
 
-const details = sto({loading: false, query: '', results: [], selected: false}, 
+const detailsStore = sto(imm.Map({loading: false, query: '', results: [], selected: false}), 
   (state, action, ...args) => {
     switch(action){
       case $.details:
@@ -103,33 +100,38 @@ const details = sto({loading: false, query: '', results: [], selected: false},
             state.merge({loading:false, results: [], error: err || res.error}) :
             state.merge({loading:false, results: imm.fromJS(res.body.data), error: null});
 
-  }
-});
-register(details);
+      default: 
+        return state;
+    }
+  }, imm.is);
+register(detailsStore);
 
 
 const dumbo = sto({}, (state, action) => { 
-  waitfor(list, details);
-  console.log('action', action+'');
+  waitfor(listStore, detailsStore);
+  console.info('action:', action+'');
   return {
-    query: list().get('query'),
-    id: details().get('id')
+    query: listStore().get('query'),
+    id: detailsStore().get('id')
   };
 });
 register(dumbo);
 
-
 const App = React.createClass({
-  mixins:[mix],
+  mixins:[ImmutableRenderMixin, mix],
   observe(props){
-    return toObs({list, details});
+    return {
+      list: toOb(listStore), 
+      details: toOb(detailsStore), 
+      dumbo: toOb(dumbo)
+    };
   },
   render() {
-    const data = this.state.data;
+    var data = this.state.data;
 
     return (
       <div>
-        <div>{JSON.stringify(data.dumbo.toJS(), null, ' ')}</div>
+        <div>{JSON.stringify(data.dumbo, null, ' ')}</div>
         <Search {...data} /> 
       </div>      
     );
@@ -139,21 +141,18 @@ const App = React.createClass({
 
 const Search = React.createClass({
   mixins: [ImmutableRenderMixin],
-  onChange(e){
-    $$.search(e.target.value);
-  },
+
   render() {
-    const props = this.props,
+    var props = this.props,
       {list, details} = props,
       selected = list.get('selected');
 
     function vis(bool){
       return bool ? {} : {display: 'none'};
-    }
-
+    }    
     return (
       <div className="Search">
-        <input value={list.get('query')} onChange={this.onChange}/>
+        <input value={list.get('query')} onChange={(e) => $$.search(e.target.value)}/>
         <Results {...props} style={vis(!selected)}/>
         <Details key={details.get('id')} {...props} style={vis(!!selected)}/>        
       </div>
@@ -196,6 +195,7 @@ const Details = React.createClass({
     var props = this.props, {details} = props;
     return (
       <div className='Details-cnt' style={props.style}>
+
         <span style={{cursor:'pointer'}} onClick={this.onBack}>back to list page</span> 
         {details.get('loading') ? 
           <span>loading...</span> : 
@@ -209,5 +209,3 @@ const Details = React.createClass({
 });
 
 React.render(<App/>, document.getElementById('container'));
-
-dis.on('action', debug);

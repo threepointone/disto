@@ -73,7 +73,3 @@ var App = React.createClass({
 });
 
 React.render(<App/>, document.getElementById('container'));
-
-dis.on('change', ()=>{
-  // console.log(tickStore(), toggleStore());
-});

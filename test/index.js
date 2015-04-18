@@ -94,7 +94,7 @@ describe('Dis', ()=>{
     var s1 = sto(0, x => x+1);
     var s2 = sto(0, x => x+2);
     var s3 = sto(0, x => {d.waitfor(s1, s2); return (s1() + s2())});
-    [s1, s2, s3].map(d.register);
+    [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
     s1().should.eql(1);
     s2().should.eql(2);

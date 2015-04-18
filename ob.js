@@ -2,19 +2,13 @@
 export function toOb(store) {
   return {
     subscribe(opts) {
-      opts = Object.assign({
-        onNext: () => {}
-      }, opts);
+      opts = Object.assign({onNext: () => {}}, opts);
 
-      var fn = () => opts.onNext(store());
+      var fn = (state) =>  {return opts.onNext(state)};
       store.on('change', fn);
       // run it once to send initial value
-      fn();
-      return {
-        dispose() {
-          store.off('change', fn);
-        }
-      }
+      fn(store());
+      return { dispose() { store.off('change', fn); } };
     }
   }
 }
