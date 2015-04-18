@@ -1,42 +1,32 @@
 "use strict";
 
 var EventEmitter = require('events').EventEmitter;
-var log = require('debug')('eterna:dispatcher');
 var invariant = require('invariant');
 
 import autobind from 'autobind-decorator';
 
 
 class Dispatcher extends EventEmitter{
-  constructor(){
-    super();
-    this.stores = [];
-
-  }
+  constructor(){ super(); this.stores = []; this.registers = new WeakMap(); }
 
   @autobind
   register(store){
-    // invariant(store instanceof require('./store'), 'store must be a valid instance');
+    invariant(store instanceof Function, 'store must be a valid function');
     this.stores.push(store);
     // because the dispatcher is a central point for the stores, 
     // it makes sense to have a change listener here
     var fn = (e, ...args) => this.emit('change', store, ...args)
     store.on('change', fn);
-    var t = this;
-    return {
-      unregister() {
-          t.stores = t.stores.filter(x=> x!=store);    
-          store.off('change', fn)
-      }
-    }
+    this.registers.set(store, fn)
   }
 
   @autobind
-  waitfor(...stores){
-    invariant(this.running, 'cannot waitfor when no message is being sent');
-    invariant(stores.length>0, 'cannot wait for no stores');
-    stores.forEach(store => this._process(store, this._currentAction, ...this._currentArgs))
-    
+  unregister(store){
+    var fn = this.registers.get(store);
+    !fn && console.warn('this store is not registered')
+    store.off('change', fn);
+    this.stores = this.stores.filter(x=> x!=store);    
+    this.registers.delete(store);    
   }
 
   _process(store, action, ...args){
@@ -67,10 +57,10 @@ class Dispatcher extends EventEmitter{
   }
 
   @autobind
-  fn(action){
-    return function(...args){
-      return this.dispatch(action, ...args);
-    }
+  waitfor(...stores){
+    invariant(this.running, 'cannot waitfor when no message is being sent');
+    invariant(stores.length>0, 'cannot wait for no stores');
+    stores.forEach(store => this._process(store, this._currentAction, ...this._currentArgs))    
   }
 
 }

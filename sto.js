@@ -2,7 +2,7 @@
 
 var emitMixin = require('emitter-mixin');
 
-export function sto(initial, fn, displayName){
+export function sto(initial, fn){
   var state = initial;
   var F = function(action, ...args){
     if(action){
@@ -14,7 +14,6 @@ export function sto(initial, fn, displayName){
     }
     return state;
   };
-  F.displayName = displayName;
 
   emitMixin(F);
   return F;

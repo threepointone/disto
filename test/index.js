@@ -32,7 +32,7 @@ describe('Dis', ()=>{
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
     
     s().should.eql(3);
-    h.unregister();
+    d.unregister(s);
 
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
     s().should.eql(3);
@@ -58,7 +58,7 @@ describe('act', ()=>{
     stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');    
     act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
   })
-  
+
   it('has dev friendly string representations', ()=>{
     act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
   })
