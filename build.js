@@ -15,21 +15,28 @@ var IDENT = 'IDENT';
 
 function last(arr) {
   return arr[arr.length - 1];
-};
+}
 
 function parse(src, prefix) {
   var tree = src.split('').reduce(function (tokens, char) {
     if (char === '{' || char === '}' || /\s/.test(char)) {
       if (tokens.identBuffer) {
-        tokens.push({ type: IDENT, val: tokens.identBuffer.join('') });
+        tokens.push({
+          type: IDENT,
+          val: tokens.identBuffer.join('')
+        });
         tokens.identBuffer = null;
       }
     }
     if (char === '{') {
-      tokens.push({ type: BRA });
+      tokens.push({
+        type: BRA
+      });
     }
     if (char === '}') {
-      tokens.push({ type: KET });
+      tokens.push({
+        type: KET
+      });
     }
     if (/[a-z0-9]/i.test(char)) {
       tokens.identBuffer = tokens.identBuffer || [];
@@ -61,9 +68,11 @@ function parse(src, prefix) {
     var path = arguments[1] === undefined ? [] : arguments[1];
 
     return arr.reduce(function (o, node) {
-      return Object.assign(o, _defineProperty({}, node.val, Object.assign({ toString: function toString() {
+      return Object.assign(o, _defineProperty({}, node.val, Object.assign({
+        toString: function toString() {
           return (prefix ? [prefix] : []).concat(path).concat(node.val).join(':');
-        } }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
+        }
+      }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
     }, {});
   }
 }
@@ -79,7 +88,7 @@ var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i =
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
-var _createDecoratedClass = (function () { function defineProperties(target, descriptors, initializers) { for (var i = 0; i < descriptors.length; i++) { var descriptor = descriptors[i]; var decorators = descriptor.decorators; var key = descriptor.key; delete descriptor.key; delete descriptor.decorators; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor || descriptor.initializer) descriptor.writable = true; if (decorators) { for (var f = 0; f < decorators.length; f++) { var decorator = decorators[f]; if (typeof decorator === 'function') { descriptor = decorator(target, key, descriptor) || descriptor; } else { throw new TypeError('The decorator for method ' + descriptor.key + ' is of the invalid type ' + typeof decorator); } } if (initializers) initializers[key] = descriptor.initializer; } Object.defineProperty(target, key, descriptor); } } return function (Constructor, protoProps, staticProps, protoInitializers, staticInitializers) { if (protoProps) defineProperties(Constructor.prototype, protoProps, protoInitializers); if (staticProps) defineProperties(Constructor, staticProps, staticInitializers); return Constructor; }; })();
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -88,135 +97,134 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== 'fun
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.sto = sto;
 
-var _autobind = require('autobind-decorator');
+var _Dispatcher = require('flux');
 
-var _autobind2 = _interopRequireWildcard(_autobind);
+var _emitMixin = require('emitter-mixin');
+
+var _emitMixin2 = _interopRequireWildcard(_emitMixin);
+
+var _EventEmitter2 = require('events');
 
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
-var invariant = require('invariant');
+var Dis = (function (_EventEmitter) {
+  function Dis() {
+    var _this = this;
 
-var Dispatcher = (function (_EventEmitter) {
-  function Dispatcher() {
-    _classCallCheck(this, Dispatcher);
+    _classCallCheck(this, Dis);
 
-    _get(Object.getPrototypeOf(Dispatcher.prototype), 'constructor', this).call(this);
-    this.stores = [];
-    this.registers = new WeakMap();
+    _get(Object.getPrototypeOf(Dis.prototype), 'constructor', this).call(this);
+    this.tokens = new WeakMap();
+    this.$ = new _Dispatcher.Dispatcher();
+    ['register', 'unregister', 'dispatch', 'waitfor'].forEach(function (fn) {
+      return _this[fn] = _this[fn].bind(_this);
+    });
   }
 
-  _inherits(Dispatcher, _EventEmitter);
+  _inherits(Dis, _EventEmitter);
 
-  _createDecoratedClass(Dispatcher, [{
+  _createClass(Dis, [{
     key: 'register',
-    decorators: [_autobind2['default']],
     value: function register(store) {
-      var _this = this;
-
-      invariant(store instanceof Function, 'store must be a valid function');
-      this.stores.push(store);
-      // because the dispatcher is a central point for the stores,
-      // it makes sense to have a change listener here
-      var fn = function fn(e) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
-
-        return _this.emit.apply(_this, ['change', store].concat(args));
-      };
-      store.on('change', fn);
-      this.registers.set(store, fn);
+      // implicit test - if store is undefined, the next line throws
+      this.tokens.set(store, this.$.register(function (payload) {
+        store.apply(undefined, [payload.action].concat(_toConsumableArray(payload.args)));
+      }));
     }
   }, {
     key: 'unregister',
-    decorators: [_autobind2['default']],
     value: function unregister(store) {
-      var fn = this.registers.get(store);
-      !fn && console.warn('this store is not registered');
-      store.off('change', fn);
-      this.stores = this.stores.filter(function (x) {
-        return x != store;
-      });
-      this.registers['delete'](store);
-    }
-  }, {
-    key: '_process',
-    value: function _process(store, action) {
-      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-        args[_key2 - 2] = arguments[_key2];
-      }
-
-      invariant(this.running, 'cannot process when not running');
-      if (!this._processed.get(store)) {
-        store.apply(undefined, [action].concat(args));
-        this._processed.set(store, true);
-      }
+      this.$.unregister(this.tokens.get(store));
+      this.tokens['delete'](store);
     }
   }, {
     key: 'dispatch',
-    decorators: [_autobind2['default']],
     value: function dispatch(action) {
-      var _this2 = this;
-
-      for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-        args[_key3 - 1] = arguments[_key3];
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
       }
 
-      invariant(!this.running, 'cannot dispatch while another\'s going on');
-      invariant(action, 'cannot dispatch a blank action');
-      this.running = true;
-      this._currentAction = action;
-      this._currentArgs = args;
-
-      this._processed = new WeakMap();
-      this.stores.map(function (store) {
-        return _this2._process.apply(_this2, [store, action].concat(args));
-      });
-
-      delete this._processed;
-      delete this._currentAction;
-      delete this._currentArgs;
-
-      this.running = false;
-      this.emit.apply(this, ['action', action].concat(args));
+      return this.$.dispatch({ action: action, args: args });
     }
   }, {
     key: 'waitfor',
-    decorators: [_autobind2['default']],
     value: function waitfor() {
-      var _this3 = this;
+      var _this2 = this;
 
-      for (var _len4 = arguments.length, stores = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        stores[_key4] = arguments[_key4];
+      for (var _len2 = arguments.length, stores = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        stores[_key2] = arguments[_key2];
       }
 
-      invariant(this.running, 'cannot waitfor when no message is being sent');
-      invariant(stores.length > 0, 'cannot wait for no stores');
-      stores.forEach(function (store) {
-        return _this3._process.apply(_this3, [store, _this3._currentAction].concat(_toConsumableArray(_this3._currentArgs)));
-      });
+      return this.$.waitFor([].concat(_toConsumableArray(stores.map(function (store) {
+        return _this2.tokens.get(store);
+      }))));
     }
   }]);
 
-  return Dispatcher;
-})(EventEmitter);
+  return Dis;
+})(_EventEmitter2.EventEmitter);
 
-exports.Dispatcher = Dispatcher;
+exports.Dis = Dis;
 
-},{"autobind-decorator":5,"events":9,"invariant":7}],3:[function(require,module,exports){
+function sto(initial) {
+  var fn = arguments[1] === undefined ? function (x) {
+    return x;
+  } : arguments[1];
+  var areEqual = arguments[2] === undefined ? function (a, b) {
+    return a === b;
+  } : arguments[2];
+
+  var state = initial;
+  var F = (function (_F) {
+    function F(_x, _x2) {
+      return _F.apply(this, arguments);
+    }
+
+    F.toString = function () {
+      return _F.toString();
+    };
+
+    return F;
+  })(function (action) {
+    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+
+    if (action) {
+      var oldState = state;
+      state = fn.apply(undefined, [state, action].concat(args));
+      if (state === undefined) {
+        console.warn('have you forgotten to return state?');
+      }
+      F.emit.apply(F, ['action', action].concat(args));
+      if (!areEqual(state, oldState)) {
+        F.emit('change', state, oldState);
+      }
+    }
+    return state;
+  });
+  return _emitMixin2['default'](F);
+}
+
+},{"emitter-mixin":5,"events":10,"flux":6}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-module.exports = _extends({}, require('./sto'), {
-	Dis: require('./dis'),
+Object.defineProperty(exports, '__esModule', {
+	value: true
+});
+'use strict';
+
+exports['default'] = _extends({}, require('./disto'), require('./ob'), {
 	act: require('./act'),
 	mix: require('./mix')
 });
+module.exports = exports['default'];
 
-},{"./act":1,"./dis":2,"./mix":4,"./sto":8}],4:[function(require,module,exports){
+},{"./act":1,"./disto":2,"./mix":4,"./ob":9}],4:[function(require,module,exports){
 "use strict";
 
 var _defineProperty = function (obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: key == null || typeof Symbol == "undefined" || key.constructor !== Symbol, configurable: true, writable: true }); };
@@ -305,94 +313,6 @@ exports["default"] = {
 module.exports = exports["default"];
 
 },{}],5:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-/**
- * @copyright 2015, Andrey Popp <8mayday@gmail.com>
- *
- * The decorator may be used on classes or methods
- * ```
- * @autobind
- * class FullBound {}
- *
- * class PartBound {
- *   @autobind
- *   method () {}
- * }
- * ```
- */
-exports['default'] = autobind;
-
-function autobind() {
-  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
-  if (args.length === 1) {
-    return boundClass.apply(undefined, args);
-  } else {
-    return boundMethod.apply(undefined, args);
-  }
-}
-
-/**
- * Use boundMethod to bind all methods on the target.prototype
- */
-function boundClass(target) {
-  // (Using reflect to get all keys including symbols)
-  Reflect.ownKeys(target.prototype).forEach(function (key) {
-    // Ignore special case target method
-    if (key === 'constructor') return;
-
-    var descriptor = Object.getOwnPropertyDescriptor(target.prototype, key);
-
-    // Only methods need binding
-    if (typeof descriptor.value === 'function') {
-      Object.defineProperty(target.prototype, key, boundMethod(target, key, descriptor));
-    }
-  });
-  return target;
-}
-
-/**
- * Return a descriptor removing the value and returning a getter
- * The getter will return a .bind version of the function
- * and memoize the result against a symbol on the instance
- */
-function boundMethod(target, key, descriptor) {
-  var _key = undefined;
-  var fn = descriptor.value;
-
-  if (typeof fn !== 'function') {
-    throw new Error('@autobind decorator can only be applied to methods not: ' + typeof fn);
-  }
-
-  if (typeof key === 'string') {
-    // Add the key to the symbol name for easier debugging
-    _key = Symbol('@autobind method: ' + key);
-  } else if (typeof key === 'symbol') {
-    // A symbol cannot be coerced to a string
-    _key = Symbol('@autobind method: (symbol)');
-  } else {
-    throw new Error('Unexpected key type: ' + typeof key);
-  }
-
-  return {
-    configurable: true, // must be true or we could not be changing it
-    get: function get() {
-      if (!this.hasOwnProperty(_key)) {
-        this[_key] = fn.bind(this);
-      }
-      return this[_key];
-    }
-  };
-}
-module.exports = exports['default'];
-
-},{}],6:[function(require,module,exports){
 
 /**
  * dependencies.
@@ -472,10 +392,273 @@ module.exports = function (obj) {
   return obj;
 };
 
-},{"events":9}],7:[function(require,module,exports){
-(function (process){
+},{"events":10}],6:[function(require,module,exports){
 /**
- * Copyright 2013-2015, Facebook, Inc.
+ * Copyright (c) 2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+module.exports.Dispatcher = require('./lib/Dispatcher')
+
+},{"./lib/Dispatcher":7}],7:[function(require,module,exports){
+/*
+ * Copyright (c) 2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @providesModule Dispatcher
+ * @typechecks
+ */
+
+"use strict";
+
+var invariant = require('./invariant');
+
+var _lastID = 1;
+var _prefix = 'ID_';
+
+/**
+ * Dispatcher is used to broadcast payloads to registered callbacks. This is
+ * different from generic pub-sub systems in two ways:
+ *
+ *   1) Callbacks are not subscribed to particular events. Every payload is
+ *      dispatched to every registered callback.
+ *   2) Callbacks can be deferred in whole or part until other callbacks have
+ *      been executed.
+ *
+ * For example, consider this hypothetical flight destination form, which
+ * selects a default city when a country is selected:
+ *
+ *   var flightDispatcher = new Dispatcher();
+ *
+ *   // Keeps track of which country is selected
+ *   var CountryStore = {country: null};
+ *
+ *   // Keeps track of which city is selected
+ *   var CityStore = {city: null};
+ *
+ *   // Keeps track of the base flight price of the selected city
+ *   var FlightPriceStore = {price: null}
+ *
+ * When a user changes the selected city, we dispatch the payload:
+ *
+ *   flightDispatcher.dispatch({
+ *     actionType: 'city-update',
+ *     selectedCity: 'paris'
+ *   });
+ *
+ * This payload is digested by `CityStore`:
+ *
+ *   flightDispatcher.register(function(payload) {
+ *     if (payload.actionType === 'city-update') {
+ *       CityStore.city = payload.selectedCity;
+ *     }
+ *   });
+ *
+ * When the user selects a country, we dispatch the payload:
+ *
+ *   flightDispatcher.dispatch({
+ *     actionType: 'country-update',
+ *     selectedCountry: 'australia'
+ *   });
+ *
+ * This payload is digested by both stores:
+ *
+ *    CountryStore.dispatchToken = flightDispatcher.register(function(payload) {
+ *     if (payload.actionType === 'country-update') {
+ *       CountryStore.country = payload.selectedCountry;
+ *     }
+ *   });
+ *
+ * When the callback to update `CountryStore` is registered, we save a reference
+ * to the returned token. Using this token with `waitFor()`, we can guarantee
+ * that `CountryStore` is updated before the callback that updates `CityStore`
+ * needs to query its data.
+ *
+ *   CityStore.dispatchToken = flightDispatcher.register(function(payload) {
+ *     if (payload.actionType === 'country-update') {
+ *       // `CountryStore.country` may not be updated.
+ *       flightDispatcher.waitFor([CountryStore.dispatchToken]);
+ *       // `CountryStore.country` is now guaranteed to be updated.
+ *
+ *       // Select the default city for the new country
+ *       CityStore.city = getDefaultCityForCountry(CountryStore.country);
+ *     }
+ *   });
+ *
+ * The usage of `waitFor()` can be chained, for example:
+ *
+ *   FlightPriceStore.dispatchToken =
+ *     flightDispatcher.register(function(payload) {
+ *       switch (payload.actionType) {
+ *         case 'country-update':
+ *           flightDispatcher.waitFor([CityStore.dispatchToken]);
+ *           FlightPriceStore.price =
+ *             getFlightPriceStore(CountryStore.country, CityStore.city);
+ *           break;
+ *
+ *         case 'city-update':
+ *           FlightPriceStore.price =
+ *             FlightPriceStore(CountryStore.country, CityStore.city);
+ *           break;
+ *     }
+ *   });
+ *
+ * The `country-update` payload will be guaranteed to invoke the stores'
+ * registered callbacks in order: `CountryStore`, `CityStore`, then
+ * `FlightPriceStore`.
+ */
+
+  function Dispatcher() {
+    this.$Dispatcher_callbacks = {};
+    this.$Dispatcher_isPending = {};
+    this.$Dispatcher_isHandled = {};
+    this.$Dispatcher_isDispatching = false;
+    this.$Dispatcher_pendingPayload = null;
+  }
+
+  /**
+   * Registers a callback to be invoked with every dispatched payload. Returns
+   * a token that can be used with `waitFor()`.
+   *
+   * @param {function} callback
+   * @return {string}
+   */
+  Dispatcher.prototype.register=function(callback) {
+    var id = _prefix + _lastID++;
+    this.$Dispatcher_callbacks[id] = callback;
+    return id;
+  };
+
+  /**
+   * Removes a callback based on its token.
+   *
+   * @param {string} id
+   */
+  Dispatcher.prototype.unregister=function(id) {
+    invariant(
+      this.$Dispatcher_callbacks[id],
+      'Dispatcher.unregister(...): `%s` does not map to a registered callback.',
+      id
+    );
+    delete this.$Dispatcher_callbacks[id];
+  };
+
+  /**
+   * Waits for the callbacks specified to be invoked before continuing execution
+   * of the current callback. This method should only be used by a callback in
+   * response to a dispatched payload.
+   *
+   * @param {array<string>} ids
+   */
+  Dispatcher.prototype.waitFor=function(ids) {
+    invariant(
+      this.$Dispatcher_isDispatching,
+      'Dispatcher.waitFor(...): Must be invoked while dispatching.'
+    );
+    for (var ii = 0; ii < ids.length; ii++) {
+      var id = ids[ii];
+      if (this.$Dispatcher_isPending[id]) {
+        invariant(
+          this.$Dispatcher_isHandled[id],
+          'Dispatcher.waitFor(...): Circular dependency detected while ' +
+          'waiting for `%s`.',
+          id
+        );
+        continue;
+      }
+      invariant(
+        this.$Dispatcher_callbacks[id],
+        'Dispatcher.waitFor(...): `%s` does not map to a registered callback.',
+        id
+      );
+      this.$Dispatcher_invokeCallback(id);
+    }
+  };
+
+  /**
+   * Dispatches a payload to all registered callbacks.
+   *
+   * @param {object} payload
+   */
+  Dispatcher.prototype.dispatch=function(payload) {
+    invariant(
+      !this.$Dispatcher_isDispatching,
+      'Dispatch.dispatch(...): Cannot dispatch in the middle of a dispatch.'
+    );
+    this.$Dispatcher_startDispatching(payload);
+    try {
+      for (var id in this.$Dispatcher_callbacks) {
+        if (this.$Dispatcher_isPending[id]) {
+          continue;
+        }
+        this.$Dispatcher_invokeCallback(id);
+      }
+    } finally {
+      this.$Dispatcher_stopDispatching();
+    }
+  };
+
+  /**
+   * Is this Dispatcher currently dispatching.
+   *
+   * @return {boolean}
+   */
+  Dispatcher.prototype.isDispatching=function() {
+    return this.$Dispatcher_isDispatching;
+  };
+
+  /**
+   * Call the callback stored with the given id. Also do some internal
+   * bookkeeping.
+   *
+   * @param {string} id
+   * @internal
+   */
+  Dispatcher.prototype.$Dispatcher_invokeCallback=function(id) {
+    this.$Dispatcher_isPending[id] = true;
+    this.$Dispatcher_callbacks[id](this.$Dispatcher_pendingPayload);
+    this.$Dispatcher_isHandled[id] = true;
+  };
+
+  /**
+   * Set up bookkeeping needed when dispatching.
+   *
+   * @param {object} payload
+   * @internal
+   */
+  Dispatcher.prototype.$Dispatcher_startDispatching=function(payload) {
+    for (var id in this.$Dispatcher_callbacks) {
+      this.$Dispatcher_isPending[id] = false;
+      this.$Dispatcher_isHandled[id] = false;
+    }
+    this.$Dispatcher_pendingPayload = payload;
+    this.$Dispatcher_isDispatching = true;
+  };
+
+  /**
+   * Clear bookkeeping used for dispatching.
+   *
+   * @internal
+   */
+  Dispatcher.prototype.$Dispatcher_stopDispatching=function() {
+    this.$Dispatcher_pendingPayload = null;
+    this.$Dispatcher_isDispatching = false;
+  };
+
+
+module.exports = Dispatcher;
+
+},{"./invariant":8}],8:[function(require,module,exports){
+/**
+ * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -485,7 +668,7 @@ module.exports = function (obj) {
  * @providesModule invariant
  */
 
-'use strict';
+"use strict";
 
 /**
  * Use invariant() to assert state which your program assumes to be true.
@@ -499,7 +682,7 @@ module.exports = function (obj) {
  */
 
 var invariant = function(condition, format, a, b, c, d, e, f) {
-  if (process.env.NODE_ENV !== 'production') {
+  if (false) {
     if (format === undefined) {
       throw new Error('invariant requires an error message argument');
     }
@@ -528,8 +711,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-}).call(this,require('_process'))
-},{"_process":10}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 var _defineProperty = function (obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: key == null || typeof Symbol == 'undefined' || key.constructor !== Symbol, configurable: true, writable: true }); };
@@ -537,44 +719,9 @@ var _defineProperty = function (obj, key, value) { return Object.defineProperty(
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-exports.sto = sto;
-
 // utitlities to convert to react style observables
 exports.toOb = toOb;
 exports.toObs = toObs;
-'use strict';
-
-var emitMixin = require('emitter-mixin');
-
-function sto(initial, fn) {
-  var state = initial;
-  var F = (function (_F) {
-    function F(_x, _x2) {
-      return _F.apply(this, arguments);
-    }
-
-    F.toString = function () {
-      return _F.toString();
-    };
-
-    return F;
-  })(function (action) {
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    if (action) {
-      state = fn.apply(undefined, [state, action].concat(args));
-      if (state === undefined) {
-        console.warn('have you forgotten to return state?');
-      }
-      F.emit('change', state);
-    }
-    return state;
-  });
-
-  return emitMixin(F);
-}
 
 function toOb(store) {
   return {
@@ -587,6 +734,7 @@ function toOb(store) {
         return opts.onNext(store());
       };
       store.on('change', fn);
+      // run it once to send initial value
       fn();
       return {
         dispose: function dispose() {
@@ -603,7 +751,7 @@ function toObs(ko) {
   }, {});
 }
 
-},{"emitter-mixin":6}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -905,66 +1053,6 @@ function isObject(arg) {
 function isUndefined(arg) {
   return arg === void 0;
 }
-
-},{}],10:[function(require,module,exports){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    draining = true;
-    var currentQueue;
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        var i = -1;
-        while (++i < len) {
-            currentQueue[i]();
-        }
-        len = queue.length;
-    }
-    draining = false;
-}
-process.nextTick = function (fun) {
-    queue.push(fun);
-    if (!draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-// TODO(shtylman)
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
 
 },{}]},{},[3])(3)
 });

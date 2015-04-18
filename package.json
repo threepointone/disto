@@ -1,7 +1,7 @@
 {
   "name": "disto",
   "version": "1.0.4",
-  "description": "yet another flux thing ",
+  "description": "yet another flux thing",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
@@ -26,9 +26,7 @@
     "whatwg-fetch": "^0.7.0"
   },
   "dependencies": {
-    "debug": "^2.1.3",
     "emitter-mixin": "0.0.3",
-    "envify": "^3.4.0",
     "flux": "^2.0.1"
   }
 }

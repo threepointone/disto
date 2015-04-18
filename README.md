@@ -27,12 +27,8 @@ var store = sto({q: '', res:[], err: null},
 
 // These are observable event emitters, with the following apis
 
-store.on('action', fn)  
-store.off('action', fn)
-
-store.on('change', fn)  
-store.off('change', fn)
-
+store.on/off('action', fn)  
+store.on/off('change', fn)  
 
 store()   // returns current value
 store(action, ...args) // triggers the reduce function
@@ -45,7 +41,8 @@ toObs({store1, store2, ...stores})  // to Observables
 
 // Neat!
 
-// We also have a dispatcher. There are many like it, but this is mine. 
+// We also have a dispatcher. 
+// It uses the facebook dispatcher under the hood, with a nicer api for these stores.
 
 var dis = new Dis()
 

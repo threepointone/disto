@@ -1,9 +1,31 @@
 "use strict";
 
-import {Dispatcher} from 'flux';
+import { Dispatcher } from 'flux';
+import emitMixin from 'emitter-mixin';
+import { EventEmitter } from 'events';
 
-export default class Dis{
+export function sto(initial, fn = x => x, areEqual = (a, b) => a === b) {
+  var state = initial;
+  var F = function(action, ...args) {
+    if (action) {
+      var oldState = state;
+      state = fn(state, action, ...args);
+      if (state === undefined) {
+        console.warn('have you forgotten to return state?')
+      }      
+      F.emit('action', action, ...args);
+      if(!areEqual(state, oldState)){
+        F.emit('change', state, oldState);
+      }
+    }
+    return state;
+  };
+  return emitMixin(F);
+}
+
+export class Dis extends EventEmitter{
   constructor() {
+    super();
     this.tokens = new WeakMap();
     this.$ = new Dispatcher();
     ['register', 'unregister', 'dispatch', 'waitfor']

@@ -1,10 +1,6 @@
 "use strict";
 require("babelify/polyfill");
 
-// window.debug = require("debug");
-// window.debug.enable('example*');
-// const log = window.debug('example');
-
 const React = require('react'), 
 	imm = require('immutable'), 
 	ImmutableRenderMixin = require('react-immutable-render-mixin');
@@ -19,7 +15,7 @@ const dis = new Dis(),
   {fn, dispatch, register, waitfor} = dis;
 
 // declare some actions
-const $ = act(`{tick toggle _}`);
+const $ = act(`{tick toggle}`);
 
 // action creators
 const $$ = {
@@ -34,7 +30,7 @@ const $$ = {
 };
 
 // stores
-const  $tick = sto({
+const $tick = sto({
   soFar:0, 
   ticks: 0,
   start:Date.now()
@@ -42,7 +38,7 @@ const  $tick = sto({
   if(action===$.tick){
     waitfor($toggle);
     if($toggle().now){
-      return Object.assign(o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
+      return Object.assign({}, o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
     }
   }
   return o;
@@ -51,7 +47,7 @@ register($tick);
   
 const $toggle = sto({now:false, times:0}, function(o, action){
   if(action === $.toggle){
-    return Object.assign(o,  {now: !o.now, times: o.times+1 });  
+    return Object.assign({}, o,  {now: !o.now, times: o.times+1 });  
   }
   return o;
 });
@@ -62,7 +58,7 @@ register($toggle);
 var App = React.createClass({
   mixins: [mix],
   observe(){ 
-    return {tick: toOb($tick), toggle: toOb($toggle)}; 
+    return toObs({tick: $tick, toggle: $toggle}); 
   },
   render() {
     const data = this.state.data;

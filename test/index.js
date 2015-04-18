@@ -39,15 +39,20 @@ describe('sto', ()=>{
   })
 
   it('!!does not emit change when same object is mutated and returned!!!', done => {
-    // this is by design. sorry, object.assign nerds
-    var s = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
-    s.on('change', (oldS, newS)=> {
+    // this is by design!  
+    var s1 = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
+    s1.on('change', (oldS, newS)=> {
       done(true);
     });
-    s('xyz');
+    s1('xyz');
 
-    done();
-  })
+    // so if you're using object.assign, make sure you start with a fresh object
+    var s2 = sto({x: 0}, (state, action) => Object.assign({}, state, {x: state.x+1}));
+    s2.on('change', (oldS, newS)=> {
+      done();
+    });
+    s2('xyz');
+  })  
 
   it('however, you can use a custom equality check', done => {
     // be careful with this. 
@@ -63,8 +68,8 @@ describe('sto', ()=>{
       done();
     })
     s('xyz');
-
   })
+
 
   it('can be converted to an rxjs style observable');
   // toOb, toObs
@@ -104,7 +109,6 @@ describe('Dis', ()=>{
     (() => d.dispatch('xyz')).should.throw();
   })
 
-
 })
 
 describe('act', ()=>{
@@ -112,6 +116,7 @@ describe('act', ()=>{
     var stringify = JSON.stringify;
     stringify(act(`{a {done} b c {done1 done2}}`)).should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
     stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');    
+    act(`{a b {some { nested { path } distraction}} c}`).b.some.nested.path.should.be.ok
     act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
   })
 
