@@ -15,13 +15,55 @@ describe('sto', ()=>{
     s().x.should.eql(6);
   })
 
-  it('emits action event', done => {
+  it('emits change event', done => {
     var s = sto({times: 0}, (state, action) => ({times: state.times+1}));
-    s.on('action', ()=> {
+    s.on('change', ()=> {
       s().times.should.eql(1);
       done();
     });
     s('gogogo');    
+  })
+
+  it('does not emit change when state hasn\'t changed', done => {
+    var s1 = sto(3, (num, action) => {
+      if(action==='inc'){
+        return num + 1;
+      }
+      return num;
+    });
+    s1.on('change', (oldS, newS)=> {
+      done('should not fire');
+    })
+    s1('xyz');  
+    done();
+  })
+
+  it('!!does not emit change when same object is mutated and returned!!!', done => {
+    // this is by design. sorry, object.assign nerds
+    var s = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
+    s.on('change', (oldS, newS)=> {
+      done(true);
+    });
+    s('xyz');
+
+    done();
+  })
+
+  it('however, you can use a custom equality check', done => {
+    // be careful with this. 
+    function eql(a, b){
+      return false;
+    }
+
+    var s = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+2}), eql);
+    s.on('change', (newS, oldS)=> {
+      (newS===oldS).should.be.ok;
+      // ick, mutable shared object
+      newS.x.should.eql(2);
+      done();
+    })
+    s('xyz');
+
   })
 
   it('can be converted to an rxjs style observable');
@@ -47,11 +89,19 @@ describe('Dis', ()=>{
     var s1 = sto(0, x => x+1);
     var s2 = sto(0, x => x+2);
     var s3 = sto(0, x => {d.waitfor(s1, s2); return (s1() + s2())});
-    [s3, s1, s2].map(d.register);
+    [s1, s2, s3].map(d.register);
     d.dispatch('xyz');
     s1().should.eql(1);
     s2().should.eql(2);
     s3().should.eql(3);
+  })
+
+  it('can detect circular dependencies', ()=>{
+    var d = new Dis();
+    var s1 = ({}, (o) => { d.waitfor(s2); return o;});
+    var s2 = ({}, (o) => { d.waitfor(s1); return o;});
+    [s1, s2].map(d.register);
+    (() => d.dispatch('xyz')).should.throw();
   })
 
 

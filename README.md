@@ -27,8 +27,12 @@ var store = sto({q: '', res:[], err: null},
 
 // These are observable event emitters, with the following apis
 
+store.on('action', fn)  
+store.off('action', fn)
+
 store.on('change', fn)  
 store.off('change', fn)
+
 
 store()   // returns current value
 store(action, ...args) // triggers the reduce function
