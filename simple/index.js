@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
 // get some dependencies
-import "babelify/polyfill"; // for some es6 goodness
+import 'babelify/polyfill'; // for some es6 goodness
 import 'whatwg-fetch'; // polyfill for w3c .fetch() api
 import React from 'react';  
 
