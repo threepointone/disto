@@ -23,8 +23,8 @@ export class Dis extends EventEmitter {
   }
 
   unregister(store) {
-  	invariant(store, 'cannot unregister nothing');
-  	invariant(this.tokens.has(store), 'was not a registered store') // should this be silent?
+    invariant(store, 'cannot unregister nothing');
+    invariant(this.tokens.has(store), 'was not a registered store') // should this be silent?
     this.$.unregister(this.tokens.get(store));
     this.tokens.delete(store);
   }
@@ -34,6 +34,7 @@ export class Dis extends EventEmitter {
     this.$.dispatch({
       action, args
     });
+    this.emit('action', action, ...args);
   }
 
   waitFor(...stores) {
