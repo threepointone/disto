@@ -3,16 +3,16 @@
 // get some dependencies
 import "babelify/polyfill"; // for some es6 goodness
 import 'whatwg-fetch'; // polyfill for w3c .fetch() api
-import React from 'react';
+import React from 'react';  
 
 // pull out the magic 6
 import {
-  sto,    // creates stores
-  Dis,    // dispatcher class
-  act,    // action constant creator
-  mix,    // mixin for .observe()
-  toObs,  // create observables from a keyed collection of stores
-  toOb    // create observable from a store
+  sto,    /* creates stores */
+  Dis,    /* dispatcher class */
+  act,    /* action constant creator */
+  mix,    /* mixin for .observe() */
+  toObs,  /* create observables from a keyed collection of stores */
+  toOb    /* create observable from a store */
 } from '../index';
 
 // make a new dispatcher
