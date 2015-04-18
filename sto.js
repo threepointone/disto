@@ -15,8 +15,7 @@ export function sto(initial, fn){
     return state;
   };
 
-  emitMixin(F);
-  return F;
+  return emitMixin(F);
 }
 
 

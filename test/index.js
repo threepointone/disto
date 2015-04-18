@@ -9,7 +9,8 @@ describe('sto', ()=>{
   });
 
   it('responds to actions / returns current state', ()=>{
-    var s = sto({x: 1, y:2}, (o, action, key, val=1) => (action==='inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
+    var s = sto({x: 1, y:2}, 
+      (o, action, key, val=1) => (action==='inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
     s('inc', 'x', 5);
     s().x.should.eql(6);
   })
