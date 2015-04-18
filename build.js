@@ -109,6 +109,46 @@ var _EventEmitter2 = require('events');
 
 'use strict';
 
+function sto(initial) {
+  var fn = arguments[1] === undefined ? function (x) {
+    return x;
+  } : arguments[1];
+  var areEqual = arguments[2] === undefined ? function (a, b) {
+    return a === b;
+  } : arguments[2];
+
+  var state = initial;
+  var F = (function (_F) {
+    function F(_x, _x2) {
+      return _F.apply(this, arguments);
+    }
+
+    F.toString = function () {
+      return _F.toString();
+    };
+
+    return F;
+  })(function (action) {
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    if (action) {
+      var oldState = state;
+      state = fn.apply(undefined, [state, action].concat(args));
+      if (state === undefined) {
+        console.warn('have you forgotten to return state?');
+      }
+      F.emit.apply(F, ['action', action].concat(args));
+      if (!areEqual(state, oldState)) {
+        F.emit('change', state, oldState);
+      }
+    }
+    return state;
+  });
+  return _emitMixin2['default'](F);
+}
+
 var Dis = (function (_EventEmitter) {
   function Dis() {
     var _this = this;
@@ -142,8 +182,8 @@ var Dis = (function (_EventEmitter) {
   }, {
     key: 'dispatch',
     value: function dispatch(action) {
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
+      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
       }
 
       return this.$.dispatch({ action: action, args: args });
@@ -153,8 +193,8 @@ var Dis = (function (_EventEmitter) {
     value: function waitfor() {
       var _this2 = this;
 
-      for (var _len2 = arguments.length, stores = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        stores[_key2] = arguments[_key2];
+      for (var _len3 = arguments.length, stores = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        stores[_key3] = arguments[_key3];
       }
 
       return this.$.waitFor([].concat(_toConsumableArray(stores.map(function (store) {
@@ -167,46 +207,6 @@ var Dis = (function (_EventEmitter) {
 })(_EventEmitter2.EventEmitter);
 
 exports.Dis = Dis;
-
-function sto(initial) {
-  var fn = arguments[1] === undefined ? function (x) {
-    return x;
-  } : arguments[1];
-  var areEqual = arguments[2] === undefined ? function (a, b) {
-    return a === b;
-  } : arguments[2];
-
-  var state = initial;
-  var F = (function (_F) {
-    function F(_x, _x2) {
-      return _F.apply(this, arguments);
-    }
-
-    F.toString = function () {
-      return _F.toString();
-    };
-
-    return F;
-  })(function (action) {
-    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
-    }
-
-    if (action) {
-      var oldState = state;
-      state = fn.apply(undefined, [state, action].concat(args));
-      if (state === undefined) {
-        console.warn('have you forgotten to return state?');
-      }
-      F.emit.apply(F, ['action', action].concat(args));
-      if (!areEqual(state, oldState)) {
-        F.emit('change', state, oldState);
-      }
-    }
-    return state;
-  });
-  return _emitMixin2['default'](F);
-}
 
 },{"emitter-mixin":5,"events":10,"flux":6}],3:[function(require,module,exports){
 'use strict';

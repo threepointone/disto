@@ -8,7 +8,7 @@ const React = require('react'),
 window.React = React;
 
 const disto = require('../index');
-const  {sto, Dis, act, mix, toObs, toOb} = disto;
+const {sto, Dis, act, mix, toObs, toOb} = disto;
 
 // make a new dispatcher
 const dis = new Dis(),
@@ -23,42 +23,42 @@ const $$ = {
     var intval;
     return function(){
       dispatch($.toggle);
-      if(!$toggle().now){ clearInterval(intval); intval = null; }
+      if(!toggleStore().now){ clearInterval(intval); intval = null; }
       else{ intval = setInterval(()=> dispatch($.tick), 0)}
     }
   })()
 };
 
 // stores
-const $tick = sto({
+const tickStore = sto({
   soFar:0, 
   ticks: 0,
   start:Date.now()
 }, function(o, action){
   if(action===$.tick){
-    waitfor($toggle);
-    if($toggle().now){
+    waitfor(toggleStore);
+    if(toggleStore().now){
       return Object.assign({}, o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
     }
   }
   return o;
 });
-register($tick);
+register(tickStore);
   
-const $toggle = sto({now:false, times:0}, function(o, action){
+const toggleStore = sto({now:false, times:0}, function(o, action){
   if(action === $.toggle){
     return Object.assign({}, o,  {now: !o.now, times: o.times+1 });  
   }
   return o;
 });
-register($toggle);
+register(toggleStore);
 
 
 // views
 var App = React.createClass({
   mixins: [mix],
   observe(){ 
-    return toObs({tick: $tick, toggle: $toggle}); 
+    return toObs({tick: tickStore, toggle: toggleStore}); 
   },
   render() {
     const data = this.state.data;
@@ -75,5 +75,5 @@ var App = React.createClass({
 React.render(<App/>, document.getElementById('container'));
 
 dis.on('change', ()=>{
-  // console.log($tick(), $toggle());
+  // console.log(tickStore(), toggleStore());
 });
