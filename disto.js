@@ -36,7 +36,6 @@ export class Dis extends EventEmitter{
 
   register(store) {
     invariant(store, 'cannot register a blank store')
-    // implicit test - if store is undefined, the next line throws
     this.tokens.set(store, this.$.register(function(payload){
       store(payload.action, ...payload.args);
     }));
