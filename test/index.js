@@ -71,7 +71,7 @@ describe('sto', ()=>{
   })
 
 
-  it('can be converted to an rxjs style observable', (done)=>{
+  it('can be converted to an react style observable', (done)=>{
     var s = sto(0, x => x+1);    
     var ob = toOb(s);
     var {dispose} = ob.subscribe({onNext: state => state.should.eql(0) && done() });
