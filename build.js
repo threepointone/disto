@@ -105,11 +105,11 @@ var _invariant2 = _interopRequireWildcard(_invariant);
 
 var _Dispatcher = require('flux');
 
+var _EventEmitter2 = require('events');
+
 var _emitMixin = require('emitter-mixin');
 
 var _emitMixin2 = _interopRequireWildcard(_emitMixin);
-
-var _EventEmitter2 = require('events');
 
 'use strict';
 

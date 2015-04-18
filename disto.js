@@ -1,10 +1,10 @@
 "use strict";
 
 import invariant from 'flux/lib/invariant';
-
 import { Dispatcher } from 'flux';
-import emitMixin from 'emitter-mixin';
+
 import { EventEmitter } from 'events';
+import emitMixin from 'emitter-mixin';
 
 export function sto(initial, fn = x => x, areEqual = (a, b) => a === b) {
   var state = initial;
