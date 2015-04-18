@@ -27,11 +27,7 @@ export default {
   },
 
   setData(key, value) {
-    this.setState(function(prevState, currProps){
-      return {
-        data: {...prevState.data, [key]: value }
-      }
-    });
+    this.setState(prevState => ({data: {...prevState.data, [key]: value}}));
   },
 
   subscribe(props, context, onNext) {

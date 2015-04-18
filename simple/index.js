@@ -12,7 +12,7 @@ const {sto, Dis, act, mix, toObs, toOb} = disto;
 
 // make a new dispatcher
 const dis = new Dis(),
-  {fn, dispatch, register, waitfor} = dis;
+  {fn, dispatch, register, waitFor} = dis;
 
 // declare some actions
 const $ = act(`{tick toggle}`);
@@ -36,7 +36,7 @@ const tickStore = sto({
   start:Date.now()
 }, function(o, action){
   if(action===$.tick){
-    waitfor(toggleStore);
+    waitFor(toggleStore);
     if(toggleStore().now){
       return Object.assign({}, o, {soFar: o.soFar + (Date.now() - o.start), ticks: o.ticks+1})
     }

@@ -51,7 +51,7 @@ dis.unregister(store)
 
 dis.dispatch(action, ...args)
 
-dis.waitfor(...stores)
+dis.waitFor(...stores)
 
 // Actions are plain functions / whatever you please. 
 // However, we have a helper to generate nested action constants. 

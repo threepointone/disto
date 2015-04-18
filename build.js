@@ -28,16 +28,9 @@ function parse(src, prefix) {
         tokens.identBuffer = null;
       }
     }
-    if (char === '{') {
-      tokens.push({
-        type: BRA
-      });
-    }
-    if (char === '}') {
-      tokens.push({
-        type: KET
-      });
-    }
+    if (char === '{') tokens.push({ type: BRA });
+    if (char === '}') tokens.push({ type: KET });
+
     if (/[a-z0-9]/i.test(char)) {
       tokens.identBuffer = tokens.identBuffer || [];
       tokens.identBuffer.push(char);
@@ -46,16 +39,17 @@ function parse(src, prefix) {
   }, []).reduce(function (stack, token) {
     switch (token.type) {
       case BRA:
-        stack.push([]);
-        break;
+        stack.push([]);break;
+
       case KET:
         if (stack.length === 1) break;
         var children = stack.pop();
         last(last(stack)).children = children;
         break;
+
       case IDENT:
-        last(stack).push(token);
-        break;
+        last(stack).push(token);break;
+
       default:
         break;
     }
@@ -68,11 +62,9 @@ function parse(src, prefix) {
     var path = arguments[1] === undefined ? [] : arguments[1];
 
     return arr.reduce(function (o, node) {
-      return Object.assign(o, _defineProperty({}, node.val, Object.assign({
-        toString: function toString() {
+      return Object.assign(o, _defineProperty({}, node.val, Object.assign({ toString: function toString() {
           return (prefix ? [prefix] : []).concat(path).concat(node.val).join(':');
-        }
-      }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
+        } }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
     }, {});
   }
 }
@@ -162,7 +154,7 @@ var Dis = (function (_EventEmitter) {
     _get(Object.getPrototypeOf(Dis.prototype), 'constructor', this).call(this);
     this.tokens = new WeakMap();
     this.$ = new _Dispatcher.Dispatcher();
-    ['register', 'unregister', 'dispatch', 'waitfor'].forEach(function (fn) {
+    ['register', 'unregister', 'dispatch', 'waitFor'].forEach(function (fn) {
       return _this[fn] = _this[fn].bind(_this);
     });
   }
@@ -195,8 +187,8 @@ var Dis = (function (_EventEmitter) {
       return this.$.dispatch({ action: action, args: args });
     }
   }, {
-    key: 'waitfor',
-    value: function waitfor() {
+    key: 'waitFor',
+    value: function waitFor() {
       var _this2 = this;
 
       for (var _len3 = arguments.length, stores = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
@@ -270,10 +262,8 @@ exports["default"] = {
   },
 
   setData: function setData(key, value) {
-    this.setState(function (prevState, currProps) {
-      return {
-        data: _extends({}, prevState.data, _defineProperty({}, key, value))
-      };
+    this.setState(function (prevState) {
+      return { data: _extends({}, prevState.data, _defineProperty({}, key, value)) };
     });
   },
 

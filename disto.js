@@ -30,7 +30,7 @@ export class Dis extends EventEmitter{
     super();
     this.tokens = new WeakMap();
     this.$ = new Dispatcher();
-    ['register', 'unregister', 'dispatch', 'waitfor']
+    ['register', 'unregister', 'dispatch', 'waitFor']
       .forEach(fn => this[fn] = this[fn].bind(this));
   }
 
@@ -52,7 +52,7 @@ export class Dis extends EventEmitter{
     return this.$.dispatch({action, args});    
   }
 
-  waitfor(...stores) {
+  waitFor(...stores) {
     invariant(stores.length>0, 'cannot wait for no stores');
     return this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
   }

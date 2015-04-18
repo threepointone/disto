@@ -94,11 +94,11 @@ describe('Dis', ()=>{
     s().should.eql(3);
   })
 
-  it('can waitfor stores before proceeding', ()=>{
+  it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
     var s1 = sto(0, x => x+1);
     var s2 = sto(0, x => x+2);
-    var s3 = sto(0, x => {d.waitfor(s1, s2); return (s1() + s2())});
+    var s3 = sto(0, x => {d.waitFor(s1, s2); return (s1() + s2())});
     [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
     s1().should.eql(1);
@@ -108,8 +108,8 @@ describe('Dis', ()=>{
 
   it('can detect circular dependencies', ()=>{
     var d = new Dis();
-    var s1 = ({}, (o) => { d.waitfor(s2); return o;});
-    var s2 = ({}, (o) => { d.waitfor(s1); return o;});
+    var s1 = ({}, (o) => { d.waitFor(s2); return o;});
+    var s2 = ({}, (o) => { d.waitFor(s1); return o;});
     [s1, s2].map(d.register);
     (() => d.dispatch('xyz')).should.throw();
   })
@@ -119,13 +119,21 @@ describe('Dis', ()=>{
 describe('act', ()=>{
   it('can parse descriptor strings', ()=>{
     var stringify = JSON.stringify;
-    stringify(act(`{a {done} b c {done1 done2}}`)).should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
-    stringify(act(`{a b c}`)).should.eql('{"a":{},"b":{},"c":{}}');    
-    act(`{a b {some { nested { path } distraction}} c}`).b.some.nested.path.should.be.ok
+
+    stringify(act(`{a {done} b c {done1 done2}}`))
+      .should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
+    
+    stringify(act(`{a b c}`))
+      .should.eql('{"a":{},"b":{},"c":{}}');    
+    
+    act(`{a b {some { nested { path } distraction}} c}`)
+      .b.some.nested.path.should.be.ok
+    
     act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
   })
 
   it('has dev friendly string representations', ()=>{
-    act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
+    act(`{x { a b {done} c } y z }`,'myApp')
+      .x.b.done.toString().should.eql('myApp:x:b:done');
   })
 })

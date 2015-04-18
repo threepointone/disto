@@ -17,16 +17,9 @@ export default function parse(src, prefix) {
           tokens.identBuffer = null;
         }
       }
-      if (char === '{') {
-        tokens.push({
-          type: BRA
-        });
-      }
-      if (char === '}') {
-        tokens.push({
-          type: KET
-        });
-      }
+      if (char === '{') tokens.push({type: BRA});
+      if (char === '}') tokens.push({type: KET});
+
       if (/[a-z0-9]/i.test(char)) {
         tokens.identBuffer = tokens.identBuffer || [];
         tokens.identBuffer.push(char);
@@ -35,19 +28,17 @@ export default function parse(src, prefix) {
     }, [])
     .reduce((stack, token) => {
       switch (token.type) {
-        case BRA:
-          stack.push([]);
-          break;
+        case BRA: stack.push([]); break;
+        
         case KET:
           if (stack.length === 1) break;
           let children = stack.pop();
           last(last(stack)).children = children;
           break;
-        case IDENT:
-          last(stack).push(token);
-          break;
-        default:
-          break;
+        
+        case IDENT: last(stack).push(token); break;
+        
+        default: break;
       }
       return stack;
     }, [])[0];
@@ -57,10 +48,7 @@ export default function parse(src, prefix) {
   function toObj(arr, path = []) {
     return arr.reduce((o, node) =>
       Object.assign(o, {
-        [node.val]: Object.assign({
-            toString: () => (prefix ? [prefix] : []).concat(path).concat(node.val).join(':')
-          },
-          node.children ? toObj(node.children, path.concat(node.val)) : {})
-      }), {});
+        [node.val]: Object.assign({toString: () => (prefix ? [prefix] : []).concat(path).concat(node.val).join(':')},
+          node.children ? toObj(node.children, path.concat(node.val)) : {})}), {});
   }
 }

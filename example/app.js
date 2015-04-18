@@ -12,7 +12,7 @@ window.React = React;
 
 // make a new dispatcher
 const dis = new Dis(),
-  {fn, dispatch, register, waitfor} = dis;
+  {fn, dispatch, register, waitFor} = dis;
 
 require('whatwg-fetch');
 

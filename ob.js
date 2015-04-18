@@ -14,7 +14,5 @@ export function toOb(store) {
 }
 
 export function toObs(ko) {
-  return Object.keys(ko).reduce((o, key) => Object.assign(o, {
-    [key]: toOb(ko[key])
-  }), {});
+  return Object.keys(ko).reduce((o, key) => Object.assign(o, {[key]: toOb(ko[key])}), {});
 }
