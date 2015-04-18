@@ -4,7 +4,7 @@ export function toOb(store) {
     subscribe(opts) {
       opts = Object.assign({onNext: () => {}}, opts);
 
-      var fn = (state) =>  {return opts.onNext(state)};
+      var fn = state =>  opts.onNext(state);
       store.on('change', fn);
       // run it once to send initial value
       fn(store());

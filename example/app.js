@@ -41,23 +41,20 @@ const $ = act(`{
 // now expose a bunch of actions
 const $$ = {
   // search for a string
-   search(query){
-     dispatch($.search, query);
-     // services.search(query, (...args) => dispatch($.search.done, ...args))
-   },
-
-   select(id){ 
-     dispatch($.select, id) 
-   },
-
-   details(id){
-     dispatch($.details, query);
-     services.details(id, (...args) => dispatch($.details.done, ...args))
-   },
-
-   backToList(){
-     dispatch($.backToList)
-   }
+  search(query){
+    dispatch($.search, query);
+    services.search(query, (...args) => dispatch($.search.done, ...args))
+  },
+  details(id){
+    dispatch($.details, query);
+    services.details(id, (...args) => dispatch($.details.done, ...args))
+  },
+  select(id){ 
+    dispatch($.select, id) 
+  },
+  backToList(){ 
+    dispatch($.backToList) 
+  }
 }
 
 // stores
@@ -107,34 +104,16 @@ const detailsStore = sto(imm.Map({loading: false, query: '', results: [], select
 register(detailsStore);
 
 
-const dumbo = sto({}, (state, action) => { 
-  waitfor(listStore, detailsStore);
-  console.info('action:', action+'');
-  return {
-    query: listStore().get('query'),
-    id: detailsStore().get('id')
-  };
-});
-register(dumbo);
-
 const App = React.createClass({
   mixins:[ImmutableRenderMixin, mix],
   observe(props){
     return {
       list: toOb(listStore), 
-      details: toOb(detailsStore), 
-      dumbo: toOb(dumbo)
+      details: toOb(detailsStore)
     };
   },
   render() {
-    var data = this.state.data;
-
-    return (
-      <div>
-        <div>{JSON.stringify(data.dumbo, null, ' ')}</div>
-        <Search {...data} /> 
-      </div>      
-    );
+    return <Search {...this.state.data} />
   }
 });
 
