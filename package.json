@@ -19,7 +19,6 @@
     "chai": "^2.2.0",
     "envify": "^3.4.0",
     "immutable": "^3.7.2",
-    "invariant": "^2.0.0",
     "mocha": "^2.2.4",
     "react": "^0.13.1",
     "react-immutable-render-mixin": "^0.8.1",

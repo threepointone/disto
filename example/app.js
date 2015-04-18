@@ -11,7 +11,7 @@ const disto = require('../index'),
 window.React = React;
 
 // make a new dispatcher
-const dis = new Dis(),
+var dis = new Dis(),
   {fn, dispatch, register, waitFor} = dis;
 
 require('whatwg-fetch');
@@ -19,11 +19,11 @@ require('whatwg-fetch');
 const services = {
   search(query, callback){   
     return fetch(`http://localhost:3000/list/${query}?rows=20`)
-    	.then(res => callback(null, res)).catch(err => callback(err))
+    	.then(res => res.json()).then(res => callback(null, res)).catch(callback)
   },
   details(id, callback){
     return fetch(`http://localhost:3000/product/${id}`)
-    	.then(res => callback(null, res)).catch(err => callback(err))
+    	.then(res => res.json()).then(res => callback(null, res)).catch(callback)
   }    
 }
 
@@ -46,11 +46,12 @@ const $$ = {
     services.search(query, (...args) => dispatch($.search.done, ...args))
   },
   details(id){
-    dispatch($.details, query);
+    dispatch($.details, id);
     services.details(id, (...args) => dispatch($.details.done, ...args))
   },
   select(id){ 
-    dispatch($.select, id) 
+    dispatch($.select, id);
+    this.details(id);
   },
   backToList(){ 
     dispatch($.backToList) 
@@ -69,11 +70,12 @@ const listStore = sto(imm.Map({loading: false, query: '', results: [], selected:
       case $.search.done: 
         const [err, res] = args;
           return (err || res.error) ? 
-            state.merge({loading:false, results: [], error: err || res.error}) :
-            state.merge({loading:false, results: imm.fromJS(res.body.data.results.products), error: null});
+            state.merge(imm.fromJS({loading:false, results: [], error: err || res.error})) :
+            state.merge(imm.fromJS({loading:false, results: res.data.results.products, error: null}));
        
       case $.select: 
-         return state.merge({selected: id});
+        let [id] = args;
+        return state.merge({selected: id});
        
       case $.backToList:
          return state.merge({selected: null});
@@ -89,19 +91,30 @@ const detailsStore = sto(imm.Map({loading: false, query: '', results: [], select
   (state, action, ...args) => {
     switch(action){
       case $.details:
+        let [id] = args;
         return state.merge({loading: true, id, details:null, error: null});
       
       case $.details.done:
         const [err, res] = args;
         return (err || res.error) ? 
-            state.merge({loading:false, results: [], error: err || res.error}) :
-            state.merge({loading:false, results: imm.fromJS(res.body.data), error: null});
+            state.merge({loading:false, details: [], error: err || res.error}) :
+            state.merge(imm.fromJS({loading:false, details: res.data, error: null}));
 
       default: 
         return state;
     }
   }, imm.is);
 register(detailsStore);
+
+const dumbo = sto({},() => {
+  dis.waitFor(listStore, detailsStore);
+  console.log({
+    list: listStore().toJS(),
+    details: detailsStore().toJS()
+  })
+  return {};
+})
+register(dumbo);
 
 
 const App = React.createClass({
