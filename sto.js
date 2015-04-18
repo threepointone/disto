@@ -2,12 +2,12 @@
 
 var emitMixin = require('emitter-mixin');
 
-export function sto(initial, fn){
+export function sto(initial, fn) {
   var state = initial;
-  var F = function(action, ...args){
-    if(action){
+  var F = function(action, ...args) {
+    if (action) {
       state = fn(state, action, ...args);
-      if(state === undefined){
+      if (state === undefined) {
         console.warn('have you forgotten to return state?')
       }
       F.emit('change', state);
@@ -20,18 +20,18 @@ export function sto(initial, fn){
 
 
 // utitlities to convert to react style observables
-export function toOb(store){
+export function toOb(store) {
   return {
-    subscribe(opts){
+    subscribe(opts) {
       opts = Object.assign({
-        onNext: ()=>{}
+        onNext: () => {}
       }, opts);
 
-      var fn = ()=> opts.onNext(store());
+      var fn = () => opts.onNext(store());
       store.on('change', fn);
       fn();
       return {
-        dispose(){
+        dispose() {
           store.off('change', fn);
         }
       }
@@ -39,6 +39,8 @@ export function toOb(store){
   }
 }
 
-export function toObs(ko){
-  return Object.keys(ko).reduce((o, key) => Object.assign(o, {[key]: toOb(ko[key]) }), {});
+export function toObs(ko) {
+  return Object.keys(ko).reduce((o, key) => Object.assign(o, {
+    [key]: toOb(ko[key])
+  }), {});
 }
