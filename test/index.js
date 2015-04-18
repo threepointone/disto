@@ -15,9 +15,12 @@ describe('sto', ()=>{
     s().x.should.eql(6);
   })
 
-  it('emits change event', done => {
+  it('emits action event', done => {
     var s = sto({times: 0}, (state, action) => ({times: state.times+1}));
-    s.on('change', ()=> done());
+    s.on('action', ()=> {
+      s().times.should.eql(1);
+      done();
+    });
     s('gogogo');    
   })
 
@@ -46,10 +49,12 @@ describe('Dis', ()=>{
     var s3 = sto(0, x => {d.waitfor(s1, s2); return (s1() + s2())});
     [s3, s1, s2].map(d.register);
     d.dispatch('xyz');
+    s1().should.eql(1);
+    s2().should.eql(2);
     s3().should.eql(3);
   })
 
-  it('should not allow circular dependencies')
+
 })
 
 describe('act', ()=>{
@@ -64,8 +69,3 @@ describe('act', ()=>{
     act(`{x {a b {done} c} y z }`,'myApp').x.b.done.toString().should.eql('myApp:x:b:done');
   })
 })
-
-describe('mix', ()=>{
-  it('can mixin observables onto react components')
-})
-

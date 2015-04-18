@@ -10,27 +10,18 @@ export default class Dispatcher extends EventEmitter {
   constructor() {
     super();
     this.stores = [];
-    this.registers = new WeakMap();
   }
 
   @autobind
   register(store) {
     invariant(store instanceof Function, 'store must be a valid function');
     this.stores.push(store);
-    // because the dispatcher is a central point for the stores, 
-    // it makes sense to have a change listener here
-    var fn = (e, ...args) => this.emit('change', store, ...args)
-    store.on('change', fn);
-    this.registers.set(store, fn)
+
   }
 
   @autobind
   unregister(store) {
-    var fn = this.registers.get(store);
-    !fn && console.warn('this store is not registered')
-    store.off('change', fn);
     this.stores = this.stores.filter(x => x != store);
-    this.registers.delete(store);
   }
 
   _process(store, action, ...args) {

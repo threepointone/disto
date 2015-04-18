@@ -2,19 +2,20 @@
 
 var emitMixin = require('emitter-mixin');
 
-export function sto(initial, fn) {
+export function sto(initial, fn= x => x)  {
   var state = initial;
   var F = function(action, ...args) {
     if (action) {
-      state = fn(state, action, ...args);
+      var newState = fn(state, action, ...args);
       if (state === undefined) {
         console.warn('have you forgotten to return state?')
       }
-      F.emit('change', state);
+      // need to assign before firing event        
+      state = newState;
+      F.emit('action', state);        
     }
     return state;
   };
-
   return emitMixin(F);
 }
 
@@ -28,11 +29,11 @@ export function toOb(store) {
       }, opts);
 
       var fn = () => opts.onNext(store());
-      store.on('change', fn);
+      store.on('action', fn);
       fn();
       return {
         dispose() {
-          store.off('change', fn);
+          store.off('action', fn);
         }
       }
     }
