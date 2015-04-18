@@ -48,7 +48,7 @@ var dis = new Dis()
 dis.register(store)
 dis.unregister(store)
 
-dis.dispatch(action,...args)
+dis.dispatch(action, ...args)
 
 dis.waitfor(...stores)
 
