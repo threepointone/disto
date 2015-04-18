@@ -7,12 +7,12 @@ import React from 'react';
 
 // pull out the magic 6
 import {
-  sto,    /* creates stores */
-  Dis,    /* dispatcher class */
-  act,    /* action constant creator */
-  mix,    /* mixin for .observe() */
-  toObs,  /* create observables from a keyed collection of stores */
-  toOb    /* create observable from a store */
+  Dis,    /* dispatcher class                                     */
+  sto,    /* creates stores                                       */
+  act,    /* action constant creator                              */
+  mix,    /* mixin for .observe()                                 */
+  toOb,   /* create observable from a store                       */
+  toObs   /* create observables from a keyed collection of stores */
 } from '../index';
 
 // make a new dispatcher
