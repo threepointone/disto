@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.disto = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.disto = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/sunilpai/code/disto/index.js":[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -77,7 +77,9 @@ var Dis = (function (_EventEmitter) {
       }
 
       _invariant2['default'](action, 'cannot dispatch a blank action');
-      this.$.dispatch({ action: action, args: args });
+      this.$.dispatch({
+        action: action, args: args
+      });
     }
   }, {
     key: 'waitFor',
@@ -143,16 +145,20 @@ function sto(initial) {
 function toOb(store) {
   return {
     subscribe: function subscribe(opts) {
-      opts = Object.assign({ onNext: function onNext() {} }, opts);
+      opts = Object.assign({
+        onNext: function onNext() {}
+      }, opts);
       var fn = function fn(state) {
         return opts.onNext(state);
       };
       store.on('change', fn);
       // run it once to send initial value
       fn(store());
-      return { dispose: function dispose() {
+      return {
+        dispose: function dispose() {
           store.off('change', fn);
-        } };
+        }
+      };
     }
   };
 }
@@ -183,8 +189,12 @@ function act(src, prefix) {
         tokens.identBuffer = null;
       }
     }
-    if (char === '{') tokens.push({ type: BRA });
-    if (char === '}') tokens.push({ type: KET });
+    if (char === '{') tokens.push({
+      type: BRA
+    });
+    if (char === '}') tokens.push({
+      type: KET
+    });
 
     if (/[a-z0-9]/i.test(char)) {
       tokens.identBuffer = tokens.identBuffer || [];
@@ -194,7 +204,8 @@ function act(src, prefix) {
   }, []).reduce(function (stack, token) {
     switch (token.type) {
       case BRA:
-        stack.push([]);break;
+        stack.push([]);
+        break;
 
       case KET:
         if (stack.length === 1) break;
@@ -203,7 +214,8 @@ function act(src, prefix) {
         break;
 
       case IDENT:
-        last(stack).push(token);break;
+        last(stack).push(token);
+        break;
 
       default:
         break;
@@ -217,14 +229,16 @@ function act(src, prefix) {
     var path = arguments[1] === undefined ? [] : arguments[1];
 
     return arr.reduce(function (o, node) {
-      return Object.assign(o, _defineProperty({}, node.val, Object.assign({ toString: function toString() {
+      return Object.assign(o, _defineProperty({}, node.val, Object.assign({
+        toString: function toString() {
           return (prefix ? [prefix] : []).concat(path).concat(node.val).join(':');
-        } }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
+        }
+      }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
     }, {});
   }
 }
 
-},{"emitter-mixin":2,"events":6,"flux":3,"flux/lib/invariant":5}],2:[function(require,module,exports){
+},{"emitter-mixin":"/Users/sunilpai/code/disto/node_modules/emitter-mixin/index.js","events":"/usr/local/lib/node_modules/browserify/node_modules/events/events.js","flux":"/Users/sunilpai/code/disto/node_modules/flux/index.js","flux/lib/invariant":"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js"}],"/Users/sunilpai/code/disto/node_modules/emitter-mixin/index.js":[function(require,module,exports){
 
 /**
  * dependencies.
@@ -304,7 +318,7 @@ module.exports = function (obj) {
   return obj;
 };
 
-},{"events":6}],3:[function(require,module,exports){
+},{"events":"/usr/local/lib/node_modules/browserify/node_modules/events/events.js"}],"/Users/sunilpai/code/disto/node_modules/flux/index.js":[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -316,7 +330,7 @@ module.exports = function (obj) {
 
 module.exports.Dispatcher = require('./lib/Dispatcher')
 
-},{"./lib/Dispatcher":4}],4:[function(require,module,exports){
+},{"./lib/Dispatcher":"/Users/sunilpai/code/disto/node_modules/flux/lib/Dispatcher.js"}],"/Users/sunilpai/code/disto/node_modules/flux/lib/Dispatcher.js":[function(require,module,exports){
 /*
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -568,7 +582,7 @@ var _prefix = 'ID_';
 
 module.exports = Dispatcher;
 
-},{"./invariant":5}],5:[function(require,module,exports){
+},{"./invariant":"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js"}],"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js":[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -623,7 +637,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],6:[function(require,module,exports){
+},{}],"/usr/local/lib/node_modules/browserify/node_modules/events/events.js":[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -926,5 +940,5 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}]},{},[1])(1)
+},{}]},{},["/Users/sunilpai/code/disto/index.js"])("/Users/sunilpai/code/disto/index.js")
 });
