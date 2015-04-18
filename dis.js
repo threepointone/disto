@@ -6,8 +6,12 @@ var invariant = require('invariant');
 import autobind from 'autobind-decorator';
 
 
-class Dispatcher extends EventEmitter{
-  constructor(){ super(); this.stores = []; this.registers = new WeakMap(); }
+export class Dispatcher extends EventEmitter{
+  constructor(){ 
+    super(); 
+    this.stores = []; 
+    this.registers = new WeakMap(); 
+  }
 
   @autobind
   register(store){
@@ -65,4 +69,5 @@ class Dispatcher extends EventEmitter{
 
 }
 
-module.exports = Dispatcher;
+
+

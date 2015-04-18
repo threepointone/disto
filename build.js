@@ -85,9 +85,15 @@ var _get = function get(object, property, receiver) { var desc = Object.getOwnPr
 
 var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
 var _autobind = require('autobind-decorator');
 
 var _autobind2 = _interopRequireWildcard(_autobind);
+
+'use strict';
 
 var EventEmitter = require('events').EventEmitter;
 var invariant = require('invariant');
@@ -96,7 +102,9 @@ var Dispatcher = (function (_EventEmitter) {
   function Dispatcher() {
     _classCallCheck(this, Dispatcher);
 
-    _get(Object.getPrototypeOf(Dispatcher.prototype), 'constructor', this).call(this);this.stores = [];this.registers = new WeakMap();
+    _get(Object.getPrototypeOf(Dispatcher.prototype), 'constructor', this).call(this);
+    this.stores = [];
+    this.registers = new WeakMap();
   }
 
   _inherits(Dispatcher, _EventEmitter);
@@ -195,7 +203,7 @@ var Dispatcher = (function (_EventEmitter) {
   return Dispatcher;
 })(EventEmitter);
 
-module.exports = Dispatcher;
+exports.Dispatcher = Dispatcher;
 
 },{"autobind-decorator":5,"events":9,"invariant":7}],3:[function(require,module,exports){
 'use strict';
@@ -565,8 +573,7 @@ function sto(initial, fn) {
     return state;
   });
 
-  emitMixin(F);
-  return F;
+  return emitMixin(F);
 }
 
 function toOb(store) {
