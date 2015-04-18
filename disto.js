@@ -48,12 +48,12 @@ export class Dis extends EventEmitter{
 
   dispatch(action, ...args) {
     invariant(action, 'cannot dispatch a blank action');
-    return this.$.dispatch({action, args});    
+    this.$.dispatch({action, args});    
   }
 
   waitFor(...stores) {
     invariant(stores.length>0, 'cannot wait for no stores');
-    return this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
+    this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
   }
 }
 
