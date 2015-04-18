@@ -5,6 +5,8 @@ import {Dispatcher} from 'flux';
 import {EventEmitter} from 'events';
 import emitMixin from 'emitter-mixin';
 
+// todo - test for invariant conditions
+
 export class Dis extends EventEmitter {
   constructor() {
     super();
@@ -21,6 +23,8 @@ export class Dis extends EventEmitter {
   }
 
   unregister(store) {
+  	invariant(store, 'cannot unregister nothing');
+  	invariant(this.tokens.has(store), 'was not a registered store') // should this be silent?
     this.$.unregister(this.tokens.get(store));
     this.tokens.delete(store);
   }
