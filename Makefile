@@ -1,11 +1,11 @@
 dev: 
-	beefy example/app.js -- -t [babelify --stage 0] -t envify
+	beefy example/app.js -- -t [babelify --stage 1] -t envify
 
 simple: 
-	beefy simple/index.js -- -t [babelify --stage 0] -t envify
+	beefy simple/index.js -- -t [babelify --stage 1] -t envify
 
 build: 
-	browserify index.js -s disto -t [babelify --stage 0] -t envify -o build.js
+	browserify index.js -s disto -t [babelify --stage 1] -t envify -o build.js
 	cat build.js | uglifyjs -m -c | gzip | wc -c 
 
 tests: 	

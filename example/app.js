@@ -1,29 +1,31 @@
 "use strict";
-require("babelify/polyfill"); // for some es6 goodness
-
 // get some dependencies
-// in addition to disto, we're using immutable to hold our store data
+import "babelify/polyfill"; // for some es6 goodness
+import 'whatwg-fetch';  // polyfill for w3c .fetch() api
+import React from 'react';
+import imm from 'immutable';
+import ImmutableRenderMixin from 'react-immutable-render-mixin';
 
-const React = require('react'), imm = require('immutable'), ImmutableRenderMixin = require('react-immutable-render-mixin');
 
-// pull out the magic 6
-const disto = require('../index'), {
+// pull out the magic 5
+import {
   sto,    // creates stores
   Dis,    // dispatcher class
   act,    // action constant creator
-  mix,    // mixin for .observe()
   toObs,  // create observables from a keyed collection of stores
   toOb    // create observable from a store
-} = disto;
+} from '../index';
+
+import mix from '../mix'; // mixin for .observe()
 
 window.React = React;
 
 // make a new dispatcher
 var dis = new Dis(),
-  {dispatch, register, waitFor} = dis;
+  {dispatch, register, unregister, waitFor} = dis;
 
-require('whatwg-fetch');
 
+// a couple of helpers to fetch data 
 const services = {
   search(query, callback){   
     return fetch(`http://localhost:3000/list/${query}?rows=20`)

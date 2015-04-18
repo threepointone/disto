@@ -1,13 +1,168 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.disto = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
+
+var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
+
 var _defineProperty = function (obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: key == null || typeof Symbol == 'undefined' || key.constructor !== Symbol, configurable: true, writable: true }); };
+
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-exports['default'] = parse;
+exports.sto = sto;
+
+// utitlities to convert stores to react style observables
+exports.toOb = toOb;
+exports.toObs = toObs;
+exports.act = act;
+
+var _invariant = require('flux/lib/invariant');
+
+var _invariant2 = _interopRequireWildcard(_invariant);
+
+var _Dispatcher = require('flux');
+
+var _EventEmitter2 = require('events');
+
+var _emitMixin = require('emitter-mixin');
+
+var _emitMixin2 = _interopRequireWildcard(_emitMixin);
+
 'use strict';
+
+var Dis = (function (_EventEmitter) {
+  function Dis() {
+    var _this3 = this;
+
+    _classCallCheck(this, Dis);
+
+    _get(Object.getPrototypeOf(Dis.prototype), 'constructor', this).call(this);
+    this.tokens = new WeakMap();
+    this.$ = new _Dispatcher.Dispatcher();
+    ['register', 'unregister', 'dispatch', 'waitFor'].forEach(function (fn) {
+      return _this3[fn] = _this3[fn].bind(_this3);
+    });
+  }
+
+  _inherits(Dis, _EventEmitter);
+
+  _createClass(Dis, [{
+    key: 'register',
+    value: function register(store) {
+      _invariant2['default'](store, 'cannot register a blank store');
+      this.tokens.set(store, this.$.register(function (payload) {
+        store.apply(undefined, [payload.action].concat(_toConsumableArray(payload.args)));
+      }));
+    }
+  }, {
+    key: 'unregister',
+    value: function unregister(store) {
+      this.$.unregister(this.tokens.get(store));
+      this.tokens['delete'](store);
+    }
+  }, {
+    key: 'dispatch',
+    value: function dispatch(action) {
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      _invariant2['default'](action, 'cannot dispatch a blank action');
+      this.$.dispatch({ action: action, args: args });
+    }
+  }, {
+    key: 'waitFor',
+    value: function waitFor() {
+      var _this4 = this;
+
+      for (var _len2 = arguments.length, stores = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        stores[_key2] = arguments[_key2];
+      }
+
+      _invariant2['default'](stores.length > 0, 'cannot wait for no stores');
+      this.$.waitFor([].concat(_toConsumableArray(stores.map(function (store) {
+        return _this4.tokens.get(store);
+      }))));
+    }
+  }]);
+
+  return Dis;
+})(_EventEmitter2.EventEmitter);
+
+exports.Dis = Dis;
+
+function sto(initial) {
+  var fn = arguments[1] === undefined ? function (x) {
+    return x;
+  } : arguments[1];
+  var areEqual = arguments[2] === undefined ? function (a, b) {
+    return a === b;
+  } : arguments[2];
+
+  var state = initial;
+  var F = (function (_F) {
+    function F(_x, _x2) {
+      return _F.apply(this, arguments);
+    }
+
+    F.toString = function () {
+      return _F.toString();
+    };
+
+    return F;
+  })(function (action) {
+    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+
+    if (action) {
+      var oldState = state;
+      state = fn.apply(undefined, [state, action].concat(args));
+      if (state === undefined) {
+        console.warn('have you forgotten to return state?');
+      }
+      F.emit.apply(F, ['action', action].concat(args));
+      if (!areEqual(state, oldState)) {
+        F.emit('change', state, oldState);
+      }
+    }
+    return state;
+  });
+  return _emitMixin2['default'](F);
+}
+
+function toOb(store) {
+  return {
+    subscribe: function subscribe(opts) {
+      opts = Object.assign({ onNext: function onNext() {} }, opts);
+      var fn = function fn(state) {
+        return opts.onNext(state);
+      };
+      store.on('change', fn);
+      // run it once to send initial value
+      fn(store());
+      return { dispose: function dispose() {
+          store.off('change', fn);
+        } };
+    }
+  };
+}
+
+function toObs(ko) {
+  return Object.keys(ko).reduce(function (o, key) {
+    return Object.assign(o, _defineProperty({}, key, toOb(ko[key])));
+  }, {});
+}
+
 // https://gist.github.com/threepointone/57ec4e29e2770e67c24b
 var BRA = 'BRA';
 var KET = 'KET';
@@ -17,7 +172,7 @@ function last(arr) {
   return arr[arr.length - 1];
 }
 
-function parse(src, prefix) {
+function act(src, prefix) {
   var tree = src.split('').reduce(function (tokens, char) {
     if (char === '{' || char === '}' || /\s/.test(char)) {
       if (tokens.identBuffer) {
@@ -69,249 +224,7 @@ function parse(src, prefix) {
   }
 }
 
-module.exports = exports['default'];
-
-},{}],2:[function(require,module,exports){
-'use strict';
-
-var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
-
-var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-exports.sto = sto;
-
-var _invariant = require('flux/lib/invariant');
-
-var _invariant2 = _interopRequireWildcard(_invariant);
-
-var _Dispatcher = require('flux');
-
-var _EventEmitter2 = require('events');
-
-var _emitMixin = require('emitter-mixin');
-
-var _emitMixin2 = _interopRequireWildcard(_emitMixin);
-
-'use strict';
-
-function sto(initial) {
-  var fn = arguments[1] === undefined ? function (x) {
-    return x;
-  } : arguments[1];
-  var areEqual = arguments[2] === undefined ? function (a, b) {
-    return a === b;
-  } : arguments[2];
-
-  var state = initial;
-  var F = (function (_F) {
-    function F(_x, _x2) {
-      return _F.apply(this, arguments);
-    }
-
-    F.toString = function () {
-      return _F.toString();
-    };
-
-    return F;
-  })(function (action) {
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    if (action) {
-      var oldState = state;
-      state = fn.apply(undefined, [state, action].concat(args));
-      if (state === undefined) {
-        console.warn('have you forgotten to return state?');
-      }
-      F.emit.apply(F, ['action', action].concat(args));
-      if (!areEqual(state, oldState)) {
-        F.emit('change', state, oldState);
-      }
-    }
-    return state;
-  });
-  return _emitMixin2['default'](F);
-}
-
-var Dis = (function (_EventEmitter) {
-  function Dis() {
-    var _this = this;
-
-    _classCallCheck(this, Dis);
-
-    _get(Object.getPrototypeOf(Dis.prototype), 'constructor', this).call(this);
-    this.tokens = new WeakMap();
-    this.$ = new _Dispatcher.Dispatcher();
-    ['register', 'unregister', 'dispatch', 'waitFor'].forEach(function (fn) {
-      return _this[fn] = _this[fn].bind(_this);
-    });
-  }
-
-  _inherits(Dis, _EventEmitter);
-
-  _createClass(Dis, [{
-    key: 'register',
-    value: function register(store) {
-      _invariant2['default'](store, 'cannot register a blank store');
-      // implicit test - if store is undefined, the next line throws
-      this.tokens.set(store, this.$.register(function (payload) {
-        store.apply(undefined, [payload.action].concat(_toConsumableArray(payload.args)));
-      }));
-    }
-  }, {
-    key: 'unregister',
-    value: function unregister(store) {
-      this.$.unregister(this.tokens.get(store));
-      this.tokens['delete'](store);
-    }
-  }, {
-    key: 'dispatch',
-    value: function dispatch(action) {
-      for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-        args[_key2 - 1] = arguments[_key2];
-      }
-
-      _invariant2['default'](action, 'cannot dispatch a blank action');
-      return this.$.dispatch({ action: action, args: args });
-    }
-  }, {
-    key: 'waitFor',
-    value: function waitFor() {
-      var _this2 = this;
-
-      for (var _len3 = arguments.length, stores = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        stores[_key3] = arguments[_key3];
-      }
-
-      _invariant2['default'](stores.length > 0, 'cannot wait for no stores');
-      return this.$.waitFor([].concat(_toConsumableArray(stores.map(function (store) {
-        return _this2.tokens.get(store);
-      }))));
-    }
-  }]);
-
-  return Dis;
-})(_EventEmitter2.EventEmitter);
-
-exports.Dis = Dis;
-
-},{"emitter-mixin":5,"events":10,"flux":6,"flux/lib/invariant":8}],3:[function(require,module,exports){
-'use strict';
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-'use strict';
-
-exports['default'] = _extends({}, require('./disto'), require('./ob'), {
-	act: require('./act'),
-	mix: require('./mix')
-});
-module.exports = exports['default'];
-
-},{"./act":1,"./disto":2,"./mix":4,"./ob":9}],4:[function(require,module,exports){
-"use strict";
-
-var _defineProperty = function (obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: key == null || typeof Symbol == "undefined" || key.constructor !== Symbol, configurable: true, writable: true }); };
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-"use strict";
-
-// via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
-
-exports["default"] = {
-  getInitialState: function getInitialState() {
-    var data = {};
-
-    this.subscribe(this.props, this.context, function (key, value) {
-      data[key] = value;
-    });
-    this.unsubscribe();
-
-    return { data: data };
-  },
-
-  componentWillMount: function componentWillMount() {
-    this.subscribe(this.props, this.context, this.setData);
-  },
-
-  componentWillReceiveProps: function componentWillReceiveProps(props, context) {
-    this.subscribe(props, context, this.setData);
-  },
-
-  componentWillUnmount: function componentWillUnmount() {
-    this.unsubscribe();
-  },
-
-  setData: function setData(key, value) {
-    this.setState(function (prevState) {
-      return { data: _extends({}, prevState.data, _defineProperty({}, key, value)) };
-    });
-  },
-
-  subscribe: function subscribe(props, context, onNext) {
-    var newObservables = this.observe(props, context);
-    var newSubscriptions = {};
-
-    var _loop = function (key) {
-      newSubscriptions[key] = newObservables[key].subscribe({
-        onNext: (function (_onNext) {
-          function onNext(_x) {
-            return _onNext.apply(this, arguments);
-          }
-
-          onNext.toString = function () {
-            return _onNext.toString();
-          };
-
-          return onNext;
-        })(function (value) {
-          return onNext(key, value);
-        }),
-        onError: function onError() {},
-        onCompleted: function onCompleted() {}
-      });
-    };
-
-    for (var key in newObservables) {
-      _loop(key);
-    }
-
-    this.unsubscribe();
-    this.subscriptions = newSubscriptions;
-  },
-
-  unsubscribe: function unsubscribe() {
-    for (var key in this.subscriptions) {
-      if (this.subscriptions.hasOwnProperty(key)) {
-        this.subscriptions[key].dispose();
-      }
-    }
-
-    this.subscriptions = {};
-  }
-};
-module.exports = exports["default"];
-
-},{}],5:[function(require,module,exports){
+},{"emitter-mixin":2,"events":6,"flux":3,"flux/lib/invariant":5}],2:[function(require,module,exports){
 
 /**
  * dependencies.
@@ -391,7 +304,7 @@ module.exports = function (obj) {
   return obj;
 };
 
-},{"events":10}],6:[function(require,module,exports){
+},{"events":6}],3:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -403,7 +316,7 @@ module.exports = function (obj) {
 
 module.exports.Dispatcher = require('./lib/Dispatcher')
 
-},{"./lib/Dispatcher":7}],7:[function(require,module,exports){
+},{"./lib/Dispatcher":4}],4:[function(require,module,exports){
 /*
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -655,7 +568,7 @@ var _prefix = 'ID_';
 
 module.exports = Dispatcher;
 
-},{"./invariant":8}],8:[function(require,module,exports){
+},{"./invariant":5}],5:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -710,43 +623,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],9:[function(require,module,exports){
-'use strict';
-
-var _defineProperty = function (obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: key == null || typeof Symbol == 'undefined' || key.constructor !== Symbol, configurable: true, writable: true }); };
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-// utitlities to convert to react style observables
-exports.toOb = toOb;
-exports.toObs = toObs;
-
-function toOb(store) {
-  return {
-    subscribe: function subscribe(opts) {
-      opts = Object.assign({ onNext: function onNext() {} }, opts);
-
-      var fn = function fn(state) {
-        return opts.onNext(state);
-      };
-      store.on('change', fn);
-      // run it once to send initial value
-      fn(store());
-      return { dispose: function dispose() {
-          store.off('change', fn);
-        } };
-    }
-  };
-}
-
-function toObs(ko) {
-  return Object.keys(ko).reduce(function (o, key) {
-    return Object.assign(o, _defineProperty({}, key, toOb(ko[key])));
-  }, {});
-}
-
-},{}],10:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1049,5 +926,5 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}]},{},[3])(3)
+},{}]},{},[1])(1)
 });

@@ -5,15 +5,16 @@ import 'babelify/polyfill'; // for some es6 goodness
 import 'whatwg-fetch'; // polyfill for w3c .fetch() api
 import React from 'react';  
 
-// pull out the magic 6
+// pull out the magic 5
 import {
   Dis,    /* dispatcher class                                     */
   sto,    /* creates stores                                       */
-  act,    /* action constant creator                              */
-  mix,    /* mixin for .observe()                                 */
+  act,    /* action constant creator                              */  
   toOb,   /* create observable from a store                       */
   toObs   /* create observables from a keyed collection of stores */
 } from '../index';
+
+import mix from '../mix';    /* mixin for .observe()              */
 
 // make a new dispatcher
 var dis = new Dis(),

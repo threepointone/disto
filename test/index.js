@@ -1,7 +1,7 @@
 "use strict";
 require('chai').should();
 
-const {sto, Dis, act, mix, toObs, toOb} = require('../index');
+const {sto, Dis, act, toObs, toOb} = require('../index');
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{
