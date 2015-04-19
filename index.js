@@ -36,7 +36,7 @@ export class Dis extends EventEmitter {
   dispatch(action, ...args) {
     invariant(action, 'cannot dispatch a blank action');
     this.$.dispatch({ action, args });
-    // we also fire an action event, so you could conceptually pipe this to a log, etc 
+    // we also fire an action event, so you could pipe this to a log, etc 
     this.emit('action', action, ...args);
   }
 
@@ -45,6 +45,8 @@ export class Dis extends EventEmitter {
     invariant(stores.length > 0, 'cannot wait for no stores');
     this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
   }
+
+  // todo - .destroy();
 }
 
 // stores
@@ -52,7 +54,7 @@ export function sto(
   initial, 
   // initial state    
   
-  fn = (state, action, ...args) => state, 
+  reduce = (state, action, ...args) => state, 
   // the 'handler'/reduce function called on every action 
   // you are expected to return state every time  
   
@@ -67,13 +69,14 @@ export function sto(
 
   // we return a function that 
   // either accepts no arguments, and returns current state
-  // accepts an [action, ...args] message and passes on to 
+  // or accepts an [action, ...args] message and passes on to 
   // the store's reduce function
   var F = function(action, ...args) {
     if (action) {      
       var oldState = state;
       // message dispatch, trigger reduce step
-      state = fn(state, action, ...args);
+      state = reduce(state, action, ...args);
+      // todo - determine that the message came from the dispatcher?
       (state === undefined)  && console.warn('have you forgotten to return state?')
       F.emit('action', action, ...args);    // DON'T USE THIS TO CHANGE STATE ELSEWHERE
       if (!areEqual(state, oldState)) {
@@ -85,10 +88,11 @@ export function sto(
   return emitMixin(F); // this potentially lets us treat it as an observable/channel/whatever
 }
 
+// an observable follows this structure
 // observable: {
 //   subscribe: (observer: {
-//     onNext: (value) -> (),
-//     onError: (err) -> (),
+//     onNext: value -> (),
+//     onError: err -> (),
 //     onCompleted: () -> ()
 //   }) -> (subscription: {
 //     dispose: () -> ()
@@ -97,14 +101,14 @@ export function sto(
 
 // convert a store to an observable
 export function toOb(store) {
+  invariant(store, 'not a store');
   return {
-    subscribe(opts) {
-      opts = Object.assign({onNext: () => {}}, opts);
-      var fn = state => opts.onNext(state);
-      store.on('change', fn);
+    subscribe(opts={}) {
+      let onNext = opts.onNext || (x => x);
+      store.on('change', onNext);
       // run it once to send initial value
-      fn(store());
-      return {dispose() {store.off('change', fn);}};
+      onNext(store());
+      return {dispose() {store.off('change', onNext)}};
     }
   }
 }

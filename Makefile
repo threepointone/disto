@@ -1,14 +1,12 @@
+BABELOPTS = -t [babelify --stage 1] -t envify
+
 dev: 
-	beefy example/app.js -- -t [babelify --stage 1] -t envify
+	beefy _example/app.js _simple/index.js _rebound/index.js -- $(BABELOPTS)
 
-simple: 
-	beefy simple/index.js -- -t [babelify --stage 1] -t envify
-
-build: 
-	browserify index.js -s disto -t [babelify --stage 1] -t envify -o build.js
-	cat build.js | uglifyjs -m -c | gzip | wc -c 
+size:
+	browserify index.js -s disto $(BABELOPTS) | uglifyjs -m -c | gzip | wc -c 
 
 tests: 	
-	mocha tests.js
+	npm test
 
-.PHONY: dev tests simple
+.PHONY: dev size tests

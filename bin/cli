@@ -1,0 +1,9 @@
+#!bin/env/node
+var x = {};
+
+// - app template 
+
+// snippets for 
+// - store 
+// - controller view 
+// - dispatcher functions 

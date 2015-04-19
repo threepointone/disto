@@ -2,9 +2,11 @@
 // get some dependencies
 import "babelify/polyfill"; // for some es6 goodness
 import 'whatwg-fetch';  // polyfill for w3c .fetch() api
-import React from 'react';
+import React from 'react';  window.React = React;
 import imm from 'immutable';
 import ImmutableRenderMixin from 'react-immutable-render-mixin';
+
+var k = require('kefir');
 
 
 // pull out the magic 4
@@ -18,7 +20,7 @@ import {
 import act from '../act'; // action constant creator
 import mix from '../mix'; // mixin for .observe()
 
-window.React = React;
+
 
 // make a new dispatcher
 var dis = new Dis(),
@@ -29,11 +31,11 @@ var dis = new Dis(),
 const services = {
   search(query, callback){   
     return fetch(`http://localhost:3000/list/${query}?rows=20`)
-    	.then(res => res.json()).then(res => callback(null, res)).catch(callback)
+      .then(res => res.json()).then(res => callback(null, res)).catch(callback)
   },
   details(id, callback){
     return fetch(`http://localhost:3000/product/${id}`)
-    	.then(res => res.json()).then(res => callback(null, res)).catch(callback)
+      .then(res => res.json()).then(res => callback(null, res)).catch(callback)
   }    
 }
 
@@ -121,6 +123,9 @@ const Search = React.createClass({
     dispatch($.search, query);
     services.search(query, (...args) => dispatch($.search.done, ...args))
   },
+  _onChange: function(ob){
+    ob.
+  },
   render() {
     var props = this.props,
       {list, details} = props,
@@ -174,7 +179,6 @@ const Details = React.createClass({
     var props = this.props, {details} = props;
     return (
       <div className='Details-cnt' style={props.style}>
-
         <span style={{cursor:'pointer'}} onClick={this.onBack}>back to list page</span> 
         {details.get('loading') ? 
           <span>loading...</span> : 
