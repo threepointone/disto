@@ -47,12 +47,7 @@ export default {
   },
 
   unsubscribe() {
-    for (let key in this.subscriptions) {
-      if (this.subscriptions.hasOwnProperty(key)) {
-        this.subscriptions[key].dispose();
-      }
-    }
-
+    Object.keys(this.subscriptions).forEach(key => this.subscriptions[key].dispose())    
     this.subscriptions = {};
   }
 }

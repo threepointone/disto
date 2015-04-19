@@ -3,7 +3,9 @@
 
 require('chai').should();
 
-const {sto, Dis, act, toObs, toOb} = require('../index');
+import {sto, Dis, toObs, toOb}  from '../index';
+
+import act from '../act';
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{

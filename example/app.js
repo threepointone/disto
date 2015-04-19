@@ -7,15 +7,15 @@ import imm from 'immutable';
 import ImmutableRenderMixin from 'react-immutable-render-mixin';
 
 
-// pull out the magic 5
+// pull out the magic 4
 import {
   sto,    // creates stores
   Dis,    // dispatcher class
-  act,    // action constant creator
   toObs,  // create observables from a keyed collection of stores
   toOb    // create observable from a store
 } from '../index';
 
+import act from '../act'; // action constant creator
 import mix from '../mix'; // mixin for .observe()
 
 window.React = React;
@@ -38,30 +38,8 @@ const services = {
 }
 
 
-// actions
-
-// declare the constants
+// declare actions 
 const $ = act(`{ search { done } details { done } select backToList }`);
-
-// now expose a bunch of actions
-const $$ = {
-  // search for a string
-  search(query){
-    dispatch($.search, query);
-    services.search(query, (...args) => dispatch($.search.done, ...args))
-  },
-  details(id){
-    dispatch($.details, id);
-    services.details(id, (...args) => dispatch($.details.done, ...args))
-  },
-  select(id){ 
-    dispatch($.select, id);
-    this.details(id);
-  },
-  backToList(){ 
-    dispatch($.backToList) 
-  }
-}
 
 // stores
 
@@ -70,7 +48,7 @@ const listStore = sto(imm.Map({loading: false, query: '', results: [], selected:
     switch(action){
       case $.search: 
         let [query] = args;
-        return state.merge({selected: false, loading: true, query:query, error: null});
+        return state.merge(imm.fromJS({selected: false, loading: true, query:query, error: null}));
 
       case $.search.done: 
         const [err, res] = args;
@@ -89,8 +67,6 @@ const listStore = sto(imm.Map({loading: false, query: '', results: [], selected:
         return state;
     }
   }, imm.is);
-register(listStore);
-
 
 const detailsStore = sto(imm.Map({loading: false, query: '', results: [], selected: false}), 
   (state, action, ...args) => {
@@ -109,7 +85,6 @@ const detailsStore = sto(imm.Map({loading: false, query: '', results: [], select
         return state;
     }
   }, imm.is);
-register(detailsStore);
 
 const dumbo = sto({},() => {
   dis.waitFor(listStore, detailsStore);
@@ -119,7 +94,6 @@ const dumbo = sto({},() => {
   })
   return {};
 })
-register(dumbo);
 
 
 const App = React.createClass({
@@ -136,20 +110,24 @@ const App = React.createClass({
 });
 
 
+function vis(bool){
+  return bool ? {} : {display: 'none'};
+}    
+
 const Search = React.createClass({
   mixins: [ImmutableRenderMixin],
-
+  onChange(e){
+    var query = e.target.value;
+    dispatch($.search, query);
+    services.search(query, (...args) => dispatch($.search.done, ...args))
+  },
   render() {
     var props = this.props,
       {list, details} = props,
-      selected = list.get('selected');
-
-    function vis(bool){
-      return bool ? {} : {display: 'none'};
-    }    
+      selected = list.get('selected');    
     return (
       <div className="Search">
-        <input value={list.get('query')} onChange={(e) => $$.search(e.target.value)}/>
+        <input value={list.get('query')} onChange={this.onChange}/>
         <Results {...props} style={vis(!selected)}/>
         <Details key={details.get('id')} {...props} style={vis(!!selected)}/>        
       </div>
@@ -171,7 +149,9 @@ const Results = React.createClass({
 const Result = React.createClass({
   mixins: [ImmutableRenderMixin],
   onClick: function(e){
-    $$.select(this.props.product.get('styleid'));
+    dispatch($.select, id);
+    dispatch($.details, id);
+    services.details(id, (...args) => dispatch($.details.done, ...args))
   },
   render: function() {
     return (
@@ -183,10 +163,12 @@ const Result = React.createClass({
   }
 });
 
+
+
 const Details = React.createClass({
   mixins: [ImmutableRenderMixin],
   onBack: function(){
-    $$.backToList();
+    dispatch($.backToList) 
   },
   render: function() {
     var props = this.props, {details} = props;
@@ -204,5 +186,10 @@ const Details = React.createClass({
     );
   }
 });
+
+
+register(listStore);
+register(detailsStore);
+register(dumbo);
 
 React.render(<App/>, document.getElementById('container'));
