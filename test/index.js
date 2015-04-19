@@ -1,4 +1,6 @@
 "use strict";
+// todo - tests for invariant conditions
+
 require('chai').should();
 
 const {sto, Dis, act, toObs, toOb} = require('../index');
@@ -42,7 +44,7 @@ describe('sto', ()=>{
     // this is by design!  
     var s1 = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
     s1.on('change', (oldS, newS)=> {
-      done(true);
+      done('should never fire!');
     });
     s1('xyz');
 
@@ -74,10 +76,10 @@ describe('sto', ()=>{
   it('can be converted to an react style observable', (done)=>{
     var s = sto(0, x => x+1);    
     var ob = toOb(s);
-    var {dispose} = ob.subscribe({onNext: state => state.should.eql(0) && done() });
+    var {dispose} = ob.subscribe({onNext: state => (state==2) && done() });
+    s('_');s('_');
     dispose();
-  });
-  // toOb, toObs
+  });  
 })
 
 describe('Dis', ()=>{

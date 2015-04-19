@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.disto = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/sunilpai/code/disto/index.js":[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.disto = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
@@ -18,11 +18,27 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== 'fun
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+
+// stores
 exports.sto = sto;
 
-// utitlities to convert stores to react style observables
+// observable: {
+//   subscribe: (observer: {
+//     onNext: (value) -> (),
+//     onError: (err) -> (),
+//     onCompleted: () -> ()
+//   }) -> (subscription: {
+//     dispose: () -> ()
+//   }))
+// }
+
+// convert a store to an observable
 exports.toOb = toOb;
+
+// convert a keyed collection of stores to observables
 exports.toObs = toObs;
+
+// fuck it, we'll do it live!
 exports.act = act;
 
 var _invariant = require('flux/lib/invariant');
@@ -39,6 +55,11 @@ var _emitMixin2 = _interopRequireWildcard(_emitMixin);
 
 'use strict';
 
+// @class Dispatcher
+// every app should have one central dispatcher
+// all messages must go through this dispatcher
+// all state changes happen synchronously with every message
+
 var Dis = (function (_EventEmitter) {
   function Dis() {
     var _this3 = this;
@@ -46,8 +67,12 @@ var Dis = (function (_EventEmitter) {
     _classCallCheck(this, Dis);
 
     _get(Object.getPrototypeOf(Dis.prototype), 'constructor', this).call(this);
-    this.tokens = new WeakMap();
+    // we use the OG dispatcher under the hood
     this.$ = new _Dispatcher.Dispatcher();
+    // store all the tokens returned by the dipatcher
+    this.tokens = new WeakMap();
+
+    // bind these functions, so you can pass them around
     ['register', 'unregister', 'dispatch', 'waitFor'].forEach(function (fn) {
       return _this3[fn] = _this3[fn].bind(_this3);
     });
@@ -60,17 +85,22 @@ var Dis = (function (_EventEmitter) {
     value: function register(store) {
       _invariant2['default'](store, 'cannot register a blank store');
       this.tokens.set(store, this.$.register(function (payload) {
+        // dispatch the action onto the store
         store.apply(undefined, [payload.action].concat(_toConsumableArray(payload.args)));
       }));
     }
   }, {
     key: 'unregister',
     value: function unregister(store) {
+      _invariant2['default'](store, 'cannot unregister nothing');
+      _invariant2['default'](this.tokens.has(store), 'was not a registered store'); // should this be silent?
       this.$.unregister(this.tokens.get(store));
       this.tokens['delete'](store);
     }
   }, {
     key: 'dispatch',
+
+    // synchronous message dispatch
     value: function dispatch(action) {
       for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
@@ -80,9 +110,13 @@ var Dis = (function (_EventEmitter) {
       this.$.dispatch({
         action: action, args: args
       });
+      // we also fire an action event, so you could conceptually pipe this to a log, etc
+      this.emit.apply(this, ['action', action].concat(args));
     }
   }, {
     key: 'waitFor',
+
+    // beware, this is synchronous
     value: function waitFor() {
       var _this4 = this;
 
@@ -103,62 +137,69 @@ var Dis = (function (_EventEmitter) {
 exports.Dis = Dis;
 
 function sto(initial) {
-  var fn = arguments[1] === undefined ? function (x) {
-    return x;
+  var fn = arguments[1] === undefined ? function (state, action) {
+    for (var _len3 = arguments.length, args = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+      args[_key3 - 2] = arguments[_key3];
+    }
+
+    return state;
   } : arguments[1];
   var areEqual = arguments[2] === undefined ? function (a, b) {
-    return a === b;
+    return a === b
+    // equality check function
+    // used to determine 'change' 
+    ;
   } : arguments[2];
-
-  var state = initial;
-  var F = (function (_F) {
-    function F(_x, _x2) {
-      return _F.apply(this, arguments);
+  return (function () {
+    if (typeof initial === 'function') {
+      console.warn('have you forgotten to pass an initial state?');
     }
 
-    F.toString = function () {
-      return _F.toString();
-    };
-
-    return F;
-  })(function (action) {
-    for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
-    }
-
-    if (action) {
-      var oldState = state;
-      state = fn.apply(undefined, [state, action].concat(args));
-      if (state === undefined) {
-        console.warn('have you forgotten to return state?');
+    var state = initial; // hold onto the state here
+    var F = (function (_F) {
+      function F(_x, _x2) {
+        return _F.apply(this, arguments);
       }
-      F.emit.apply(F, ['action', action].concat(args));
-      if (!areEqual(state, oldState)) {
-        F.emit('change', state, oldState);
+
+      F.toString = function () {
+        return _F.toString();
+      };
+
+      return F;
+    })(function (action) {
+      for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+        args[_key4 - 1] = arguments[_key4];
       }
-    }
-    return state;
-  });
-  return _emitMixin2['default'](F);
+
+      if (action) {
+        // message dispatch, trigger reduce step
+        var oldState = state;
+        state = fn.apply(undefined, [state, action].concat(args));
+        state === undefined && console.warn('have you forgotten to return state?');
+        F.emit.apply(F, ['action', action].concat(args)); // DON'T USE THIS TO CHANGE STATE ELSEWHERE
+        if (!areEqual(state, oldState)) {
+          F.emit('change', state, oldState); // ~~~do~~~
+        }
+      }
+      return state;
+    });
+    return _emitMixin2['default'](F); // this potentially lets us treat it as an observable/channel/whatever
+  })();
 }
 
 function toOb(store) {
   return {
     subscribe: function subscribe(opts) {
-      opts = Object.assign({
-        onNext: function onNext() {}
-      }, opts);
+      opts = Object.assign({ onNext: function onNext() {} }, opts);
       var fn = function fn(state) {
         return opts.onNext(state);
       };
       store.on('change', fn);
       // run it once to send initial value
       fn(store());
-      return {
-        dispose: function dispose() {
+      return { dispose: function dispose() {
           store.off('change', fn);
-        }
-      };
+        } };
     }
   };
 }
@@ -177,7 +218,6 @@ var IDENT = 'IDENT';
 function last(arr) {
   return arr[arr.length - 1];
 }
-
 function act(src, prefix) {
   var tree = src.split('').reduce(function (tokens, char) {
     if (char === '{' || char === '}' || /\s/.test(char)) {
@@ -231,14 +271,19 @@ function act(src, prefix) {
     return arr.reduce(function (o, node) {
       return Object.assign(o, _defineProperty({}, node.val, Object.assign({
         toString: function toString() {
-          return (prefix ? [prefix] : []).concat(path).concat(node.val).join(':');
-        }
-      }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
+          return (prefix ? [prefix] : []).concat(path).concat(node.val).join(':') // prefix?:path:to:action
+          ;
+        } }, node.children ? toObj(node.children, path.concat(node.val)) : {})));
     }, {});
   }
 }
 
-},{"emitter-mixin":"/Users/sunilpai/code/disto/node_modules/emitter-mixin/index.js","events":"/usr/local/lib/node_modules/browserify/node_modules/events/events.js","flux":"/Users/sunilpai/code/disto/node_modules/flux/index.js","flux/lib/invariant":"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js"}],"/Users/sunilpai/code/disto/node_modules/emitter-mixin/index.js":[function(require,module,exports){
+// initial state   
+
+// the 'handler' function called on every action
+// you are expected to return state every time
+
+},{"emitter-mixin":2,"events":6,"flux":3,"flux/lib/invariant":5}],2:[function(require,module,exports){
 
 /**
  * dependencies.
@@ -318,7 +363,7 @@ module.exports = function (obj) {
   return obj;
 };
 
-},{"events":"/usr/local/lib/node_modules/browserify/node_modules/events/events.js"}],"/Users/sunilpai/code/disto/node_modules/flux/index.js":[function(require,module,exports){
+},{"events":6}],3:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -330,7 +375,7 @@ module.exports = function (obj) {
 
 module.exports.Dispatcher = require('./lib/Dispatcher')
 
-},{"./lib/Dispatcher":"/Users/sunilpai/code/disto/node_modules/flux/lib/Dispatcher.js"}],"/Users/sunilpai/code/disto/node_modules/flux/lib/Dispatcher.js":[function(require,module,exports){
+},{"./lib/Dispatcher":4}],4:[function(require,module,exports){
 /*
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -582,7 +627,7 @@ var _prefix = 'ID_';
 
 module.exports = Dispatcher;
 
-},{"./invariant":"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js"}],"/Users/sunilpai/code/disto/node_modules/flux/lib/invariant.js":[function(require,module,exports){
+},{"./invariant":5}],5:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -637,7 +682,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],"/usr/local/lib/node_modules/browserify/node_modules/events/events.js":[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -940,5 +985,5 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}]},{},["/Users/sunilpai/code/disto/index.js"])("/Users/sunilpai/code/disto/index.js")
+},{}]},{},[1])(1)
 });
