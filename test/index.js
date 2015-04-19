@@ -112,8 +112,8 @@ describe('Dis', ()=>{
 
   it('can detect circular dependencies', ()=>{
     var d = new Dis();
-    var s1 = ({}, (o) => { d.waitFor(s2); return o;});
-    var s2 = ({}, (o) => { d.waitFor(s1); return o;});
+    var s1 = ({}, o => { d.waitFor(s2); return o;});
+    var s2 = ({}, o => { d.waitFor(s1); return o;});
     [s1, s2].map(d.register);
     (() => d.dispatch('xyz')).should.throw();
   })

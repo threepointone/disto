@@ -70,7 +70,7 @@ const listStore = sto(imm.Map({loading: false, query: '', results: [], selected:
     }
   }, imm.is);
 
-const detailsStore = sto(imm.Map({loading: false, query: '', results: [], selected: false}), 
+const detailsStore = sto(imm.Map({loading: false, query: '', results: []}), 
   (state, action, ...args) => {
     switch(action){
       case $.details:
@@ -124,7 +124,7 @@ const Search = React.createClass({
     services.search(query, (...args) => dispatch($.search.done, ...args))
   },
   _onChange: function(ob){
-    ob.
+    // ob.
   },
   render() {
     var props = this.props,
@@ -154,6 +154,7 @@ const Results = React.createClass({
 const Result = React.createClass({
   mixins: [ImmutableRenderMixin],
   onClick: function(e){
+    var id = this.props.product.get('styleid');
     dispatch($.select, id);
     dispatch($.details, id);
     services.details(id, (...args) => dispatch($.details.done, ...args))

@@ -12,7 +12,7 @@ import emitMixin from 'emitter-mixin';
 export class Dis extends EventEmitter {
   constructor() {
     super();    
-    this.$ = new Dispatcher();  // we use the OG dispatcher under the hood     
+    this.$ = new Dispatcher();    // we use the OG dispatcher under the hood     
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher 
     ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around 
       .forEach(fn => this[fn] = this[fn].bind(this));
@@ -23,6 +23,7 @@ export class Dis extends EventEmitter {
     // register the store, and store the token it returns locally 
     this.tokens.set(store,
       this.$.register(payload => store(payload.action, ...payload.args)));
+    return this;
   }
 
   unregister(store) {
@@ -30,6 +31,7 @@ export class Dis extends EventEmitter {
     invariant(this.tokens.has(store), 'was not a registered store') // should this be silent?
     this.$.unregister(this.tokens.get(store));
     this.tokens.delete(store);
+    return this;
   }
 
   // synchronous message dispatch
@@ -38,12 +40,14 @@ export class Dis extends EventEmitter {
     this.$.dispatch({ action, args });
     // we also fire an action event, so you could pipe this to a log, etc 
     this.emit('action', action, ...args);
+    return this;
   }
 
   // beware, this is synchronous
   waitFor(...stores) {
     invariant(stores.length > 0, 'cannot wait for no stores');
     this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
+    return this;
   }
 
   // todo - .destroy();

@@ -47,7 +47,7 @@ export default {
   },
 
   unsubscribe() {
-    Object.keys(this.subscriptions).forEach(key => this.subscriptions[key].dispose())    
+    Object.keys(this.subscriptions||{}).forEach(key => this.subscriptions[key].dispose())    
     this.subscriptions = {};
   }
 }
