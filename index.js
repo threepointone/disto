@@ -5,6 +5,8 @@ import {Dispatcher} from 'flux';
 import {EventEmitter} from 'events';
 import emitMixin from 'emitter-mixin';
 
+import act from './act2.js';
+
 // @class Dis 
 // every app should have one central dispatcher
 // all messages must go through this dispatcher 
