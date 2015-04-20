@@ -7,6 +7,7 @@ import imm from 'immutable';
 import immumix from 'react-immutable-render-mixin';
 import {decorate as mixin} from 'react-mixin';
 import request from 'superagent';
+import autobind from 'autobind-decorator';
 
 function log(...args){
   return console.log(...args)
@@ -77,19 +78,23 @@ const $ = act(dispatch, {
     go(function*(){
       while(true) {
         var response = yield services.search(yield ch);
-        var d = this.search.done;
-        d(...response); // let's see what happens on error      
+        var done = this.search.done; // this is to work around a babel bug
+        done(...response); // let's see what happens on error      
       }
     }.bind(this))
   }, 'search.done':'',
   
   details(ch){
     go(function*(){
-      while(true) this.details.done(...(yield services.details(yield ch)));    
+      while(true) {
+        var response = yield services.details(yield ch);
+        var done = this.details.done; // this is to work around a babel bug
+        done(...response);
+      }
     }.bind(this))
   }, 'details.done':'',
   
-  select: sync(id => this.details(id)),
+  select: sync(id => $.details(id)),
   backToList: ''
 });
 
@@ -258,6 +263,7 @@ class Results extends Component {
 
 @mixin(immumix)
 class Result extends Component {
+  @autobind
   onClick(e){
     $.select(this.props.product.get('styleid'))
   }

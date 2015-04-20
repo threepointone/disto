@@ -14,6 +14,7 @@
   "author": "Sunil Pai <threepointone@gmail.com>",
   "license": "ISC",
   "devDependencies": {
+    "autobind-decorator": "^1.1.0",
     "babel": "^5.1.10",
     "babelify": "^6.0.2",
     "browserify": "^9.0.8",
