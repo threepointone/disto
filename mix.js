@@ -15,6 +15,7 @@ export default {
   },
 
   componentWillMount() {
+    this.setData = this.setData.bind(this); // this is to protect on regular classes
     this.subscribe(this.props, this.context, this.setData);
   },
 

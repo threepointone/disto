@@ -2,7 +2,9 @@
 
 disto 
 ---
-another take on [flux](http://facebook.github.io/flux), influenced by observables.
+the shredder's js framework
+
+another take on [flux](http://facebook.github.io/flux), influenced by observables/channels.
 
 ```js
 // Here, stores are represented as reduce functions 
@@ -36,8 +38,12 @@ store(action, ...args) // triggers the reduce function
 // notice the conspicuous lack of a .setState()
 
 // there are also a couple of helpers to convert this to an rxjs style observable
-toOb(store)  // "to Observable"
-toObs({store1, store2, ...stores})  // to Observables
+
+// to Observable
+toOb(store)  
+
+// to Observables
+toObs({store1, store2, ...stores})  
 
 // Neat!
 
@@ -53,56 +59,9 @@ dis.dispatch(action, ...args)
 
 dis.waitFor(...stores)
 
-// Actions are plain functions / whatever you please. 
-// However, we have a helper to generate nested action constants. 
-
-var $ = act(`{
-  search { done } 
-  details { done } 
-  select 
-  mousemove
-  backToList 
-  some { nested { action1 action2 }}}`, 'myApp');
- 
- 
-print($);
-// {
-//  "search": {
-//   "done": {}
-//  },
-//  "details": {
-//   "done": {}
-//  },
-//  "select": {},
-//  "mousemove": {},
-//  "backToList": {},
-//  "some": {
-//   "nested": {
-//    "action1": {},
-//    "action2": {}
-//   }
-//  }
-// }
- 
-$.search.done === $.details.done;
-// false
- 
-console.log($.some.nested.action1 + '');
-// "myApp:some:nested:action1"
- 
-// use with a dispatcher
-dispatch($.search, "red shoes");
- 
-// use with a store
-var store = sto({}, (state, action, ...args)=>{
-  switch(action){
-    case $.mousemove:
-      let [e] = args;
-      return {x:e.pageX, y:e.pageY};
-    default: 
-      return state;
-  }
-})
+// Actions can be whatever you please. 
+// We include a helper to make debug friendly action collections
+// It's quite funky. See `./act.js` and the examples for more details. 
 
 ```
 

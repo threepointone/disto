@@ -125,3 +125,54 @@ describe('Dis', ()=>{
   })
 
 })
+
+import {go} from 'js-csp';
+
+describe('act', () => {
+  it(`can parse descriptor objects, 
+    and return channel streams for function calls at given paths,
+    and have dev friendly representations`, done =>{
+    var messages = 0;
+    var $ = act((action, ...args)=> messages++, {
+      one: '',
+      'one.one':'',
+      two:'',
+      three(ch){
+        go(function*(){
+          var words = yield ch;
+          words.should.eql(['what', 'say', 'you']);
+          $.four(...words);
+          messages.should.eql(5);
+          done();
+        })
+      },
+      four:'',
+      some: {nested: {thing: ''}}
+    });
+    $.one();
+    $.two();
+    $.one.one();
+    
+    var debug = require('../act').debug;
+
+    debug($).should.eql([ 
+      '⚡️:one',
+      '⚡️:one.one',
+      '⚡️:two',
+      '⚡️:three',
+      '⚡️:four',
+      '⚡️:some',
+      '⚡️:some:nested',
+      '⚡️:some:nested:thing' 
+    ]); 
+
+    debug($.some).should.eql([ 
+      '⚡️:some:nested', 
+      '⚡️:some:nested:thing' 
+    ]);
+
+    ($.some.nested.toString()).should.eql('⚡️:some:nested');
+    
+    $.three('what', 'say', 'you');
+  })  
+})

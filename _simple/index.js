@@ -2,8 +2,10 @@
 
 // get some dependencies
 import 'babelify/polyfill'; // for some es6 goodness
-import 'whatwg-fetch'; // polyfill for w3c .fetch() api
-import React from 'react';  
+import React from 'react';  window.React = React;
+import {decorate as mixin} from 'react-mixin';
+
+import {go, timeout, alts} from 'js-csp';
 
 // pull out the magic 4
 import {
@@ -13,82 +15,73 @@ import {
   toOb    // create observable from a store
 } from '../index';
 
-import act from '../act'; // action constant creator
+import act, {debug} from '../act'; // action constant creator
 import mix from '../mix'; // mixin for .observe()
 
 // make a new dispatcher
 var dis = new Dis(),
   {dispatch, register, waitFor} = dis;
 
-// declare some actions
-var $ = act(`{tick toggle}`);
-
-// action creators
-var $$ = {
-  toggle: (function(){
-    var intval;
-    return function(){
-      dispatch($.toggle);
-      if(!toggleStore().now){ clearInterval(intval); intval = null; }
-      else{ intval = setInterval(()=> dispatch($.tick), 0)}
-    }
-  })()
-};
+// actions
+var $ = act(dispatch, {
+  tick:'',
+  toggle: function(ch){
+    go(function*(){
+      while(true){
+        this.tick();  
+        if((yield alts([timeout(0), ch])).channel === ch) 
+          yield ch; // block unti it toggles again              
+      }
+    }.bind(this))
+  }
+});
 
 // stores
 var tickStore = sto({
   soFar:0, 
   ticks: 0,
   start:Date.now()
-}, function(o, action){
-  if(action===$.tick){
-    waitFor(toggleStore);
-    if(toggleStore().now){
-      return Object.assign({}, o, {
-        soFar: o.soFar + (Date.now() - o.start), 
-        ticks: o.ticks+1
-      });
-    }
-  }
+}, (o, action) => {
+  if(action === $.tick)
+    return {
+      soFar: o.soFar + (Date.now() - o.start), 
+      ticks: o.ticks+1,
+      start: o.start
+    };    
   return o;
 });
 register(tickStore);
   
 var toggleStore = sto({
-  now:false, 
   times:0
-}, function(o, action){
-  if(action === $.toggle){
-    return Object.assign({}, o, {
-      now: !o.now, 
-      times: o.times+1 
-    });  
-  }
+}, (o, action) => {
+  if(action === $.toggle)
+    return {times: o.times+1}  
   return o;
-});
+})
 register(toggleStore);
 
 
 // views
-var App = React.createClass({
-  mixins: [mix],
-  observe(){ 
-    // attach our observables here
-    return toObs({
-      tick: tickStore, 
-      toggle: toggleStore
-    }); 
-  },
-  render() {
+@mixin(mix)
+class App extends React.Component {
+  constructor(){
+    super();
+  }
+  observe(){
+    return toObs({ tick: tickStore,  toggle: toggleStore }); 
+  }
+  render(){
     var data = this.state.data;
     return (
       <div className="App">
-        time: {data.tick.soFar},
-        clicks: {data.toggle.times}
-        <button onClick={$$.toggle}/>
+        <div>time: {data.tick.soFar},  </div>
+        <button onClick={$.toggle}/>
+        <div>clicks: {data.toggle.times} </div>        
       </div>
     );
   }
-});
+}
 
 React.render(<App/>, document.getElementById('container'));
+

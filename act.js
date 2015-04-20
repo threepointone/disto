@@ -1,11 +1,17 @@
 import invariant from 'flux/lib/invariant';
-import {chan, putAsync} from 'js-csp';
+import csp, {go, chan, putAsync} from 'js-csp';
+
+function last(arr) {
+  return arr[arr.length - 1]
+}
 
 export default function act(dispatch, bag, prefix, path=[]) {
   invariant(bag, 'cannot have a null descriptor');
   var o = {};
+  // this is the nice bit, 
+  // with channels and dispatches and bunnies
   function toChan(fn /* (ch) => {}*/){
-    var c = chan();
+    var c = chan(csp.buffers.sliding(1024));
     fn.call(o, c);
     var f = function(...args) {
       dispatch(f, ...args);
@@ -14,6 +20,7 @@ export default function act(dispatch, bag, prefix, path=[]) {
     return f;
   }
 
+  // this is the ugly bit. thank god for tests, eh?
   return Object.keys(bag).reduce((o, key)=> {   
     invariant(key!=='dispatch', 'reserved word');
     var $path = key.split('.');
@@ -30,18 +37,26 @@ export default function act(dispatch, bag, prefix, path=[]) {
 
     F.toString = F.inspect = () => ['⚡️'].concat(
       prefix? [prefix]: []).concat(path).concat(key).join(':')
-    
-    o[key] = F;
+      
+    if($path.length>1){
+      $path.slice(0, $path.length-1).reduce((_o, seg)=> _o[seg] || Object.assign(_o,{[seg]:{}})[seg], o)[last($path)] = F
+    }
+
+    else o[key] = F;
     return o;
   }, o)
 }
 
-export function spont(fn){
-  return ch =>  go(function*(){
-    while(true) fn(...(yield ch));
-  })
+// old school, standard function
+export function sync(fn){  
+  return function(ch) {
+    var t = this;
+    go(function*(){
+      while(true) fn.call(t, ...(yield ch));
+    })
+  }
 }
-
+// outputs an array of actions on the object. *sometimes*
 export function debug(acts){
   return Object.keys(acts)
     .reduce((arr, key) => acts[key].__isAct ? 
@@ -52,3 +67,6 @@ export function debug(acts){
 export function channelDecorator(){
   // use as decorator on react classes
 }
+
+
+ 
