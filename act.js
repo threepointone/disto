@@ -1,66 +1,54 @@
-// https://gist.github.com/threepointone/57ec4e29e2770e67c24b
-let [BRA, KET, IDENT] = ['BRA', 'KET', 'IDENT'];
+import invariant from 'flux/lib/invariant';
+import {chan, putAsync} from 'js-csp';
 
-function last(arr) {
-  return arr[arr.length - 1]
+export default function act(dispatch, bag, prefix, path=[]) {
+  invariant(bag, 'cannot have a null descriptor');
+  var o = {};
+  function toChan(fn /* (ch) => {}*/){
+    var c = chan();
+    fn.call(o, c);
+    var f = function(...args) {
+      dispatch(f, ...args);
+      putAsync(c, args)       
+    }
+    return f;
+  }
+
+  return Object.keys(bag).reduce((o, key)=> {   
+    invariant(key!=='dispatch', 'reserved word');
+    var $path = key.split('.');
+    var F, desc = bag[key], F;
+    if (typeof desc === 'function') 
+      F = toChan(desc)    
+    else if(desc==='') 
+      F = toChan(()=>{})
+    else 
+      F = Object.assign(toChan(()=>{}), 
+        act(dispatch, desc, prefix, path.concat(key)));
+      
+    F.__isAct = true; // for debugging
+
+    F.toString = F.inspect = () => ['⚡️'].concat(
+      prefix? [prefix]: []).concat(path).concat(key).join(':')
+    
+    o[key] = F;
+    return o;
+  }, o)
 }
 
-// fuck it, we'll do it live!
-export default function act(src, prefix) {
-  let tree = src.split('').reduce((tokens, char) => {
-      if (char === '{' || char === '}' || /\s/.test(char)) {
-        if (tokens.identBuffer) {
-          tokens.push({
-            type: IDENT,
-            val: tokens.identBuffer.join('')
-          });
-          tokens.identBuffer = null;
-        }
-      }
-      if (char === '{') tokens.push({
-        type: BRA
-      });
-      if (char === '}') tokens.push({
-        type: KET
-      });
+export function spont(fn){
+  return ch =>  go(function*(){
+    while(true) fn(...(yield ch));
+  })
+}
 
-      if (/[a-z0-9]/i.test(char)) {
-        tokens.identBuffer = tokens.identBuffer || [];
-        tokens.identBuffer.push(char);
-      }
-      return tokens;
-    }, [])
-    .reduce((stack, token) => {
-      switch (token.type) {
-        case BRA:
-          stack.push([]);
-          break;
+export function debug(acts){
+  return Object.keys(acts)
+    .reduce((arr, key) => acts[key].__isAct ? 
+      arr.concat(acts[key]+'').concat(debug(acts[key])) : 
+      arr, [])
+}
 
-        case KET:
-          if (stack.length === 1) break;
-          let children = stack.pop();
-          last(last(stack)).children = children;
-          break;
-
-        case IDENT:
-          last(stack).push(token);
-          break;
-
-        default:
-          break;
-      }
-      return stack;
-    }, [])[0];
-
-  return toObj(tree);
-
-  function toObj(arr, path = []) {
-    return arr.reduce((o, node) =>
-      Object.assign(o, {
-        [node.val]: Object.assign({
-            toString: () => (prefix ? [prefix] : []).concat(path).concat(node.val).join(':') // prefix?:path:to:action
-          },
-          node.children ? toObj(node.children, path.concat(node.val)) : {})
-      }), {});
-  }
+export function channelDecorator(){
+  // use as decorator on react classes
 }

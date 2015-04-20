@@ -24,6 +24,7 @@
     "mocha": "^2.2.4",
     "react": "^0.13.1",
     "react-immutable-render-mixin": "^0.8.1",
+    "react-mixin": "^1.2.1",
     "rebound": "0.0.12",
     "whatwg-fetch": "^0.7.0"
   },

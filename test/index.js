@@ -110,34 +110,18 @@ describe('Dis', ()=>{
     s3().should.eql(3);
   })
 
-  it('can detect circular dependencies', ()=>{
+  it('can detect circular dependencies', (done)=>{
     var d = new Dis();
     var s1 = ({}, o => { d.waitFor(s2); return o;});
     var s2 = ({}, o => { d.waitFor(s1); return o;});
     [s1, s2].map(d.register);
-    (() => d.dispatch('xyz')).should.throw();
+    try{
+      d.dispatch('xyz')
+    }
+    catch(err){
+      err.should.be.ok;
+      done();
+    }
   })
 
-})
-
-describe('act', ()=>{
-  it('can parse descriptor strings', ()=>{
-    var stringify = JSON.stringify;
-
-    stringify(act(`{a {done} b c {done1 done2}}`))
-      .should.eql('{"a":{"done":{}},"b":{},"c":{"done1":{},"done2":{}}}');
-    
-    stringify(act(`{a b c}`))
-      .should.eql('{"a":{},"b":{},"c":{}}');    
-    
-    act(`{a b {some { nested { path } distraction}} c}`)
-      .b.some.nested.path.should.be.ok
-    
-    act(`{a b}`).a.should.not.eql(act(`{a b}`).a)
-  })
-
-  it('has dev friendly string representations', ()=>{
-    act(`{x { a b {done} c } y z }`,'myApp')
-      .x.b.done.toString().should.eql('myApp:x:b:done');
-  })
 })
