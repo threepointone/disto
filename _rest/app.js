@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 // get some dependencies
-import "babelify/polyfill"; // for some es6 goodness
+import 'babelify/polyfill'; // for some es6 goodness
 import 'whatwg-fetch';  // polyfill for w3c .fetch() api
 import React from 'react';  window.React = React;
 import imm from 'immutable';
@@ -27,10 +27,8 @@ var dis = new Dis(),
   {dispatch, register, unregister, waitFor} = dis;
 
 function fromEvent(o, e){
-  var c = chan();
-  o.on(e, (...args) => putAsync(c, args));
-   // todo - .off?
-  return c;
+  var c = chan(); o.on(e, (...args) => putAsync(c, args)); return c;
+   // todo - .off?  
 }
 
 function reqChan(req){
@@ -44,15 +42,9 @@ function reqChan(req){
 }
 // a couple of helpers to fetch data 
 const services = {
-  search(query){  
-    return reqChan(request(`http://localhost:3000/list/${query}?rows=20`));
-  },
-
-  details(id){
-    return reqChan(request(`http://localhost:3000/product/${id}`))
-  },
-  config(){
-    
+  search(query){ return reqChan(request(`http://localhost:3000/list/${query}?rows=20`)); },
+  details(id){ return reqChan(request(`http://localhost:3000/product/${id}`)) },  
+  config(){    
     var c = chan()
     // fake fetching some async config
     setTimeout(()=> {
@@ -190,12 +182,7 @@ const confStore= sto({}, (config, action, ...args)=>{
 
 const dumbo = sto({},(_, action, ...args) => {
   dis.waitFor(listStore, detailsStore, confStore);
-  console.log(action+'', ...args
-  //   , {
-  //   list: listStore().toJS(),
-  //   details: detailsStore().toJS()
-  // }
-  )
+  console.log(action+'', ...args)
   return {};
 })
 

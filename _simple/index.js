@@ -65,9 +65,6 @@ register(toggleStore);
 // views
 @mixin(mix)
 class App extends React.Component {
-  constructor(){
-    super();
-  }
   observe(){
     return toObs({ tick: tickStore,  toggle: toggleStore }); 
   }
