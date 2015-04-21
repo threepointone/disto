@@ -13,9 +13,9 @@ export default function act(dispatch, bag, prefix, path=[]) {
   function toChan(fn /* (ch) => {}*/){
     var c = chan(csp.buffers.sliding(1024));
     fn.call(o, c);
-    var f = function(...args) {
-      dispatch(f, ...args);
-      putAsync(c, args)       
+    var f = function(action, ...args) {
+      dispatch(f, action, ...args);
+      putAsync(c, [action, ...args])       
     }
     return f;
   }
@@ -35,8 +35,12 @@ export default function act(dispatch, bag, prefix, path=[]) {
       
     F.__isAct = true; // for debugging
 
-    F.toString = F.inspect = () => ['⚡️'].concat(
-      prefix? [prefix]: []).concat(path).concat(key).join(':')
+    F.toString = F.inspect = () => 
+      (prefix? [prefix]: [])
+      .concat(['~']) //⚡
+      .concat(path)
+      .concat(key)
+      .join(':')
       
     if($path.length>1){
       $path.slice(0, $path.length-1).reduce((_o, seg)=> _o[seg] || Object.assign(_o,{[seg]:{}})[seg], o)[last($path)] = F
