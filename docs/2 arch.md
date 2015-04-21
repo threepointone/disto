@@ -10,19 +10,18 @@ actions
 - OG flux says that actions should be a string, but that implies a global namespace with potential clashes. I'd recommend unique objects that implement .toString() for debugging. 
 
 
-
 messages
 ---
 - consists of `[action, ...args]`
 - eg. `['search-query', 'red shoes', {cache:true}]`
 - eg. `['login.form.submit', {username:'sunil.pai', password:'hunter2'}]`
 
+
 action creators
 ---
 - functions that dispatch messages based on input. 
 - this is the primary interface to trigger changes in your application.
-- *knows* the dispatcher
-- *knows* store states in runtime
+- *knows* the dispatcher, store states in runtime
 
 
 
@@ -37,6 +36,7 @@ stores
 - *can't* call any externally mutatory functions, except for waitfor
 - thus *can't* set state on any other store
 
+
 dispatcher
 ---
 *THE* central pipe in the app into which all messages must flow. It has four functions.
@@ -48,13 +48,13 @@ dispatcher
 - `.waitFor(s1, s2, s3)` synchronously waits for stores to finish processing a message before proceeding.
 
 
-
 app lifecycle
 ---
 - `main()`
 - asset loading (js/css/img)
 - creators are decoupled from views, so eg. you can load react later
 - `$.bootstrap()`
+
 
 etc
 ---
