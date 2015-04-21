@@ -24,19 +24,6 @@ action creators
 - *knows* the dispatcher, store states in runtime
 
 
-
-stores
----
-
-- is defined as a reduce function with every `message` that flows through the system
-- thus, has to opt *out* of listening to a message, not opt in
-- *knows* actions when starting up 
-- *knows* other store states, waitFor in runtime
-- *can't* access action creators, views, dispatch*, stores
-- *can't* call any externally mutatory functions, except for waitfor
-- thus *can't* set state on any other store
-
-
 dispatcher
 ---
 *THE* central pipe in the app into which all messages must flow. It has four functions.
@@ -46,6 +33,17 @@ dispatcher
 - `.unregister(store)` removes a store from the message stream. This is useful for SSR, and 
 - `.dispatch(action, ...args)` dispatches a message to all registered stores
 - `.waitFor(s1, s2, s3)` synchronously waits for stores to finish processing a message before proceeding.
+
+stores
+---
+
+- is defined as a reduce function with every `message` that flows through the system
+- thus, has to opt *out* of listening to a message, not opt in
+- *knows* actions when starting up 
+- *knows* other store states, waitFor in runtime
+- *can't* access action creators, views, dispatch*, stores
+- *can't* call any externally mutatory functions, except for waitFor
+- thus *can't* set state on any other store
 
 
 app lifecycle
