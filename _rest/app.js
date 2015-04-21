@@ -13,7 +13,7 @@ function log(...args){
   return console.log(...args)
 }
 
-import {go, timeout, chan, putAsync} from 'js-csp';
+import {go, timeout, chan, putAsync, takeAsync} from 'js-csp';
 
 let Component = React.Component;
 
@@ -31,68 +31,36 @@ function fromEvent(o, e){
    // todo - .off?  
 }
 
-function reqChan(req){
-  var c = chan();
-  req.end((err, res) => {
-    putAsync(c, [err, res]);
-    c.close()
-  });
-  return c;
-
-}
 // a couple of helpers to fetch data 
 const services = {
-  search(query){ return reqChan(request(`http://localhost:3000/list/${query}?rows=20`)); },
-  details(id){ return reqChan(request(`http://localhost:3000/product/${id}`)) },  
-  config(){    
-    var c = chan()
+  search(query, callback){ 
+    return request(`http://localhost:3000/list/${query}?rows=20`).end(callback) 
+  },
+  details(id, callback){ 
+    return request(`http://localhost:3000/product/${id}`).end(callback) 
+  },  
+  config(callback){    
     // fake fetching some async config
     setTimeout(()=> {
-      putAsync(c, {configObj:{x:1}})
-      c.close();
+      callback(null, {configObj:{x:1}})
     }, Math.random()*500);
-    return c;
   }    
 }
 
 
 // declare actions 
 const $ = act(dispatch, {
-  init(ch){
-    go(function*(){
-      yield ch; // wait for init signal
-      this.init.end(yield services.config()); // load config
-      log('loaded!')
-    }.bind(this))
-  }, 'init.end':'',
-
-  search(ch){
-    go(function*(){
-      while(true) {
-        var response = yield services.search(yield ch);
-        var done = this.search.done; // this is to work around a babel bug
-        done(...response); // let's see what happens on error      
-      }
-    }.bind(this))
-  }, 'search.done':'',
-  
-  details(ch){
-    go(function*(){
-      while(true) {
-        var response = yield services.details(yield ch);
-        var done = this.details.done; // this is to work around a babel bug
-        done(...response);
-      }
-    }.bind(this))
-  }, 'details.done':'',
-  
+  init:{end:''},
+  search:{done:''},
+  details:{done: ''},
   select: sync(id => $.details(id)),
   backToList: ''
-});
+}, 'dev');
+// ... that's it. most of the 'logic' is in the stores.
 
 // stores
 
-const listStore = sto(imm.Map({
+const listStore = sto(imm.fromJS({
   loading: false, 
   query: '', 
   results: [], 
@@ -102,6 +70,7 @@ const listStore = sto(imm.Map({
     
     case $.search: 
       let [query] = args;
+      services.search(query, $.search.done);
       return list.merge(imm.fromJS({
         selected: false, 
         loading: true, 
@@ -125,21 +94,21 @@ const listStore = sto(imm.Map({
      
     case $.select: 
       let [id] = args;
-      return list.merge({
+      return list.merge(imm.fromJS({
         selected: id
-      });
+      }));
      
     case $.backToList:
-       return list.merge({
+       return list.merge(imm.fromJS({
         selected: null
-      });
+      }));
     
     default: 
       return list;
   }
 }, imm.is);
 
-const detailsStore = sto(imm.Map({
+const detailsStore = sto(imm.fromJS({
   loading: false, 
   query: '', 
   results: []
@@ -148,6 +117,7 @@ const detailsStore = sto(imm.Map({
 
     case $.details:
       let [id] = args;
+      services.details(id, $.details.done)
       return details.merge(imm.fromJS({
         loading: true, id, 
         details:null, 
@@ -172,12 +142,17 @@ const detailsStore = sto(imm.Map({
   }
 }, imm.is);
 
-const confStore= sto({}, (config, action, ...args)=>{
-  if(action===$.init.done){
-    let [err, res] = args;
-    return (err || res.error) ? { error: err || res.error  } : res
-  }
-  return config;
+const confStore = sto({}, (config, action, ...args) => {
+  switch(action){
+    case $.init:
+      services.config($.init.end)// load config
+      return config;
+    case $.init.done:
+      let [err, res] = args
+      return (err || res.error) ? { error: err || res.error  } : res;
+    default: 
+      return config;
+  }  
 })
 
 const dumbo = sto({},(_, action, ...args) => {
@@ -290,7 +265,7 @@ function main(){
   // because the views are decoupled, you can bootstrap data etc way before render
   go(function*(){
     var actions = fromEvent(dis, 'action');
-    while((yield actions)[0]!== $.init.end){} // strange code, I know
+    while((yield actions)[0] !== $.init.end){} // strange code, I know
     React.render(<App/>, document.getElementById('container'))    
   })
   
