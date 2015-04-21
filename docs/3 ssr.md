@@ -12,8 +12,8 @@ solution
 // instantiate a context for every app instance.  
 
 // app .js 
-	var app = {
-	dispatcher: new Dispatcher()
+  var app = {
+  dispatcher: new Dispatcher()
 }
 
 // this context establishes a namespace of sorts for the app.
@@ -23,45 +23,45 @@ solution
 // creators.js
 // action creators 
 export function creators(app){
-	let {dispatch} = app.dispatcher;
-	return {
-		search(query){
-			dispatch('search');
-			query('search', query)
-				.then(res => dispatch('search.done', res))
-				.catch(err => dispatch('search.error', err))
-		}
-	}
+  let {dispatch} = app.dispatcher;
+  return {
+    search(query){
+      dispatch('search');
+      query('search', query)
+        .then(res => dispatch('search.done', res))
+        .catch(err => dispatch('search.error', err))
+    }
+  }
 }
 
 // stores.js
 export function stores(app){
-	let {waitFor} = app.dispatcher
-	return {
-		search: store({query: '', res:null, err: null}, (o, action, ...args){}),
-		details: store({id: '', res:null, err: null}, (o, action, ...args){})
-		// etc
-	}	
+  let {waitFor} = app.dispatcher
+  return {
+    search: store({query: '', res:null, err: null}, (o, action, ...args){}),
+    details: store({id: '', res:null, err: null}, (o, action, ...args){})
+    // etc
+  }  
 }
 
 // in your views, use the creators/store states from props/contexts passed to it
 
 class Input extends React.Component {
-	onChange(){
-		this.props.actions.search.query(e.target.value)
-	}
-	render() {
-		return <input 
-			value={this.props.stores.search.query} 
-			onChange={this.onChange} />
-	}
+  onChange(){
+    this.props.actions.search.query(e.target.value)
+  }
+  render() {
+    return <input 
+      value={this.props.stores.search.query} 
+      onChange={this.onChange} />
+  }
 };
 
 // we can now pass in action creators and state at the top of the app, effectively sandboxing the app onto the context
 
 ```
 
-problem 2: flux doesn't specifiy how to know when the entire UI has 'finished' updating, so you can render in one shot. Indeed, some flux apps are long running and never 'finish' rendering.
+problem 2: flux doesn't specify how to know when the entire UI has 'finished' updating, so you can render in one shot. Indeed, some flux apps are long running and never 'finish' rendering.
 
 solution
 ---
