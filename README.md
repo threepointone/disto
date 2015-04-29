@@ -20,7 +20,7 @@ var store = sto({q: '', res:[], err: null},  // initial state
       
       case actions.query.done:
         let [err, res] = args;
-        return Object.assign(state, err || res.error ? 
+        return Object.assign({}, state, err || res.error ? 
           {err : err || res.error, res: []} : 
           {err : null, res: res.body.data})
     }
