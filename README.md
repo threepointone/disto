@@ -10,13 +10,13 @@ another take on [flux](http://facebook.github.io/flux), influenced by observable
 // Here, stores are represented as reduce functions 
 // on every [actions, ...args] message that passes through the "system".
 
-var store = sto({q: '', res:[], err: null},
+var store = sto({q: '', res:[], err: null},  // initial state
   (state, action, ...args)=>{
     switch(action){
       
       case actions.query: 
         let [q] = args;
-        return Object.assign(state, {q: q});
+        return Object.assign({}, state, {q: q});
       
       case actions.query.done:
         let [err, res] = args;
