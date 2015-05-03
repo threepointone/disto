@@ -2,7 +2,7 @@
 // get some dependencies
 import 'babelify/polyfill'; // for some es6 goodness
 import 'whatwg-fetch';  // polyfill for w3c .fetch() api
-import React from 'react';  window.React = React;
+import React from 'react'; window.React = React;
 import imm from 'immutable';
 import immumix from 'react-immutable-render-mixin';
 import {decorate as mixin} from 'react-mixin';
@@ -10,7 +10,7 @@ import request from 'superagent';
 import autobind from 'autobind-decorator';
 
 function log(...args){
-  return console.log(...args)
+  return console.log(...args);
 }
 
 import {go, timeout, chan, putAsync, takeAsync} from 'js-csp';
@@ -19,7 +19,7 @@ let Component = React.Component;
 
 // disto
 import {sto, Dis, toObs, toOb} from '../index';
-import act, {sync} from '../act'; 
+import act, {sync} from '../act';
 import mix from '../mix';
 
 // make a new dispatcher
@@ -28,31 +28,31 @@ var dis = new Dis(),
 
 function fromEvent(o, e){
   var c = chan(); o.on(e, (...args) => putAsync(c, args)); return c;
-   // todo - .off?  
+   // todo - .off?
 }
 
-// a couple of helpers to fetch data 
+// a couple of helpers to fetch data
 const services = {
-  search(query, callback){ 
-    return request(`http://localhost:3000/list/${query}?rows=20`).end(callback) 
+  search(query, callback){
+    return request(`http://localhost:3000/list/${query}?rows=20`).end(callback);
   },
-  details(id, callback){ 
-    return request(`http://localhost:3000/product/${id}`).end(callback) 
-  },  
-  config(callback){    
+  details(id, callback){
+    return request(`http://localhost:3000/product/${id}`).end(callback);
+  },
+  config(callback){
     // fake fetching some async config
     setTimeout(()=> {
-      callback(null, {configObj:{x:1}})
-    }, Math.random()*500);
-  }    
-}
+      callback(null, {configObj: {x: 1}});
+    }, Math.random() * 500);
+  }
+};
 
 
-// declare actions 
+// declare actions
 const $ = act(dispatch, {
-  init:{end:''},
-  search:{done:''},
-  details:{done: ''},
+  init: {end: ''},
+  search: {done: ''},
+  details: {done: ''},
   select: sync(id => $.details(id)),
   backToList: ''
 }, 'dev');
@@ -61,83 +61,83 @@ const $ = act(dispatch, {
 // stores
 
 const listStore = sto(imm.fromJS({
-  loading: false, 
-  query: '', 
-  results: [], 
+  loading: false,
+  query: '',
+  results: [],
   selected: false
 }), (list, action, ...args) => {
   switch(action){
-    
-    case $.search: 
+
+    case $.search:
       let [query] = args;
       services.search(query, $.search.done);
       return list.merge(imm.fromJS({
-        selected: false, 
-        loading: true, 
-        query:query, 
+        selected: false,
+        loading: true,
+        query: query,
         error: null
       }));
 
-    case $.search.done: 
+    case $.search.done:
       const [err, res] = args;
-        return (err || res.error) ? 
+        return (err || res.error) ?
           list.merge(imm.fromJS({
-            loading:false, 
-            results: [], 
+            loading: false,
+            results: [],
             error: err || res.error
           })) :
           list.merge(imm.fromJS({
-            loading:false, 
-            results: res.body.data.results.products, 
+            loading: false,
+            results: res.body.data.results.products,
             error: null
           }));
-     
-    case $.select: 
+
+    case $.select:
       let [id] = args;
       return list.merge(imm.fromJS({
         selected: id
       }));
-     
+
     case $.backToList:
        return list.merge(imm.fromJS({
         selected: null
       }));
-    
-    default: 
+
+    default:
       return list;
   }
 }, imm.is);
 
 const detailsStore = sto(imm.fromJS({
-  loading: false, 
-  query: '', 
+  loading: false,
+  query: '',
   results: []
 }), (details, action, ...args) => {
   switch(action){
 
     case $.details:
       let [id] = args;
-      services.details(id, $.details.done)
+      services.details(id, $.details.done);
       return details.merge(imm.fromJS({
-        loading: true, id, 
-        details:null, 
+        loading: true, id,
+        details: null,
         error: null
       }));
-    
+
     case $.details.done:
       const [err, res] = args;
-      return (err || res.error) ? 
+      return (err || res.error) ?
         details.merge(imm.fromJS({
-          loading:false, 
-          details: [], 
+          loading: false,
+          details: [],
           error: err || res.error})) :
         details.merge(imm.fromJS({
-          loading:false, 
-          details: res.body.data, 
+          loading: false,
+          details: res.body.data,
           error: null
         }));
 
-    default: 
+    default:
       return details;
   }
 }, imm.is);
@@ -145,70 +145,70 @@ const detailsStore = sto(imm.fromJS({
 const confStore = sto({}, (config, action, ...args) => {
   switch(action){
     case $.init:
-      services.config($.init.end)// load config
+      services.config($.init.end); // load config
       return config;
     case $.init.done:
-      let [err, res] = args
-      return (err || res.error) ? { error: err || res.error  } : res;
-    default: 
+      let [err, res] = args;
+      return (err || res.error) ? { error: err || res.error } : res;
+    default:
       return config;
-  }  
-})
+  }
+});
 
-const dumbo = sto({},(_, action, ...args) => {
+const dumbo = sto({}, (_, action, ...args) => {
   dis.waitFor(listStore, detailsStore, confStore);
-  console.log(action+'', ...args)
+  console.log(action+'', ...args);
   return {};
-})
+});
 
 @mixin(immumix)
 @mixin(mix)
 class App extends Component {
   observe(props){
     return {
-      list: toOb(listStore), 
+      list: toOb(listStore),
       details: toOb(detailsStore)
     };
   }
   render() {
-    return <Search {...this.state.data} />
+    return <Search {...this.state.data} />;
   }
-};
+}
 
 
 function vis(bool){
   return bool ? {} : {display: 'none'};
-}    
+}
 
 @mixin(immumix)
 class Search extends Component {
   sender(fn){
     return function(){
-      this.send(fn, ...arguments);      
-    }    
+      this.send(fn, ...arguments);
+    };
   }
   // @channel()
   onChange(e){
     // go(function*(){
       // while(true){
-    $.search(e.target.value)  
+    $.search(e.target.value);
       // }
     // })
   }
   render() {
     var props = this.props,
       {list, details} = props,
-      selected = list.get('selected');    
+      selected = list.get('selected');
 
     return (
       <div className="Search">
         <input value={list.get('query')} onChange={this.onChange}/>
         <Results {...props} style={vis(!selected)}/>
-        <Details key={details.get('id')} {...props} style={vis(!!selected)}/>        
+        <Details key={details.get('id')} {...props} style={vis(!!selected)}/>
       </div>
     );
   }
-};
+}
 
 
 
@@ -221,19 +221,20 @@ class Results extends Component {
       </div>
     );
   }
-};
+}
 
 @mixin(immumix)
 class Result extends Component {
   @autobind
   onClick(e){
-    $.select(this.props.product.get('styleid'))
+    $.select(this.props.product.get('styleid'));
   }
   render() {
+    const props = this.props;
     return (
-      <div className="Result" onClick={this.onClick} style={{width:200, display:'inline-block'}}>
-        <span>{this.props.product.get('product')}</span>
-        <img key={Date.now()} src={this.props.product.get('search_image')} style={{maxWidth:200}}/>      
+      <div className="Result" onClick={this.onClick} style={{width: 200, display: 'inline-block'}}>
+        <span>{props.product.get('product')}</span>
+        <img key={Date.now()} src={props.product.get('search_image')} style={{maxWidth: 200}}/>
       </div>
     );
   }
@@ -243,33 +244,32 @@ class Result extends Component {
 @mixin(immumix)
 class Details extends Component {
   render() {
-    var props = this.props, {details} = props;
+    const props = this.props, {details} = props;
     return (
       <div className='Details-cnt' style={props.style}>
-        <span style={{cursor:'pointer'}} onClick={$.backToList}>back to list page</span> 
-        {details.get('loading') ? 
-          <span>loading...</span> : 
+        <span style={{cursor: 'pointer'}} onClick={$.backToList}>back to list page</span>
+        {details.get('loading') ?
+          <span>loading...</span> :
           <div className="Details">
-            <img src={details.getIn(['details', 'styleImages', 'default', 'imageURL'])} style={{maxWidth:200}}/>
-            <span>{details.getIn(['details', 'productDisplayName'])}</span>
+            <img src={details.getIn('details.styleImages.default.imageURL'.split('.'))} style={{maxWidth: 200}}/>
+            <span>{details.getIn('details.productDisplayName'.split('.'))}</span>
           </div>}
-      </div>   
+      </div>
     );
   }
-};
+}
 
 function main(){
   // register stores
   [listStore, detailsStore, confStore, dumbo].map(register);
-    
+
   // because the views are decoupled, you can bootstrap data etc way before render
   go(function*(){
-    var actions = fromEvent(dis, 'action');
-    while((yield actions)[0] !== $.init.end){} // strange code, I know
-    React.render(<App/>, document.getElementById('container'))    
-  })
-  
-  $.init();  
+    // yield fromEvent(dis, 'action', x.filter( arr => arr[0] === $.init.end ));
+    React.render(<App/>, document.getElementById('container'));
+  });
+
+  $.init();
 }
 
 main();

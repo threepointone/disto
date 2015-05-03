@@ -1,23 +1,22 @@
-"use strict";
 // todo - tests for invariant conditions
 
 require('chai').should();
 
-import {sto, Dis, toObs, toOb}  from '../index';
+import {sto, Dis, toObs, toOb} from '../index';
 
 import act from '../act';
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{
-    var s = sto({x:1, y:2})().should.eql({x:1, y:2})
+    sto({x: 1, y: 2})().should.eql({x: 1, y: 2});
   });
 
   it('responds to actions / returns current state', ()=>{
-    var s = sto({x: 1, y:2}, 
+    var s = sto({x: 1, y: 2},
       (o, action, key, val=1) => (action==='inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
     s('inc', 'x', 5);
     s().x.should.eql(6);
-  })
+  });
 
   it('emits change event', done => {
     var s = sto({times: 0}, (state, action) => ({times: state.times+1}));
@@ -25,8 +24,8 @@ describe('sto', ()=>{
       s().times.should.eql(1);
       done();
     });
-    s('gogogo');    
-  })
+    s('gogogo');
+  });
 
   it('does not emit change when state hasn\'t changed', done => {
     var s1 = sto(3, (num, action) => {
@@ -37,13 +36,13 @@ describe('sto', ()=>{
     });
     s1.on('change', (oldS, newS)=> {
       done('should not fire');
-    })
-    s1('xyz');  
+    });
+    s1('xyz');
     done();
-  })
+  });
 
   it('!!does not emit change when same object is mutated and returned!!!', done => {
-    // this is by design!  
+    // this is by design!
     var s1 = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
     s1.on('change', (oldS, newS)=> {
       done('should never fire!');
@@ -56,10 +55,10 @@ describe('sto', ()=>{
       done();
     });
     s2('xyz');
-  })  
+  });
 
   it('however, you can use a custom equality check', done => {
-    // be careful with this. 
+    // be careful with this.
     function eql(a, b){
       return false;
     }
@@ -70,73 +69,73 @@ describe('sto', ()=>{
       // ick, mutable shared object
       newS.x.should.eql(2);
       done();
-    })
+    });
     s('xyz');
-  })
+  });
 
 
   it('can be converted to an react style observable', (done)=>{
-    var s = sto(0, x => x+1);    
+    var s = sto(0, x => x+1);
     var ob = toOb(s);
     var {dispose} = ob.subscribe({onNext: state => (state==2) && done() });
     s('_');s('_');
     dispose();
-  });  
-})
+  });
+});
 
 describe('Dis', ()=>{
   it('can register|unregister stores, and send messages to all registered stores', ()=>{
     var d = new Dis(), s = sto(0, state => state+1);
-    var h = d.register(s);
-    
+    d.register(s);
+
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
-    
+
     s().should.eql(3);
     d.unregister(s);
 
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
     s().should.eql(3);
-  })
+  });
 
   it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
     var s1 = sto(0, x => x+1);
     var s2 = sto(0, x => x+2);
-    var s3 = sto(0, x => {d.waitFor(s1, s2); return (s1() + s2())});
+    var s3 = sto(0, () => {d.waitFor(s1, s2); return (s1() + s2()); });
     [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
     s1().should.eql(1);
     s2().should.eql(2);
     s3().should.eql(3);
-  })
+  });
 
   it('can detect circular dependencies', (done)=>{
     var d = new Dis();
-    var s1 = ({}, o => { d.waitFor(s2); return o;});
-    var s2 = ({}, o => { d.waitFor(s1); return o;});
+    var s1 = ({}, o => { d.waitFor(s2); return o; });
+    var s2 = ({}, o => { d.waitFor(s1); return o; });
     [s1, s2].map(d.register);
     try{
-      d.dispatch('xyz')
+      d.dispatch('xyz');
     }
     catch(err){
       err.should.be.ok;
       done();
     }
-  })
+  });
 
-})
+});
 
 import {go} from 'js-csp';
 
 describe('act', () => {
-  it(`can parse descriptor objects, 
+  it(`can parse descriptor objects,
     and return channel streams for function calls at given paths,
     and have dev friendly representations`, done =>{
     var messages = 0;
     var $ = act((action, ...args)=> messages++, {
       one: '',
-      'one.one':'',
-      two:'',
+      'one.one': '',
+      two: '',
       three(ch){
         go(function*(){
           var words = yield ch;
@@ -144,35 +143,35 @@ describe('act', () => {
           $.four(...words);
           messages.should.eql(5);
           done();
-        })
+        });
       },
-      four:'',
+      four: '',
       some: {nested: {thing: ''}}
     });
     $.one();
     $.two();
     $.one.one();
-    
+
     var debug = require('../act').debug;
 
-    debug($).should.eql([ 
-      '⚡️:one',
-      '⚡️:one.one',
-      '⚡️:two',
-      '⚡️:three',
-      '⚡️:four',
-      '⚡️:some',
-      '⚡️:some:nested',
-      '⚡️:some:nested:thing' 
-    ]); 
-
-    debug($.some).should.eql([ 
-      '⚡️:some:nested', 
-      '⚡️:some:nested:thing' 
+    debug($).should.eql([
+      '~:one',
+      '~:one.one',
+      '~:two',
+      '~:three',
+      '~:four',
+      '~:some',
+      '~:some:nested',
+      '~:some:nested:thing'
     ]);
 
-    ($.some.nested.toString()).should.eql('⚡️:some:nested');
-    
+    debug($.some).should.eql([
+      '~:some:nested',
+      '~:some:nested:thing'
+    ]);
+
+    ($.some.nested.toString()).should.eql('~:some:nested');
+
     $.three('what', 'say', 'you');
-  })  
-})
+  });
+});

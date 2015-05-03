@@ -1,5 +1,3 @@
-"use strict";
-
 // via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
 
 export default {
@@ -48,7 +46,7 @@ export default {
   },
 
   unsubscribe() {
-    Object.keys(this.subscriptions||{}).forEach(key => this.subscriptions[key].dispose())    
+    Object.keys(this.subscriptions||{}).forEach(key => this.subscriptions[key].dispose());
     this.subscriptions = {};
   }
-}
+};
