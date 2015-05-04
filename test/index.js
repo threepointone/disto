@@ -126,7 +126,7 @@ describe('Dis', ()=>{
 
 describe('act', () => {
   it(`can parse descriptor objects,
-    and return channel streams for function calls at given paths,
+    and return 'action' functions at given paths,
     and have dev friendly representations`, done =>{
     var messages = 0;
     var $ = act((action, ...args)=> messages++, {
