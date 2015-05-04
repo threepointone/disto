@@ -18,8 +18,7 @@ import {go, timeout, chan, putAsync, takeAsync} from 'js-csp';
 let Component = React.Component;
 
 // disto
-import {sto, Dis, toObs, toOb} from '../index';
-import act, {sync} from '../act';
+import {sto, Dis, toObs, toOb, act} from '../index';
 import mix from '../mix';
 
 // make a new dispatcher

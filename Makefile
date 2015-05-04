@@ -1,14 +1,13 @@
-BABELOPTS = -t [babelify --stage 1]
 DEV = _rest/app.js _simple/index.js _rebound/index.js
 
-dev: 
+dev:
 	open http://localhost:9966/_rest/
-	beefy $(DEV) -- $(BABELOPTS) 
-	
-size:
-	browserify index.js $(BABELOPTS) | uglifyjs -m -c | gzip | wc -c 
+	beefy $(DEV) -- -t [babelify --stage 1]
 
-tests: 	
+size:
+	browserify index.js -t babelify | uglifyjs -m -c | gzip | wc -c
+
+tests:
 	npm test
 
 .PHONY: dev size tests

@@ -1,3 +1,5 @@
+// NOT WORKING, need to fix actions
+
 // get some dependencies
 import 'babelify/polyfill'; // for some es6 goodness
 import React from 'react'; window.React = React;
@@ -10,10 +12,10 @@ import {
   sto,    // creates stores
   Dis,    // dispatcher class
   toObs,  // create observables from a keyed collection of stores
-  toOb    // create observable from a store
+  toOb,   // create observable from a store
+  act     // action constant creator
 } from '../index';
 
-import act, {debug} from '../act'; // action constant creator
 import mix from '../mix'; // mixin for .observe()
 
 // make a new dispatcher
@@ -26,7 +28,7 @@ var $ = act(dispatch, {
   toggle: function(ch){
     go(function*(){
       while(true){
-        this.tick();
+        $.tick();
         if((yield alts([timeout(0), ch])).channel === ch){
           yield ch; // block unti it toggles again
         }

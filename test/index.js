@@ -2,9 +2,7 @@
 
 require('chai').should();
 
-import {sto, Dis, toObs, toOb} from '../index';
-
-import act from '../act';
+import {sto, Dis, toObs, toOb, act, debug} from '../index';
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{
@@ -147,8 +145,6 @@ describe('act', () => {
     $.one();
     $.two();
     $.one.one();
-
-    var debug = require('../act').debug;
 
     debug($).should.eql([
       '~:one',
