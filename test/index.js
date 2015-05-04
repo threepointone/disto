@@ -125,7 +125,6 @@ describe('Dis', ()=>{
 
 });
 
-import {go} from 'js-csp';
 
 describe('act', () => {
   it(`can parse descriptor objects,
@@ -136,14 +135,11 @@ describe('act', () => {
       one: '',
       'one.one': '',
       two: '',
-      three(ch){
-        go(function*(){
-          var words = yield ch;
-          words.should.eql(['what', 'say', 'you']);
-          $.four(...words);
-          messages.should.eql(5);
-          done();
-        });
+      three(...words){
+        words.should.eql(['what', 'say', 'you']);
+        $.four(...words);
+        messages.should.eql(5);
+        done();
       },
       four: '',
       some: {nested: {thing: ''}}

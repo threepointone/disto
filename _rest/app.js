@@ -53,7 +53,7 @@ const $ = act(dispatch, {
   init: {end: ''},
   search: {done: ''},
   details: {done: ''},
-  select: sync(id => $.details(id)),
+  select: id => $.details(id),
   backToList: ''
 }, 'dev');
 // ... that's it. most of the 'logic' is in the stores.

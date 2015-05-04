@@ -1,5 +1,4 @@
 import invariant from 'flux/lib/invariant';
-import csp, {go, chan, putAsync} from 'js-csp';
 
 function last(arr) {
   return arr[arr.length - 1];
@@ -9,13 +8,11 @@ export default function act(dispatch, bag, prefix, path=[]) {
   invariant(bag, 'cannot have a null descriptor');
   var o = {};
   // this is the nice bit,
-  // with channels and dispatches and bunnies
-  function toChan(fn /* (ch) => {}*/){
-    var c = chan(csp.buffers.sliding(1024));
-    fn.call(o, c);
+  // with dispatches and bunnies
+  function toFn(fn /* (ch) => {}*/){
     var f = function(action, ...args) {
       dispatch(f, action, ...args);
-      putAsync(c, [action, ...args]);
+      fn(action, ...args);
     };
     return f;
   }
@@ -24,15 +21,15 @@ export default function act(dispatch, bag, prefix, path=[]) {
   return Object.keys(bag).reduce((ret, key)=> {
     invariant(key!=='dispatch', 'reserved word');
     var $path = key.split('.');
-    var F, desc = bag[key], F;
+    var F, desc = bag[key];
     if (typeof desc === 'function'){
-      F = toChan(desc);
+      F = toFn(desc);
     }
     else if(desc===''){
-      F = toChan(()=>{});
+      F = toFn(()=>{});
     }
     else{
-      F = Object.assign(toChan(()=>{}),
+      F = Object.assign(toFn(()=>{}),
               act(dispatch, desc, prefix, path.concat(key)));
     }
 
@@ -59,17 +56,6 @@ export default function act(dispatch, bag, prefix, path=[]) {
   }, o);
 }
 
-// old school, standard function
-export function sync(fn){
-  return function(ch) {
-    var t = this;
-    go(function*(){
-      while(true){
-       fn.call(t, ...(yield ch));
-     }
-    });
-  };
-}
 // outputs an array of actions on the object. *sometimes*
 export function debug(acts){
   return Object.keys(acts)
