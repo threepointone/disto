@@ -11,7 +11,8 @@ export class Dis {
     this.$ = new Dispatcher();    // we use the OG dispatcher under the hood
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher
     this.actions = []; // store all actions. todo - max length
-    ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around
+    this.running = true; // used to lock/unlock
+    ['register', 'unregister', 'dispatch', 'waitFor', 'lock', 'unlock'] // bind these functions, so you can pass them around
       .forEach(fn => this[fn] = this[fn].bind(this));
 
   }
@@ -71,12 +72,22 @@ export class Dis {
 
   // synchronous message dispatch
   dispatch(action, ...args) {
-    invariant(action, 'cannot dispatch a blank action');
-    this.$.dispatch({ action, args });
-    this.actions.push([action, args, Date.now()]);
-    // we also fire an action event, so you could pipe this to a log, etc
-    // this.emit('action', action, ...args);
+    if(this.running){
+      invariant(action, 'cannot dispatch a blank action');
+      this.$.dispatch({ action, args });
+      this.actions.push([action, args, Date.now()]);
+      // we also fire an action event, so you could pipe this to a log, etc
+      // this.emit('action', action, ...args);
+    }
     return this;
+  }
+
+  lock(){
+    this.running = false;
+  }
+
+  unlock(){
+    this.running = true;
   }
 
   // beware, this is synchronous
@@ -88,6 +99,7 @@ export class Dis {
 
   // todo - .destroy();
 }
+
 
 // ACTIONS
 
