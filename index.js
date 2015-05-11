@@ -1,7 +1,6 @@
 import invariant from 'flux/lib/invariant';
 import {Dispatcher} from 'flux';
 import {EventEmitter} from 'events';
-import emitMixin from 'emitter-mixin';
 
 
 
@@ -9,21 +8,54 @@ import emitMixin from 'emitter-mixin';
 // every app should have one central dispatcher
 // all messages must go through this dispatcher
 // all state changes happen synchronously with every message
-export class Dis extends EventEmitter {
+export class Dis {
   constructor() {
-    super();
+    // super();
     this.$ = new Dispatcher();    // we use the OG dispatcher under the hood
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher
+    this.actions = []; // store all actions. todo - max length
     ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around
       .forEach(fn => this[fn] = this[fn].bind(this));
+
   }
 
-  register(store) {
-    invariant(store, 'cannot register a blank store');
-    // register the store, and store the token it returns locally
+  register(initial, reduceFn = o => o, compare = (a, b) => a === b){
+    // max queue size?
+
+    const cache = {
+      state: initial,
+      emitter: new EventEmitter()
+    };
+
+    const store = {
+      get: ()=> cache.state,
+      subscribe(opts={}){
+        if(typeof opts === 'function'){
+          opts = {onNext: opts};
+        }
+        let onNext = opts.onNext || (x => x);
+        cache.emitter.on('change', onNext);
+        // run it once to send initial value
+        onNext(store.get());
+        return {dispose() {cache.emitter.removeListener('change', onNext); }};
+      }
+    };
+
+    // this.stores.set(store, cache);
+
     this.tokens.set(store,
-      this.$.register(payload => store(payload.action, ...payload.args)));
-    return this;
+      this.$.register(payload => {
+        var prevState = cache.state;
+        cache.state = reduceFn(cache.state, payload.action, ...payload.args); // shared mutable state. iknorite.
+        if(cache.state === undefined){
+          console.warn('have you forgotten to return state?');
+        }
+        if(!compare(prevState, cache.state)){
+          cache.emitter.emit('change', cache.state, prevState);
+        }
+      }));
+
+    return store;
   }
 
   unregister(store) {
@@ -38,8 +70,9 @@ export class Dis extends EventEmitter {
   dispatch(action, ...args) {
     invariant(action, 'cannot dispatch a blank action');
     this.$.dispatch({ action, args });
+    this.actions.push([action, args, Date.now()]);
     // we also fire an action event, so you could pipe this to a log, etc
-    this.emit('action', action, ...args);
+    // this.emit('action', action, ...args);
     return this;
   }
 
@@ -52,47 +85,7 @@ export class Dis extends EventEmitter {
 
   // todo - .destroy();
 }
-// STORES
-// stores
-export function sto(
-  initial,
-  // initial state
 
-  reduce = (state, action, ...args) => state,
-  // the 'handler'/reduce function called on every action
-  // you are expected to return state every time
-
-  areEqual = (a, b) => a === b
-  // equality check function
-  // used to determine 'change'
-){
-  if(typeof initial === 'function') {
-    console.warn('have you forgotten to pass an initial state?');
-  }
-  var state = initial;  // hold onto the state here
-
-  // we return a function that
-  // either accepts no arguments, and returns current state
-  // or accepts an [action, ...args] message and passes on to
-  // the store's reduce function
-  var F = function(action, ...args) {
-    if (action) {
-      var oldState = state;
-      // message dispatch, trigger reduce step
-      state = reduce(state, action, ...args);
-      // todo - determine that the message came from the dispatcher?
-      if(state === undefined){
-        console.warn('have you forgotten to return state?');
-      }
-      F.emit('action', action, ...args);    // DON'T USE THIS TO CHANGE STATE ELSEWHERE
-      if (!areEqual(state, oldState)) {
-        F.emit('change', state, oldState);  // ~~~do~~~
-      }
-    }
-    return state;
-  };
-  return emitMixin(F); // this potentially lets us treat it as an observable/channel/whatever
-}
 
 // OBSERVABLES
 
@@ -107,24 +100,6 @@ export function sto(
 //   }))
 // }
 
-// convert a store to an observable
-export function toOb(store) {
-  invariant(store, 'not a store');
-  return {
-    subscribe(opts={}) {
-      let onNext = opts.onNext || (x => x);
-      store.on('change', onNext);
-      // run it once to send initial value
-      onNext(store());
-      return {dispose() {store.off('change', onNext); }};
-    }
-  };
-}
-
-// convert a keyed collection of stores to observables
-export function toObs(ko) {
-  return Object.keys(ko).reduce((o, key) => Object.assign(o, {[key]: toOb(ko[key])}), {});
-}
 
 // ACTIONS
 

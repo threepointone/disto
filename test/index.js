@@ -1,117 +1,162 @@
+/*global describe, it*/
 // todo - tests for invariant conditions
 
 require('chai').should();
 
-import {sto, Dis, toObs, toOb, act, debug} from '../index';
+import {Dis, act, debug} from '../index';
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{
-    sto({x: 1, y: 2})().should.eql({x: 1, y: 2});
+    let dis = new Dis(),
+      store = dis.register({x: 1, y: 2});
+    store.get().should.eql({x: 1, y: 2});
+
   });
 
   it('responds to actions / returns current state', ()=>{
-    var s = sto({x: 1, y: 2},
+    let dis = new Dis(),
+      s = dis.register({x: 1, y: 2},
       (o, action, key, val=1) => (action==='inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
-    s('inc', 'x', 5);
-    s().x.should.eql(6);
+    dis.dispatch('inc', 'x', 5);
+    s.get().x.should.eql(6);
   });
 
-  it('emits change event', done => {
-    var s = sto({times: 0}, (state, action) => ({times: state.times+1}));
-    s.on('change', ()=> {
-      s().times.should.eql(1);
-      done();
+  it('can subscribe to changes', done => {
+    let dis = new Dis(),
+      s = dis.register({times: 0}, state => ({times: state.times+1}));
+    let {dispose} = s.subscribe(()=> {
+      if(s.get().times === 1){
+        dispose();
+        done();
+      }
     });
-    s('gogogo');
+    dis.dispatch('gogogo');
   });
 
   it('does not emit change when state hasn\'t changed', done => {
-    var s1 = sto(3, (num, action) => {
+    let dis = new Dis(),
+      s1 = dis.register(3, (num, action) => {
       if(action==='inc'){
         return num + 1;
       }
       return num;
     });
-    s1.on('change', (oldS, newS)=> {
-      done('should not fire');
+
+    var once = false;
+    let {dispose} = s1.subscribe(()=> {
+      if(once){
+        done('should not fire');
+      }
+      else{
+        once = true;
+      }
     });
-    s1('xyz');
+    dis.dispatch('xyz');
+    dis.dispatch('xyz');
+    dis.dispatch('xyz');
+    dispose();
     done();
   });
 
   it('!!does not emit change when same object is mutated and returned!!!', done => {
     // this is by design!
-    var s1 = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+1}));
-    s1.on('change', (oldS, newS)=> {
-      done('should never fire!');
+    let dis = new Dis(),
+      s1 = dis.register({x: 0}, state => Object.assign(state, {x: state.x+1}));
+
+    var once = false;
+    s1.subscribe(()=> {
+      if(once){
+        done('should not fire');
+      }
+      else{
+        once = true;
+      }
+
     });
-    s1('xyz');
+    dis.dispatch('xyz');
 
     // so if you're using object.assign, make sure you start with a fresh object
-    var s2 = sto({x: 0}, (state, action) => Object.assign({}, state, {x: state.x+1}));
-    s2.on('change', (oldS, newS)=> {
-      done();
+    var s2 = dis.register({x: 0}, state => Object.assign({}, state, {x: state.x+1}));
+    var once2 = false;
+    s2.subscribe(()=> {
+      if(once2){
+        done(); // will fire
+      }
+      else{
+        once2 = true;
+      }
     });
-    s2('xyz');
+    dis.dispatch('xyz');
   });
 
   it('however, you can use a custom equality check', done => {
     // be careful with this.
-    function eql(a, b){
+    function eql(){
       return false;
     }
 
-    var s = sto({x: 0}, (state, action) => Object.assign(state, {x: state.x+2}), eql);
-    s.on('change', (newS, oldS)=> {
-      (newS===oldS).should.be.ok;
+    let dis = new Dis(),
+      s = dis.register({x: 0}, (state) => Object.assign(state, {x: state.x+2}), eql);
+
+    var once = false;
+    s.subscribe((newS)=> {
       // ick, mutable shared object
-      newS.x.should.eql(2);
-      done();
+      if(once){
+        newS.x.should.eql(2);
+        done(); // will fire
+      }
+      else{
+        once = true;
+      }
     });
-    s('xyz');
+    dis.dispatch('xyz');
   });
 
 
-  it('can be converted to an react style observable', (done)=>{
-    var s = sto(0, x => x+1);
-    var ob = toOb(s);
-    var {dispose} = ob.subscribe({onNext: state => (state==2) && done() });
-    s('_');s('_');
+  it('is a react style observable', (done)=>{
+    let dis = new Dis(),
+      s = dis.register(0, x => x+1);
+
+    var {dispose} = s.subscribe({onNext: state => (state===2) && done() });
+    dis.dispatch('_');
+    dis.dispatch('_');
     dispose();
   });
 });
 
 describe('Dis', ()=>{
   it('can register|unregister stores, and send messages to all registered stores', ()=>{
-    var d = new Dis(), s = sto(0, state => state+1);
-    d.register(s);
+    var d = new Dis(),
+      s = d.register(0, state => state+1);
+
+    // d.register(s);
 
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
 
-    s().should.eql(3);
+    s.get().should.eql(3);
     d.unregister(s);
 
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
-    s().should.eql(3);
+    s.get().should.eql(3);
   });
 
   it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
-    var s1 = sto(0, x => x+1);
-    var s2 = sto(0, x => x+2);
-    var s3 = sto(0, () => {d.waitFor(s1, s2); return (s1() + s2()); });
-    [s3, s2, s1].map(d.register);
+    var s3 = d.register(0, () => {d.waitFor(s1, s2); return (s1.get() + s2.get()); });
+    var s1 = d.register(0, x => x+1);
+    var s2 = d.register(0, x => x+2);
+
+    // [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
-    s1().should.eql(1);
-    s2().should.eql(2);
-    s3().should.eql(3);
+    s1.get().should.eql(1);
+    s2.get().should.eql(2);
+    s3.get().should.eql(3);
   });
 
   it('can detect circular dependencies', (done)=>{
     var d = new Dis();
-    var s1 = ({}, o => { d.waitFor(s2); return o; });
-    var s2 = ({}, o => { d.waitFor(s1); return o; });
-    [s1, s2].map(d.register);
+    var s1 = d.register({}, o => { d.waitFor(s2); return o; });
+    var s2 = d.register({}, o => { d.waitFor(s1); return o; });
     try{
       d.dispatch('xyz');
     }
