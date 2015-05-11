@@ -42,7 +42,6 @@ let {dispose} = store.subscribe(fn)  // gets called once with initial data,
 
 // notice the conspicuous lack of a .setState()
 
-
 // The dispatcher uses the facebook dispatcher under the hood, with a nicer api for these stores.
 
 unregister(store)

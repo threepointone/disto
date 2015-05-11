@@ -32,7 +32,6 @@ var $ = act(dispatch, {
     });
 
     return function(){
-
       putAsync(c, true);
     };
   }())
