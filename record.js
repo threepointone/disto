@@ -1,6 +1,6 @@
 import invariant from 'flux/lib/invariant';
 
-export function record(store){
+export function photo(store){
   var snapshots = [], active = false, index = -1, handlers = [];
 
   function get(){

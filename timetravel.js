@@ -1,9 +1,9 @@
 import {Dis} from './index';
-import {record} from './record';
+import {photo, record} from './record';
 
 let {register, dispatch, lock, unlock} = new Dis();
 
-let store = record(register({x: 0}, o => ({x: o.x+1}))); // simple increments
+let store = photo(register({x: 0}, o => ({x: o.x+1}))); // simple increments
 
 store.subscribe(o => console.log(o.x)); // 0
 let t1 = store.snapshot();
