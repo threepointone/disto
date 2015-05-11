@@ -1,8 +1,6 @@
 disto
 ---
-the shredder's js framework
-
-another take on [flux](http://facebook.github.io/flux), influenced by observables/channels.
+another take on [flux](http://facebook.github.io/flux)
 
 ```js
 // Here, stores are represented as reduce functions
