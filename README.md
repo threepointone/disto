@@ -59,7 +59,7 @@ Also included is @gaearon's [superb take](https://gist.github.com/gaearon/7d94c9
 var App = React.createClass({
   mixins: [mix],
   observe: function(){
-    return toObs({store1, store2})
+    return {store1, store2}
   },
   render: function() {
     return (
