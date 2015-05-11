@@ -5,68 +5,71 @@ import 'babelify/polyfill'; // for some es6 goodness
 import React from 'react'; window.React = React;
 import {decorate as mixin} from 'react-mixin';
 
-import {go, timeout, alts} from 'js-csp';
+import {go, timeout, alts, putAsync, chan} from 'js-csp';
 
-// pull out the magic 4
-import {
-  sto,    // creates stores
-  Dis,    // dispatcher class
-  toObs,  // create observables from a keyed collection of stores
-  toOb,   // create observable from a store
-  act     // action constant creator
-} from '../index';
-
-import mix from '../mix'; // mixin for .observe()
+// disto
+import {Dis, act} from '../index';
+import mix from '../mix';
 
 // make a new dispatcher
-var dis = new Dis(),
-  {dispatch, register, waitFor} = dis;
+let {dispatch, register} = new Dis();
+
+
 
 // actions
 var $ = act(dispatch, {
   tick: '',
-  toggle: function(ch){
+  toggle: (function(){
+    var c = chan();
     go(function*(){
       while(true){
-        $.tick();
-        if((yield alts([timeout(0), ch])).channel === ch){
-          yield ch; // block unti it toggles again
+        $ && $.tick();
+        if((yield alts([timeout(0), c])).channel === c){
+          yield c; // block unti it toggles again
         }
+
       }
-    }.bind(this));
-  }
+    });
+
+    return function(){
+
+      putAsync(c, true);
+    };
+  }())
 });
 
+
+
 // stores
-var tickStore = sto({
+var tickStore = register({
   soFar: 0,
   ticks: 0,
   start: Date.now()
 }, (o, action) => {
-  if(action === $.tick)
+  if(action === $.tick){
     return {
       soFar: o.soFar + (Date.now() - o.start),
       ticks: o.ticks+1,
       start: o.start
     };
+  }
   return o;
 });
-register(tickStore);
 
-var toggleStore = sto({
+var toggleStore = register({
   times: 0
 }, (o, action) => {
-  if(action === $.toggle)
+  if(action === $.toggle){
     return {times: o.times+1};
+  }
   return o;
 });
-register(toggleStore);
 
 // views
 @mixin(mix)
 class App extends React.Component {
   observe(){
-    return toObs({ tick: tickStore, toggle: toggleStore });
+    return { tick: tickStore, toggle: toggleStore };
   }
   render(){
     var data = this.state.data;

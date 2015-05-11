@@ -1,5 +1,3 @@
-(work in progress)
-
 disto
 ---
 the shredder's js framework
@@ -15,20 +13,20 @@ let {dispatch, register, unregister, waitFor} = new Dis();
 
 let store = register({
   q: '',
-  res:[],     // initial state
+  res: [],     // initial state
   err: null
 }, (state, action, ...args) => {
   switch(action){
 
     case 'QUERY':
       let [q] = args;
-      return {...state, q}};
+      return {...state, q};
 
     case 'QUERY_DONE':
       let [err, res] = args;
-      return {...state, err ?
-        ...{err : err , res: []} :
-        ...{err : null, res: res.body.data}};
+      return {...state, ...(err ?
+        {err, res: []} :
+        {err: null, res: res.body.data})};
 
     default:
       return state;

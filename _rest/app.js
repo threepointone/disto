@@ -9,26 +9,16 @@ import {decorate as mixin} from 'react-mixin';
 import request from 'superagent';
 import autobind from 'autobind-decorator';
 
-function log(...args){
-  return console.log(...args);
-}
-
-import {go, timeout, chan, putAsync, takeAsync} from 'js-csp';
 
 let Component = React.Component;
 
 // disto
-import {sto, Dis, toObs, toOb, act} from '../index';
+import {Dis, act} from '../index';
 import mix from '../mix';
 
 // make a new dispatcher
-var dis = new Dis(),
-  {dispatch, register, unregister, waitFor} = dis;
+let {dispatch, register, waitFor} = new Dis();
 
-function fromEvent(o, e){
-  var c = chan(); o.on(e, (...args) => putAsync(c, args)); return c;
-   // todo - .off?
-}
 
 // a couple of helpers to fetch data
 const services = {
@@ -59,7 +49,7 @@ const $ = act(dispatch, {
 
 // stores
 
-const listStore = sto(imm.fromJS({
+const listStore = register(imm.fromJS({
   loading: false,
   query: '',
   results: [],
@@ -107,7 +97,7 @@ const listStore = sto(imm.fromJS({
   }
 }, imm.is);
 
-const detailsStore = sto(imm.fromJS({
+const detailsStore = register(imm.fromJS({
   loading: false,
   query: '',
   results: []
@@ -141,7 +131,7 @@ const detailsStore = sto(imm.fromJS({
   }
 }, imm.is);
 
-const confStore = sto({}, (config, action, ...args) => {
+const confStore = register({}, (config, action, ...args) => {
   switch(action){
     case $.init:
       services.config($.init.end); // load config
@@ -154,8 +144,8 @@ const confStore = sto({}, (config, action, ...args) => {
   }
 });
 
-const dumbo = sto({}, (_, action, ...args) => {
-  dis.waitFor(listStore, detailsStore, confStore);
+const dumbo = register({}, (state, action, ...args) => {
+  waitFor(listStore, detailsStore, confStore);
   console.log(action+'', ...args);
   return {};
 });
@@ -165,8 +155,8 @@ const dumbo = sto({}, (_, action, ...args) => {
 class App extends Component {
   observe(props){
     return {
-      list: toOb(listStore),
-      details: toOb(detailsStore)
+      list: listStore,
+      details: detailsStore
     };
   }
   render() {
@@ -186,13 +176,8 @@ class Search extends Component {
       this.send(fn, ...arguments);
     };
   }
-  // @channel()
   onChange(e){
-    // go(function*(){
-      // while(true){
     $.search(e.target.value);
-      // }
-    // })
   }
   render() {
     var props = this.props,
@@ -259,16 +244,8 @@ class Details extends Component {
 }
 
 function main(){
-  // register stores
-  [listStore, detailsStore, confStore, dumbo].map(register);
-
-  // because the views are decoupled, you can bootstrap data etc way before render
-  go(function*(){
-    // yield fromEvent(dis, 'action', x.filter( arr => arr[0] === $.init.end ));
-    React.render(<App/>, document.getElementById('container'));
-  });
-
   $.init();
+  React.render(<App/>, document.getElementById('container'));
 }
 
 main();

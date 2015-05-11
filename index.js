@@ -27,6 +27,18 @@ export class Dis {
       emitter: new EventEmitter()
     };
 
+
+    // an observable follows this structure
+    // observable: {
+    //   subscribe: (observer: {
+    //     onNext: value -> (),
+    //     onError: err -> (),
+    //     onCompleted: () -> ()
+    //   }) -> (subscription: {
+    //     dispose: () -> ()
+    //   }))
+    // }
+
     const store = {
       get: ()=> cache.state,
       subscribe(opts={}){
@@ -40,8 +52,6 @@ export class Dis {
         return {dispose() {cache.emitter.removeListener('change', onNext); }};
       }
     };
-
-    // this.stores.set(store, cache);
 
     this.tokens.set(store,
       this.$.register(payload => {
@@ -85,21 +95,6 @@ export class Dis {
 
   // todo - .destroy();
 }
-
-
-// OBSERVABLES
-
-// an observable follows this structure
-// observable: {
-//   subscribe: (observer: {
-//     onNext: value -> (),
-//     onError: err -> (),
-//     onCompleted: () -> ()
-//   }) -> (subscription: {
-//     dispose: () -> ()
-//   }))
-// }
-
 
 // ACTIONS
 
