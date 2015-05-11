@@ -1,8 +1,5 @@
 import invariant from 'flux/lib/invariant';
 import {Dispatcher} from 'flux';
-import {EventEmitter} from 'events';
-
-
 
 // @class Dis
 // every app should have one central dispatcher
@@ -20,14 +17,6 @@ export class Dis {
   }
 
   register(initial, reduceFn = o => o, compare = (a, b) => a === b){
-    // max queue size?
-
-    const cache = {
-      state: initial,
-      emitter: new EventEmitter()
-    };
-
-
     // an observable follows this structure
     // observable: {
     //   subscribe: (observer: {
@@ -39,29 +28,33 @@ export class Dis {
     //   }))
     // }
 
+     var state = initial, handlers = [];
+
     const store = {
-      get: ()=> cache.state,
+      get: ()=> state,
       subscribe(opts={}){
         if(typeof opts === 'function'){
           opts = {onNext: opts};
         }
         let onNext = opts.onNext || (x => x);
-        cache.emitter.on('change', onNext);
+        handlers.push(onNext);
         // run it once to send initial value
         onNext(store.get());
-        return {dispose() {cache.emitter.removeListener('change', onNext); }};
+        return {dispose() {
+          handlers = handlers.filter(x => x !== onNext);
+        }};
       }
     };
 
     this.tokens.set(store,
       this.$.register(payload => {
-        var prevState = cache.state;
-        cache.state = reduceFn(cache.state, payload.action, ...payload.args); // shared mutable state. iknorite.
-        if(cache.state === undefined){
+        var prevState = state;
+        state = reduceFn(state, payload.action, ...payload.args); // shared mutable state. iknorite.
+        if(state === undefined){
           console.warn('have you forgotten to return state?');
         }
-        if(!compare(prevState, cache.state)){
-          cache.emitter.emit('change', cache.state, prevState);
+        if(!compare(prevState, state)){
+          handlers.forEach(fn => fn(state, prevState));
         }
       }));
 
