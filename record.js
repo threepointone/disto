@@ -63,3 +63,7 @@ export function photo(store){
     restore
   };
 }
+
+
+
+

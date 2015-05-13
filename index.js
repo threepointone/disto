@@ -1,35 +1,25 @@
 import invariant from 'flux/lib/invariant';
 import {Dispatcher} from 'flux';
 
+function last(arr) {
+  return arr[arr.length - 1];
+}
+
 // @class Dis
 // every app should have one central dispatcher
 // all messages must go through this dispatcher
 // all state changes happen synchronously with every message
 export class Dis {
   constructor() {
-    // super();
     this.$ = new Dispatcher();    // we use the OG dispatcher under the hood
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher
-    this.actions = []; // store all actions. todo - max length
-    this.running = true; // used to lock/unlock
-    ['register', 'unregister', 'dispatch', 'waitFor', 'lock', 'unlock'] // bind these functions, so you can pass them around
+    ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around
       .forEach(fn => this[fn] = this[fn].bind(this));
 
   }
 
   register(initial, reduceFn = o => o, compare = (a, b) => a === b){
-    // an observable follows this structure
-    // observable: {
-    //   subscribe: (observer: {
-    //     onNext: value -> (),
-    //     onError: err -> (),
-    //     onCompleted: () -> ()
-    //   }) -> (subscription: {
-    //     dispose: () -> ()
-    //   }))
-    // }
-
-     var state = initial, handlers = [];
+    var state = initial, handlers = [];
 
     const store = {
       get: ()=> state,
@@ -40,9 +30,10 @@ export class Dis {
         let onNext = opts.onNext || (x => x);
         handlers.push(onNext);
         // run it once to send initial value
-        onNext(store.get());
+        onNext(state);
         return {dispose() {
           handlers = handlers.filter(x => x !== onNext);
+          onNext = null;
         }};
       }
     };
@@ -72,22 +63,9 @@ export class Dis {
 
   // synchronous message dispatch
   dispatch(action, ...args) {
-    if(this.running){
-      invariant(action, 'cannot dispatch a blank action');
-      this.$.dispatch({ action, args });
-      this.actions.push([action, args, Date.now()]);
-      // we also fire an action event, so you could pipe this to a log, etc
-      // this.emit('action', action, ...args);
-    }
+    invariant(action, 'cannot dispatch a blank action');
+    this.$.dispatch({ action, args });
     return this;
-  }
-
-  lock(){
-    this.running = false;
-  }
-
-  unlock(){
-    this.running = true;
   }
 
   // beware, this is synchronous
@@ -102,10 +80,6 @@ export class Dis {
 
 
 // ACTIONS
-
-function last(arr) {
-  return arr[arr.length - 1];
-}
 
 export function act(dispatch, bag, prefix, path=[]) {
   invariant(bag, 'cannot have a null descriptor');
@@ -163,6 +137,18 @@ export function act(dispatch, bag, prefix, path=[]) {
 export function debug(acts){
   return Object.keys(acts)
     .reduce((arr, key) => acts[key].isAction ?
-      arr.concat(acts[key]+'').concat(debug(acts[key])) :
+      arr.concat(acts[key].toString()).concat(debug(acts[key])) :
       arr, []);
 }
+
+
+// an observable follows this structure
+// observable: {
+//   subscribe: (observer: {
+//     onNext: value -> (),
+//     onError: err -> (),
+//     onCompleted: () -> ()
+//   }) -> (subscription: {
+//     dispose: () -> ()
+//   }))
+// }
