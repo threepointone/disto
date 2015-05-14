@@ -31,7 +31,6 @@
     "whatwg-fetch": "^0.7.0"
   },
   "dependencies": {
-    "emitter-mixin": "0.0.3",
     "flux": "^2.0.3"
   },
   "browserify": {
