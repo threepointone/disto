@@ -14,16 +14,16 @@
   "author": "Sunil Pai <threepointone@gmail.com>",
   "license": "ISC",
   "devDependencies": {
-    "autobind-decorator": "^1.1.0",
-    "babel": "^5.1.10",
-    "babelify": "^6.0.2",
+    "autobind-decorator": "^1.2.0",
+    "babel": "^5.3.3",
+    "babelify": "^6.1.0",
     "browserify": "^9.0.8",
-    "chai": "^2.2.0",
+    "chai": "^2.3.0",
     "envify": "^3.4.0",
     "immutable": "^3.7.2",
     "js-csp": "^0.4.0",
     "mocha": "^2.2.4",
-    "react": "^0.13.1",
+    "react": "^0.13.3",
     "react-immutable-render-mixin": "^0.8.1",
     "react-mixin": "^1.2.2",
     "rebound": "0.0.12",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "emitter-mixin": "0.0.3",
-    "flux": "^2.0.1"
+    "flux": "^2.0.3"
   },
   "browserify": {
     "transform": [

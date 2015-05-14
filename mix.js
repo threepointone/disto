@@ -13,7 +13,7 @@ export default {
   },
 
   componentWillMount() {
-    this.setData = this.setData.bind(this); // this is to protect on regular classes
+    // this.setData = this.setData.bind(this); // this is to protect on regular classes
     this.subscribe(this.props, this.context, this.setData);
   },
 
@@ -31,15 +31,13 @@ export default {
 
   subscribe(props, context, onNext) {
     const newObservables = this.observe(props, context);
-    const newSubscriptions = {};
+    const newSubscriptions = Object.keys(newObservables)
+      .reduce((o, key) =>({...o, [key]: newObservables[key].subscribe({
+          onNext: (value) => onNext(key, value),
+          onError: () => {},
+          onCompleted: () => {}
+        })}), {});
 
-    for (let key in newObservables) {
-      newSubscriptions[key] = newObservables[key].subscribe({
-        onNext: (value) => onNext(key, value),
-        onError: () => {},
-        onCompleted: () => {}
-      });
-    }
 
     this.unsubscribe();
     this.subscriptions = newSubscriptions;

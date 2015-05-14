@@ -18,7 +18,7 @@ export class Dis {
 
   }
 
-  register(initial, reduceFn = o => o, compare = (a, b) => a === b){
+  register(initial, reduce = o => o, compare = (a, b) => a === b){
     var state = initial, handlers = [];
 
     const store = {
@@ -41,13 +41,14 @@ export class Dis {
     this.tokens.set(store,
       this.$.register(payload => {
         var prevState = state;
-        state = reduceFn(state, payload.action, ...payload.args); // shared mutable state. iknorite.
+        state = reduce(state, payload.action, ...payload.args); // shared mutable state. iknorite.
         if(state === undefined){
           console.warn('have you forgotten to return state?');
         }
         if(!compare(prevState, state)){
           handlers.forEach(fn => fn(state, prevState));
         }
+        prevState = null;
       }));
 
     return store;
@@ -95,7 +96,7 @@ export function act(dispatch, bag, prefix, path=[]) {
   }
 
   // this is the ugly bit. thank god for tests, eh?
-  return Object.keys(bag).reduce((ret, key)=> {
+  return Object.keys(bag).reduce((ret, key) => {
     invariant(key!=='dispatch', 'reserved word');
     var $path = key.split('.');
     var F, desc = bag[key];
@@ -125,6 +126,7 @@ export function act(dispatch, bag, prefix, path=[]) {
           [seg]: {}
         })[seg], ret)[last($path)] = F;
     }
+
 
     else {
       ret[key] = F;
