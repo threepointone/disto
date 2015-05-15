@@ -1,50 +1,70 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
+
 // via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
 
-export default {
-  getInitialState() {
-    const data = {};
+exports["default"] = {
+  getInitialState: function getInitialState() {
+    var data = {};
 
-    this.subscribe(this.props, this.context, (key, value) => {
+    this.subscribe(this.props, this.context, function (key, value) {
       data[key] = value;
     });
     this.unsubscribe();
 
-    return { data };
+    return { data: data };
   },
 
-  componentWillMount() {
+  componentWillMount: function componentWillMount() {
     // this.setData = this.setData.bind(this); // this is to protect on regular classes
     this.subscribe(this.props, this.context, this.setData);
   },
 
-  componentWillReceiveProps(props, context) {
+  componentWillReceiveProps: function componentWillReceiveProps(props, context) {
     this.subscribe(props, context, this.setData);
   },
 
-  componentWillUnmount() {
+  componentWillUnmount: function componentWillUnmount() {
     this.unsubscribe();
   },
 
-  setData(key, value) {
-    this.setState(prevState => ({data: {...prevState.data, [key]: value}}));
+  setData: function setData(key, value) {
+    this.setState(function (prevState) {
+      return { data: _extends({}, prevState.data, _defineProperty({}, key, value)) };
+    });
   },
 
-  subscribe(props, context, onNext) {
-    const newObservables = this.observe(props, context);
-    const newSubscriptions = Object.keys(newObservables)
-      .reduce((o, key) =>({...o, [key]: newObservables[key].subscribe({
-          onNext: (value) => onNext(key, value),
-          onError: () => {},
-          onCompleted: () => {}
-        })}), {});
-
+  subscribe: function subscribe(props, context, _onNext) {
+    var newObservables = this.observe(props, context);
+    var newSubscriptions = Object.keys(newObservables).reduce(function (o, key) {
+      return _extends({}, o, _defineProperty({}, key, newObservables[key].subscribe({
+        onNext: function onNext(value) {
+          return _onNext(key, value);
+        },
+        onError: function onError() {},
+        onCompleted: function onCompleted() {}
+      })));
+    }, {});
 
     this.unsubscribe();
     this.subscriptions = newSubscriptions;
   },
 
-  unsubscribe() {
-    Object.keys(this.subscriptions||{}).forEach(key => this.subscriptions[key].dispose());
+  unsubscribe: function unsubscribe() {
+    var _this = this;
+
+    Object.keys(this.subscriptions || {}).forEach(function (key) {
+      return _this.subscriptions[key].dispose();
+    });
     this.subscriptions = {};
   }
 };
+module.exports = exports["default"];
+
