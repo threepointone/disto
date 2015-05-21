@@ -1,3 +1,5 @@
+// via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
+
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -7,8 +9,6 @@ Object.defineProperty(exports, "__esModule", {
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
-
-// via @dan_abramov https://gist.github.com/gaearon/7d94c9f38fdd34a6e690
 
 exports["default"] = {
   getInitialState: function getInitialState() {

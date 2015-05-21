@@ -97,13 +97,13 @@ export function act(dispatch, bag, prefix, path=[]) {
 
   // this is the ugly bit. thank god for tests, eh?
   return Object.keys(bag).reduce((ret, key) => {
-    invariant(key!=='dispatch', 'reserved word');
+    invariant(key !== 'dispatch', 'reserved word');
     var $path = key.split('.');
     var F, desc = bag[key];
     if (typeof desc === 'function'){
       F = toFn(desc);
     }
-    else if(desc===''){
+    else if(desc === ''){
       F = toFn(()=>{});
     }
     else{
@@ -114,14 +114,14 @@ export function act(dispatch, bag, prefix, path=[]) {
     F.isAction = true; // for debugging
 
     F.toString = F.inspect = () =>
-      (prefix? [prefix]: [])
+      (prefix ? [prefix] : [])
       .concat(['~']) //⚡
       .concat(path)
       .concat(key)
       .join(':');
 
-    if($path.length>1){
-      $path.slice(0, $path.length-1).reduce((_o, seg) =>
+    if($path.length > 1){
+      $path.slice(0, $path.length - 1).reduce((_o, seg) =>
         _o[seg] || Object.assign(_o, {
           [seg]: {}
         })[seg], ret)[last($path)] = F;

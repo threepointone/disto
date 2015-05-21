@@ -6,11 +6,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-// ACTIONS
-
 exports.act = act;
-
-// outputs an array of actions on the object. *sometimes*
 exports.debug = debug;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -153,6 +149,8 @@ var Dis = (function () {
 
 exports.Dis = Dis;
 
+// ACTIONS
+
 function act(dispatch, bag, prefix) {
   var path = arguments[3] === undefined ? [] : arguments[3];
 
@@ -203,6 +201,8 @@ function act(dispatch, bag, prefix) {
     return ret;
   }, o);
 }
+
+// outputs an array of actions on the object. *sometimes*
 
 function debug(acts) {
   return Object.keys(acts).reduce(function (arr, key) {
