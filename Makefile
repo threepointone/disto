@@ -5,11 +5,11 @@ dev:
 	beefy $(DEV) -- -t [babelify --stage 1]
 
 build:
-	babel index._.js --stage 1 > index.js
-	babel mix._.js --stage 1 > mix.js
+	babel ./src/index.js --stage 1 > lib/index.js
+	babel ./src/mix.js --stage 1 > lib/mix.js
 
 size:
-	browserify index.js -t babelify | uglifyjs -m -c | gzip | wc -c
+	browserify ./lib/index.js -t babelify | uglifyjs -m -c | gzip | wc -c
 
 tests:
 	npm test

@@ -16,14 +16,14 @@ describe('sto', ()=>{
   it('responds to actions / returns current state', ()=>{
     let dis = new Dis(),
       s = dis.register({x: 1, y: 2},
-      (o, action, key, val=1) => (action==='inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
+      (o, action, key, val=1) => (action === 'inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
     dis.dispatch('inc', 'x', 5);
     s.get().x.should.eql(6);
   });
 
   it('can subscribe to changes', done => {
     let dis = new Dis(),
-      s = dis.register({times: 0}, state => ({times: state.times+1}));
+      s = dis.register({times: 0}, state => ({times: state.times + 1}));
     let {dispose} = s.subscribe(()=> {
       if(s.get().times === 1){
         dispose();
@@ -36,7 +36,7 @@ describe('sto', ()=>{
   it('does not emit change when state hasn\'t changed', done => {
     let dis = new Dis(),
       s1 = dis.register(3, (num, action) => {
-      if(action==='inc'){
+      if(action === 'inc'){
         return num + 1;
       }
       return num;
@@ -61,7 +61,7 @@ describe('sto', ()=>{
   it('!!does not emit change when same object is mutated and returned!!!', done => {
     // this is by design!
     let dis = new Dis(),
-      s1 = dis.register({x: 0}, state => Object.assign(state, {x: state.x+1}));
+      s1 = dis.register({x: 0}, state => Object.assign(state, {x: state.x + 1}));
 
     var once = false;
     s1.subscribe(()=> {
@@ -76,7 +76,7 @@ describe('sto', ()=>{
     dis.dispatch('xyz');
 
     // so if you're using object.assign, make sure you start with a fresh object
-    var s2 = dis.register({x: 0}, state => Object.assign({}, state, {x: state.x+1}));
+    var s2 = dis.register({x: 0}, state => Object.assign({}, state, {x: state.x + 1}));
     var once2 = false;
     s2.subscribe(()=> {
       if(once2){
@@ -96,7 +96,7 @@ describe('sto', ()=>{
     }
 
     let dis = new Dis(),
-      s = dis.register({x: 0}, (state) => Object.assign(state, {x: state.x+2}), eql);
+      s = dis.register({x: 0}, (state) => Object.assign(state, {x: state.x + 2}), eql);
 
     var once = false;
     s.subscribe((newS)=> {
@@ -115,9 +115,9 @@ describe('sto', ()=>{
 
   it('is a react style observable', (done)=>{
     let dis = new Dis(),
-      s = dis.register(0, x => x+1);
+      s = dis.register(0, x => x + 1);
 
-    var {dispose} = s.subscribe({onNext: state => (state===2) && done() });
+    var {dispose} = s.subscribe({onNext: state => (state === 2) && done() });
     dis.dispatch('_');
     dis.dispatch('_');
     dispose();
@@ -127,7 +127,7 @@ describe('sto', ()=>{
 describe('Dis', ()=>{
   it('can register|unregister stores, and send messages to all registered stores', ()=>{
     var d = new Dis(),
-      s = d.register(0, state => state+1);
+      s = d.register(0, state => state + 1);
 
     // d.register(s);
 
@@ -143,8 +143,8 @@ describe('Dis', ()=>{
   it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
     var s3 = d.register(0, () => {d.waitFor(s1, s2); return (s1.get() + s2.get()); });
-    var s1 = d.register(0, x => x+1);
-    var s2 = d.register(0, x => x+2);
+    var s1 = d.register(0, x => x + 1);
+    var s2 = d.register(0, x => x + 2);
 
     // [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
