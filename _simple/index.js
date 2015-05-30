@@ -1,15 +1,15 @@
 // NOT WORKING, need to fix actions
 
 // get some dependencies
-import 'babelify/polyfill'; // for some es6 goodness
+import 'babel/polyfill';
 import React from 'react'; window.React = React;
 import {decorate as mixin} from 'react-mixin';
 
-import {go, timeout, alts, putAsync, chan} from 'js-csp';
+import {go, timeout, alts, putAsync, chan} from '../js-csp/csp';
 
 // disto
 import {Dis, act} from '../index';
-import mix from '../mix';
+import mix from '../src/mix';
 
 // make a new dispatcher
 let {dispatch, register} = new Dis();
@@ -48,7 +48,7 @@ var tickStore = register({
   if(action === $.tick){
     return {
       soFar: o.soFar + (Date.now() - o.start),
-      ticks: o.ticks+1,
+      ticks: o.ticks + 1,
       start: o.start
     };
   }
@@ -59,7 +59,7 @@ var toggleStore = register({
   times: 0
 }, (o, action) => {
   if(action === $.toggle){
-    return {times: o.times+1};
+    return {times: o.times + 1};
   }
   return o;
 });

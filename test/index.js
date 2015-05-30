@@ -3,7 +3,7 @@
 
 require('chai').should();
 
-import {Dis, act, debug} from '../index';
+import {Dis, act, debug} from '../src/index.js';
 
 describe('sto', ()=>{
   it('initializes with seed value', ()=>{

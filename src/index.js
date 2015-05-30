@@ -22,8 +22,8 @@ export class Dis {
     var state = initial, handlers = [];
 
     const store = {
-      get: ()=> state,
-      subscribe(opts={}){
+      get: () => state,
+      subscribe: (opts = {}) => {
         if(typeof opts === 'function'){
           opts = {onNext: opts};
         }
@@ -31,17 +31,19 @@ export class Dis {
         handlers.push(onNext);
         // run it once to send initial value
         onNext(state);
-        return {dispose() {
-          handlers = handlers.filter(x => x !== onNext);
-          onNext = null;
-        }};
+        return {
+          dispose() {
+            handlers = handlers.filter(x => x !== onNext);
+            onNext = null;
+          }
+        };
       }
     };
 
     this.tokens.set(store,
       this.$.register(payload => {
         var prevState = state;
-        state = reduce(state, payload.action, ...payload.args); // shared mutable state. iknorite.
+        state = reduce(state, payload.action, ...payload.args); // the only line worth anything in this library
         if(state === undefined){
           console.warn('have you forgotten to return state?');
         }

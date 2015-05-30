@@ -2,19 +2,11 @@
 
 export default {
   getInitialState() {
-    const data = {};
-
-    this.subscribe(this.props, this.context, (key, value) => {
-      data[key] = value;
-    });
-    this.unsubscribe();
-
-    return { data };
+    return Object.keys(this.props || {}).reduce((o, key) => ({...o, [key]: this.props[key].get()}), {});
   },
 
   componentWillMount() {
-    // this.setData = this.setData.bind(this); // this is to protect on regular classes
-    this.subscribe(this.props, this.context, this.setData);
+    this.subscribe(this.props, this.context, ::this.setData);
   },
 
   componentWillReceiveProps(props, context) {
@@ -31,20 +23,20 @@ export default {
 
   subscribe(props, context, onNext) {
     const newObservables = this.observe(props, context);
-    const newSubscriptions = Object.keys(newObservables)
-      .reduce((o, key) =>({...o, [key]: newObservables[key].subscribe({
-          onNext: (value) => onNext(key, value),
+    const newSubscriptions = Object.keys(newObservables).reduce((o, key) =>
+      ({...o,
+        [key]: newObservables[key].subscribe({
+          onNext: value => onNext(key, value),
           onError: () => {},
           onCompleted: () => {}
-        })}), {});
-
+      })}), {});
 
     this.unsubscribe();
     this.subscriptions = newSubscriptions;
   },
 
   unsubscribe() {
-    Object.keys(this.subscriptions||{}).forEach(key => this.subscriptions[key].dispose());
+    Object.keys(this.subscriptions || {}).forEach(key => this.subscriptions[key].dispose());
     this.subscriptions = {};
   }
 };
