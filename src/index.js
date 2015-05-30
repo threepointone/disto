@@ -144,15 +144,3 @@ export function debug(acts){
       arr.concat(acts[key].toString()).concat(debug(acts[key])) :
       arr, []);
 }
-
-
-// an observable follows this structure
-// observable: {
-//   subscribe: (observer: {
-//     onNext: value -> (),
-//     onError: err -> (),
-//     onCompleted: () -> ()
-//   }) -> (subscription: {
-//     dispose: () -> ()
-//   }))
-// }
