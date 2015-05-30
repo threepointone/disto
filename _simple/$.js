@@ -1,7 +1,7 @@
 import {Dis, act} from '../src/index';
 import {go, timeout, alts, putAsync, chan} from '../js-csp/csp';
 
-export const dis = new Dis();
+export let dis = new Dis();
 // make a new dispatcher
 let {dispatch} = dis;
 
@@ -23,3 +23,6 @@ export const $ = act(dispatch, {
     return () => putAsync(c, true);
   }()
 });
+
+
+// module.hot.dispose(()=> dis = null);
