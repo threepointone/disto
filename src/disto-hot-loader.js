@@ -1,5 +1,4 @@
 import path from 'path';
-import acorn from 'acorn';
 import SourceMap from 'source-map';
 let {SourceNode, SourceMapConsumer} = SourceMap;
 
@@ -32,22 +31,28 @@ export default function(source, map){
   prependText = `
   var __couch__ = function(x){ return x; };
   if(module.hot){
-    module.hot.accept();
+    module.hot.accept(function(err){
+      if (err) {
+        console.error("disto.hot.error: " + ${JSON.stringify(filename)} + err.message);
+      }
+    });
+
+
     var __index__ = 0;
-    module.hot.data = module.hot.data || {};
-    module.hot.data.reduceFns = module.hot.data.reduceFns || [];
-    module.hot.data.stores = module.hot.data.stores || [];
+    var __data__ = module.hot.data || {};
+    __data__.reduceFns = __data__.reduceFns || [];
+    __data__.stores = __data__.stores || [];
     __couch__ = function (fn){
       return (function(i){
         return function (initial, reduce, compare){
-          if(module.hot.data.stores[i]){
-            module.hot.data.reduceFns[i] = reduce;
-            return module.hot.data.stores[i];
+          if(__data__.stores[i]){
+            __data__.reduceFns[i] = reduce;
+            return __data__.stores[i];
           }
           else{
-            module.hot.data.reduceFns[i] = reduce;
-            const store = module.hot.data.stores[i] = fn(initial, function(){
-              return module.hot.data.reduceFns[i].apply(null, arguments);
+            __data__.reduceFns[i] = reduce;
+            const store = __data__.stores[i] = fn(initial, function(){
+              return __data__.reduceFns[i].apply(null, arguments);
             }, compare);
           }
 
@@ -57,8 +62,8 @@ export default function(source, map){
       })(__index__);
     };
     module.hot.dispose(function(data){
-      data.reduceFns = module.hot.data.reduceFns;
-      data.stores = module.hot.data.stores;
+      data.reduceFns = __data__.reduceFns;
+      data.stores = __data__.stores;
     });
   }
   `;

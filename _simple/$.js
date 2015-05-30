@@ -23,6 +23,3 @@ export const $ = act(dispatch, {
     return () => putAsync(c, true);
   }()
 });
-
-
-// module.hot.dispose(()=> dis = null);

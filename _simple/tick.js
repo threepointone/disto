@@ -1,7 +1,7 @@
 import {$, dis} from './$';
 
 // stores
-export const tick = dis.register({
+export const tick = __couch__(dis.register)({
   soFar: 0,
   ticks: 0,
   start: Date.now()
@@ -12,7 +12,7 @@ export const tick = dis.register({
         ...o,
         soFar: (Date.now() - o.start),
         ticks: o.ticks + 1,
-        x: 123
+        x: 456
       };
     default:
       return o;

@@ -15,7 +15,6 @@ export class Dis {
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher
     ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around
       .forEach(fn => this[fn] = this[fn].bind(this));
-
   }
 
   register(initial, reduce = o => o, compare = (a, b) => a === b){
