@@ -4,6 +4,7 @@ disto
 - strictly follows the original [flux](http://facebook.github.io/flux) architecture
 - a simple api, with no new concepts
 - stores and action creators are just functions
+- stores have no setters or ajax / async calls
 - shorthand notation for action creators, with async function / promise support
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
@@ -146,8 +147,6 @@ store.get()   // returns current value
 var {dispose} = store.subscribe(fn)
 
 // we use this to hook on to react components via the .observe() polyfill
-
-// notice the conspicuous lack of a .setState()
 
 var Component = React.createClass({
   mixins: [mix],
