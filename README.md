@@ -14,7 +14,10 @@ disto
 `npm install disto --save`
 
 ```js
-// the dispatcher uses the facebook dispatcher under the hood
+// the dispatcher uses the fb dispatcher under the hood
+// the api is tweaked for our stores / actions
+
+var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
 
 var dispatcher = new Dis();
 
@@ -25,6 +28,84 @@ dispatcher.unregister(store)
 dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
+
+// There are many ways to write action creators.
+// I hope you like this one.
+
+// The action creator helper takes a dispatch function a map of key/values
+// and generates a collection of functions that, when each are called,
+// dispatches a unique action along with passed arguments
+// further calling any optional function passed in the map
+
+// what this means, is that you'll likely
+// never have to dispatch an action by yourself
+
+// also, since these are unique objects (with readable string representations),
+// you also don't have to worry about global namepace clashes
+
+var $ = act(dispatcher.dispatch, {
+  init: '',
+  a: '',
+  b: function(){
+    console.log('possible fire an ajax request here');
+  },
+  c: function(){
+    // you can alias to another creator like so
+    $.b();
+  },
+  d: function(){
+    // creators can also call an optional .done() action
+    // this is useful for ajax / other async operations
+    setTimeout(function(){
+      $.d.done('any', 'args', 'you', 'like');
+    }, 500);
+  }
+  e: function(){
+    // you can also return a Promise from an action creator,
+    // and when it resolves, .done() will automatically
+    // get called with (err, res), àla node
+    Promise(function(resolve, reject){
+      resolve('success!');
+    });
+  },
+  f: async function(q){
+    // finally, you can use es7 async functions
+    // and .done() will get called when it finishes
+    await fetch(`/search/${q}`);
+  }
+}, 'baconium' /* optional prefix to dev strings */);
+
+// $.a is now a function
+
+$.a(1, 2, 3);
+
+// dispatches [$.a, 1, 2, 3] to all stores
+
+console.log($.a.toString())
+
+// baconium:~:a
+
+$.b();
+
+// dispatches [$.b], and then logs "possibly fire..."
+
+$.c();
+
+// dispatches [$.c], then [$.b]
+
+$.d();
+
+// dispatches [$.d], later [$.d.done, 'any', 'args', 'you', 'like']
+
+$.e();
+
+// dispatches [$.e], then [$.e.done, null, 'success!']
+
+$.f();
+
+// dispatches [$.f], then [$.f.done, null, response]
+
+
 
 // Stores are represented as initial state + a function
 // that get called on every [actions, ...args] message
@@ -37,13 +118,13 @@ let store = dispatcher.register({
 }, function(state, action, ...args) {
   switch(action){
 
-    case 'QUERY':
+    case $.query:
       let [q] = args;
       return {
         ...state, q
       };
 
-    case 'QUERY_DONE':
+    case $.query.done:
       let [err, res] = args;
       return {
         ...state, err, res
