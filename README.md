@@ -69,4 +69,4 @@ var App = React.createClass({
 });
 ```
 
-NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores.
+NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores and actions.
