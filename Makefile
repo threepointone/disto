@@ -5,4 +5,4 @@ build:
 tests:
 	npm test
 
-.PHONY: dev build tests
+.PHONY: build tests
