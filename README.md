@@ -95,7 +95,7 @@ $.b();
 
 $.c();
 
-// dispatches [$.c], then [$.b]
+// dispatches [$.c], then [$.b], and then logs "possibly fire..."
 
 $.d();
 
