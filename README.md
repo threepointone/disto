@@ -13,11 +13,21 @@ another take on [flux](http://facebook.github.io/flux)
 - i love you
 
 ```js
-// Here, stores are represented as reduce functions
-// on every [actions, ...args] message that passes through the "system".
-// You register them onto the dispatcher with an initial state, and you're good to go.
+// the dispatcher uses the facebook dispatcher under the hood
 
 var dispatcher = new Dis();
+
+dispatcher.register(initialState, fn, compare)
+
+dispatcher.unregister(store)
+
+dispatcher.dispatch(action, ...args)
+
+dispatcher.waitFor(...stores)
+
+// Stores are represented as initial state + a function
+// that get called on every [actions, ...args] message
+// that passes through the "system".
 
 let store = dispatcher.register({
   q: '',
@@ -45,39 +55,17 @@ let store = dispatcher.register({
 
 store.get()   // returns current value
 
+// stores are also lightweight 'observables', letting us directly hook on to react components
 let {dispose} = store.subscribe(fn)
 
 // notice the conspicuous lack of a .setState()
 
 // The dispatcher uses the facebook dispatcher under the hood, with a nicer api for these stores.
 
-dispatcher.dispatch(action, ...args)
-
-dispatcher.waitFor(...stores)
-
-dispatcher.unregister(store)
-
 // Actions can be whatever you please.
 // We include a helper to make debug friendly action collections
 // It's quite funky. See the unit tests and examples for more details.
 
-```
+// [docs coming soon]
 
-Also included is @gaearon's [superb take](https://gist.github.com/gaearon/7d94c9f38fdd34a6e690) on a polyfill for [side loading data](https://github.com/facebook/react/issues/3398)
-```js
-var App = React.createClass({
-  mixins: [mix],
-  observe: function(){
-    return {store1, store2}
-  },
-  render: function() {
-    return (
-      <div className="App">
-        {this.state.data.store1}
-        {this.state.data.store2}
-      </div>
-    );
-  }
-});
 ```
-
