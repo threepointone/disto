@@ -10,6 +10,7 @@ disto
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - react-native compatible, because apparently that's a thing now
+- [tests](https://github.com/threepointone/disto/blob/master/test/index.js), [examples](https://github.com/threepointone/disto-example) (to be fleshed out)
 - i love you
 
 `npm install disto --save`
@@ -167,8 +168,3 @@ var Component = React.createClass({
 });
 
 ```
-
-tests
----
-`npm test`
-
