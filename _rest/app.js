@@ -15,9 +15,10 @@ let Component = React.Component;
 // disto
 import {Dis, act} from '../src/index';
 import mix from '../src/mix';
+import recorder from '../src/record';
 
 // make a new dispatcher
-let {dispatch, register, waitFor} = new Dis();
+let {dispatch, register, waitFor} = recorder(new Dis());
 
 
 // a couple of helpers to fetch data
@@ -39,9 +40,9 @@ const services = {
 
 // declare actions
 const $ = act(dispatch, {
-  init: '',
-  search: '',
-  details: '',
+  init: () => services.config($.init.done), // load config,
+  search: query => services.search(query, $.search.done),
+  details: id => services.details(id, $.details.done),
   select: id => $.details(id),
   backToList: ''
 }, 'dev');
@@ -59,7 +60,7 @@ const list = register(imm.fromJS({
 
     case $.search:
       let [query] = args;
-      services.search(query, $.search.done);
+
       return o.merge(imm.fromJS({
         selected: false,
         loading: true,
@@ -106,7 +107,7 @@ const details = register(imm.fromJS({
 
     case $.details:
       let [id] = args;
-      services.details(id, $.details.done);
+
       return o.merge(imm.fromJS({
         loading: true, id,
         details: null,
@@ -134,7 +135,7 @@ const details = register(imm.fromJS({
 const conf = register({}, (config, action, ...args) => {
   switch(action){
     case $.init:
-      services.config($.init.done); // load config
+
       return config;
     case $.init.done:
       let [err, res] = args;

@@ -72,7 +72,6 @@ export class Dis {
     this.$.waitFor([...stores.map(store => this.tokens.get(store))]);
     return this;
   }
-
   // todo - .destroy();
 }
 
