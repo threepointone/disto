@@ -33,22 +33,21 @@ dispatcher.dispatch(action, ...args)
 dispatcher.waitFor(...stores)
 ```
 
-Action creators can be however you choose.
-This is how I write them.
+Action creators can be however you choose. This is how I write them.
 
 The action creator helper takes a dispatch function and a map of key/values,
 and generates a collection of functions that, when each are called,
 dispatches a unique action along with passed arguments
-further calling any optional function passed in the map
+further calling any optional function passed in the map.
 
-indeed, we use the action creator *itself* as the 'actionType'
+Indeed, we use the action creator *itself* as the 'actionType'
 to much convenience
 
-what this means, is that you'll likely
-never have to dispatch a raw action by yourself
+What this means, is that you'll likely
+never have to dispatch a raw action by yourself.
 
-also, since these are unique objects (with readable string representations),
-you also don't have to worry about global namepace clashes
+Also, since these are unique objects (with readable string representations),
+you also don't have to worry about global namepace clashes.
 
 ```js
 var $ = act(dispatcher.dispatch, {
