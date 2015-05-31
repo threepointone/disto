@@ -144,7 +144,9 @@ store.get()   // returns current value
 
 // stores are also lightweight 'observables',
 
-var {dispose} = store.subscribe(fn)
+store.subscribe(function(state){
+  console.log('store state changed to', state);
+})
 
 // we use this to hook on to react components via the .observe() polyfill
 
