@@ -40,7 +40,7 @@ if(process.env.HOT){
         ...config.module.loaders[0],
         loaders: [
         'react-hot',
-        path.join(__dirname, './lib/disto-hot-loader.js')
+        'disto-hot'
         ].concat(config.module.loaders[0].loaders)
       }]
     },
