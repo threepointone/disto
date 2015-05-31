@@ -2,6 +2,9 @@ disto
 ---
 another take on [flux](http://facebook.github.io/flux)
 
+NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores and actions.
+
+
 ```js
 // Here, stores are represented as reduce functions
 // on every [actions, ...args] message that passes through the "system".
@@ -69,4 +72,3 @@ var App = React.createClass({
 });
 ```
 
-NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores and actions.
