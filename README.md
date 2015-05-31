@@ -1,8 +1,7 @@
 disto
 ---
-another take on [flux](http://facebook.github.io/flux)
 
-- strictly follows the original flux architecture
+- strictly follows the original [flux](http://facebook.github.io/flux) architecture
 - a simple api, with no new concepts
 - stores and action creators are just functions
 - shorthand notation for action creators, with async function / promise support
@@ -11,6 +10,8 @@ another take on [flux](http://facebook.github.io/flux)
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - react-native compatible, because apparently that's a thing now
 - i love you
+
+`npm install disto --save`
 
 ```js
 // the dispatcher uses the facebook dispatcher under the hood
@@ -55,8 +56,11 @@ let store = dispatcher.register({
 
 store.get()   // returns current value
 
-// stores are also lightweight 'observables', letting us directly hook on to react components
-let {dispose} = store.subscribe(fn)
+// stores are also lightweight 'observables',
+
+var {dispose} = store.subscribe(fn)
+
+// we use this to hook on to react components via the .observe() polyfill
 
 // notice the conspicuous lack of a .setState()
 
@@ -64,6 +68,10 @@ let {dispose} = store.subscribe(fn)
 // We include a helper to make debug friendly action collections
 // It's quite funky. See the unit tests and examples for more details.
 
-// [docs coming soon]
+// [action docs coming soon]
 
 ```
+
+tests
+---
+`npm test`
