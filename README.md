@@ -148,6 +148,8 @@ var {dispose} = store.subscribe(fn)
 
 // we use this to hook on to react components via the .observe() polyfill
 
+var mix = require('disto/mix');
+
 var Component = React.createClass({
   mixins: [mix],
   observe: function(props){
