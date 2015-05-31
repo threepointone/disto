@@ -101,7 +101,7 @@ export function act(dispatch, map, prefix){
   return o;
 }
 
-// outputs an array of actions on the object. *sometimes*
+// outputs an array of actions on the object.
 export function debug(acts){
   return Object.keys(acts).map(x => acts[x].toString());
 }

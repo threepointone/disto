@@ -49,18 +49,18 @@ const $ = act(dispatch, {
 
 // stores
 
-const listStore = register(imm.fromJS({
+const list = register(imm.fromJS({
   loading: false,
   query: '',
   results: [],
   selected: false
-}), (list, action, ...args) => {
+}), (o, action, ...args) => {
   switch(action){
 
     case $.search:
       let [query] = args;
       services.search(query, $.search.done);
-      return list.merge(imm.fromJS({
+      return o.merge(imm.fromJS({
         selected: false,
         loading: true,
         query: query,
@@ -70,12 +70,12 @@ const listStore = register(imm.fromJS({
     case $.search.done:
       const [err, res] = args;
         return (err || res.error) ?
-          list.merge(imm.fromJS({
+          o.merge(imm.fromJS({
             loading: false,
             results: [],
             error: err || res.error
           })) :
-          list.merge(imm.fromJS({
+          o.merge(imm.fromJS({
             loading: false,
             results: res.body.data.results.products,
             error: null
@@ -83,31 +83,31 @@ const listStore = register(imm.fromJS({
 
     case $.select:
       let [id] = args;
-      return list.merge(imm.fromJS({
+      return o.merge(imm.fromJS({
         selected: id
       }));
 
     case $.backToList:
-       return list.merge(imm.fromJS({
+       return o.merge(imm.fromJS({
         selected: null
       }));
 
     default:
-      return list;
+      return o;
   }
 }, imm.is);
 
-const detailsStore = register(imm.fromJS({
+const details = register(imm.fromJS({
   loading: false,
   query: '',
   results: []
-}), (details, action, ...args) => {
+}), (o, action, ...args) => {
   switch(action){
 
     case $.details:
       let [id] = args;
       services.details(id, $.details.done);
-      return details.merge(imm.fromJS({
+      return o.merge(imm.fromJS({
         loading: true, id,
         details: null,
         error: null
@@ -116,22 +116,22 @@ const detailsStore = register(imm.fromJS({
     case $.details.done:
       const [err, res] = args;
       return (err || res.error) ?
-        details.merge(imm.fromJS({
+        o.merge(imm.fromJS({
           loading: false,
           details: [],
           error: err || res.error})) :
-        details.merge(imm.fromJS({
+        o.merge(imm.fromJS({
           loading: false,
           details: res.body.data,
           error: null
         }));
 
     default:
-      return details;
+      return o;
   }
 }, imm.is);
 
-const confStore = register({}, (config, action, ...args) => {
+const conf = register({}, (config, action, ...args) => {
   switch(action){
     case $.init:
       services.config($.init.done); // load config
@@ -144,19 +144,19 @@ const confStore = register({}, (config, action, ...args) => {
   }
 });
 
-const dumbo = register({}, (state, action, ...args) => {
-  waitFor(listStore, detailsStore, confStore);
-  console.log(action+'', ...args);
-  return {};
-});
+// const dumbo = register({}, (o, action, ...args) => {
+//   waitFor(list, details, conf);
+//   console.log(action + '', ...args);
+//   return o;
+// });
 
 @mixin(immumix)
 @mixin(mix)
 class App extends Component {
   observe(props){
     return {
-      list: listStore,
-      details: detailsStore
+      list,
+      details
     };
   }
   render() {
@@ -181,14 +181,13 @@ class Search extends Component {
   }
   render() {
     var props = this.props,
-      {list, details} = props,
-      selected = list.get('selected');
+      selected = props.list.get('selected');
 
     return (
       <div className="Search">
-        <input value={list.get('query')} onChange={this.onChange}/>
+        <input value={props.list.get('query')} onChange={this.onChange}/>
         <Results {...props} style={vis(!selected)}/>
-        <Details key={details.get('id')} {...props} style={vis(!!selected)}/>
+        <Details key={props.details.get('id')} {...props} style={vis(!!selected)}/>
       </div>
     );
   }
@@ -201,7 +200,7 @@ class Results extends Component {
   render() {
     return (
       <div className="Results" style={this.props.style}>
-        {this.props.list.get('results').map((item, i) => <Result product={item} key={item.get('styleid')}/>)}
+        {this.props.list.get('results').map(item => <Result product={item} key={item.get('styleid')}/>)}
       </div>
     );
   }
@@ -210,7 +209,7 @@ class Results extends Component {
 @mixin(immumix)
 class Result extends Component {
   @autobind
-  onClick(e){
+  onClick(){
     $.select(this.props.product.get('styleid'));
   }
   render() {
@@ -228,15 +227,15 @@ class Result extends Component {
 @mixin(immumix)
 class Details extends Component {
   render() {
-    const props = this.props, {details} = props;
+    const props = this.props;
     return (
       <div className='Details-cnt' style={props.style}>
         <span style={{cursor: 'pointer'}} onClick={$.backToList}>back to list page</span>
-        {details.get('loading') ?
+        {props.details.get('loading') ?
           <span>loading...</span> :
           <div className="Details">
-            <img src={details.getIn('details.styleImages.default.imageURL'.split('.'))} style={{maxWidth: 200}}/>
-            <span>{details.getIn('details.productDisplayName'.split('.'))}</span>
+            <img src={props.details.getIn('details.styleImages.default.imageURL'.split('.'))} style={{maxWidth: 200}}/>
+            <span>{props.details.getIn('details.productDisplayName'.split('.'))}</span>
           </div>}
       </div>
     );
