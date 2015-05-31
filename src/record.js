@@ -33,18 +33,18 @@ export default function recorder(dis){
 
   var oldRegister = dis.register;
   dis.register = (initial, reduce, compare) => {
-    var state, startState;
+    var state;
     return oldRegister(initial, function(o, action, ...args){
       switch(action){
         case $.record:
-          startState = state;
+          state = o;
           return o;
 
         case $.play:
-          return startState;
+          return state;
       }
-      state = reduce(o, action, ...args);
-      return state;
+      return reduce(o, action, ...args);
+
     }, compare);
   };
 

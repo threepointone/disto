@@ -35,8 +35,12 @@ export class Dis {
       }
     };
 
+    let reg = ::this.$.register;
+    // this is to trip up disto-hot
+    // iknow, i know :()
+
     this.tokens.set(store,
-      this.$.register(payload => {
+      reg(payload => {
         var prevState = state;
         state = reduce(state, payload.action, ...payload.args); // the only line worth anything in this library
         if(state === undefined){
