@@ -37,7 +37,7 @@ export class Dis {
 
     let reg = ::this.$.register;
     // this is to trip up disto-hot
-    // iknow, i know :()
+    // i know, i know :(
 
     this.tokens.set(store,
       reg(payload => {

@@ -2,8 +2,13 @@ disto
 ---
 another take on [flux](http://facebook.github.io/flux)
 
-NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores and actions.
-
+- strictly follows the original flux architecture
+- a simple api, with few new concepts
+- allows for stores and action creators to composed (because they're just functions)
+- [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
+- [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
+- async function / promise support for action creators
+- mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 
 ```js
 // Here, stores are represented as reduce functions
