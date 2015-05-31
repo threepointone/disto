@@ -51,11 +51,11 @@ let {dispose} = store.subscribe(fn)
 
 // The dispatcher uses the facebook dispatcher under the hood, with a nicer api for these stores.
 
-dispatcher.unregister(store)
-
 dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
+
+dispatcher.unregister(store)
 
 // Actions can be whatever you please.
 // We include a helper to make debug friendly action collections
