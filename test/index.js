@@ -1,6 +1,10 @@
 /*global describe, it*/
 // todo - tests for invariant conditions
 
+function timeout(t){
+  return new Promise(resolve => setTimeout(()=> resolve(), t));
+}
+
 require('chai').should();
 
 import {Dis, act, debug} from '../src/index.js';
@@ -205,7 +209,7 @@ describe('act', () => {
     var d = new Dis();
     var $ = act(d.dispatch, {
       a: ()=> {
-        var p = new Promise((resolve, reject) => {
+        var p = new Promise(resolve => {
           resolve(true);
         });
         return p;
@@ -220,6 +224,25 @@ describe('act', () => {
       }
     });
     $.a();
+  });
+
+  it('if an action is an async function, it will call .done when finished, as a node style response', done => {
+    var d = new Dis();
+    var $ = act(d.dispatch, {
+      b: async function(){
+        await timeout(100);
+        return;
+      }
+    });
+    d.register({}, (o, action) => {
+      switch(action){
+        case $.b.done:
+          done();
+          return o;
+        default: return o;
+      }
+    });
+    $.b();
   });
 });
 

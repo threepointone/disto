@@ -83,11 +83,9 @@ export function act(dispatch, map, prefix){
     let fn = map[key] || (() => {});
     o[key] = Object.assign(function(...args){
       dispatch(o[key], ...args);
-      var p = fn(...args);
+      const p = fn(...args);
       if(p instanceof Promise){
-        p
-          .then(res => o[key].done(null, res))
-          .catch(err => o[key].done(err));
+        p.then(res => o[key].done(null, res)).catch(err => o[key].done(err));
       }
       return p;
     }, {
