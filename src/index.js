@@ -1,10 +1,6 @@
 import invariant from 'flux/lib/invariant';
 import {Dispatcher} from 'flux';
 
-function last(arr) {
-  return arr[arr.length - 1];
-}
-
 // @class Dis
 // every app should have one central dispatcher
 // all messages must go through this dispatcher
