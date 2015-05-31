@@ -76,7 +76,6 @@ export class Dis {
   // todo - .destroy();
 }
 
-
 // ACTIONS
 export function act(dispatch, map, prefix){
   let o = {};
@@ -84,7 +83,13 @@ export function act(dispatch, map, prefix){
     let fn = map[key] || (() => {});
     o[key] = Object.assign(function(...args){
       dispatch(o[key], ...args);
-      fn(...args);
+      var p = fn(...args);
+      if(p instanceof Promise){
+        p
+          .then(res => o[key].done(null, res))
+          .catch(err => o[key].done(err));
+      }
+      return p;
     }, {
       toString: () => [prefix || '', '~', key].filter(x => !!x).join(':'),
       done: Object.assign((...args) => dispatch(o[key].done, ...args), {
@@ -99,5 +104,3 @@ export function act(dispatch, map, prefix){
 export function debug(acts){
   return Object.keys(acts).map(x => acts[x].toString());
 }
-
-

@@ -174,7 +174,7 @@ describe('act', () => {
     and return 'action' functions at given paths,
     and have dev friendly representations`, done =>{
     var messages = 0;
-    var $ = act((action, ...args)=> messages++, {
+    var $ = act((action, ...args) => messages++, {
       one: '',
       two: '',
       three(...words){
@@ -200,4 +200,28 @@ describe('act', () => {
 
     $.three('what', 'say', 'you');
   });
+
+  it('if an action returns a promise, it will call .done when finished, as a node style response', done => {
+    var d = new Dis();
+    var $ = act(d.dispatch, {
+      a: ()=> {
+        var p = new Promise((resolve, reject) => {
+          resolve(true);
+        });
+        return p;
+      }
+    });
+    d.register({}, (o, action) => {
+      switch(action){
+        case $.a.done:
+          done();
+          return o;
+        default: return o;
+      }
+    });
+    $.a();
+  });
 });
+
+
+
