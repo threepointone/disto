@@ -32,9 +32,7 @@ export class Dis {
             onNext = null;
           }
         };
-      },
-      unregister: () => this.unregister(store),
-      dispatch: ::this.dispatch
+      }
     };
 
     this.tokens.set(store,
