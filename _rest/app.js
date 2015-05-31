@@ -1,5 +1,6 @@
 'use strict';
 // get some dependencies
+import 'babel/polyfill';
 import 'whatwg-fetch';  // polyfill for w3c .fetch() api
 import React from 'react'; window.React = React;
 import imm from 'immutable';
@@ -12,7 +13,7 @@ import autobind from 'autobind-decorator';
 let Component = React.Component;
 
 // disto
-import {Dis, act} from '../index';
+import {Dis, act} from '../src/index';
 import mix from '../src/mix';
 
 // make a new dispatcher
@@ -22,10 +23,10 @@ let {dispatch, register, waitFor} = new Dis();
 // a couple of helpers to fetch data
 const services = {
   search(query, callback){
-    return request(`http://localhost:3000/list/${query}?rows=20`).end(callback);
+    return request(`http://localhost:3142/list/${query}?rows=20`).end(callback);
   },
   details(id, callback){
-    return request(`http://localhost:3000/product/${id}`).end(callback);
+    return request(`http://localhost:3142/product/${id}`).end(callback);
   },
   config(callback){
     // fake fetching some async config
@@ -38,9 +39,9 @@ const services = {
 
 // declare actions
 const $ = act(dispatch, {
-  init: {end: ''},
-  search: {done: ''},
-  details: {done: ''},
+  init: '',
+  search: '',
+  details: '',
   select: id => $.details(id),
   backToList: ''
 }, 'dev');
@@ -133,7 +134,7 @@ const detailsStore = register(imm.fromJS({
 const confStore = register({}, (config, action, ...args) => {
   switch(action){
     case $.init:
-      services.config($.init.end); // load config
+      services.config($.init.done); // load config
       return config;
     case $.init.done:
       let [err, res] = args;

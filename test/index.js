@@ -176,38 +176,27 @@ describe('act', () => {
     var messages = 0;
     var $ = act((action, ...args)=> messages++, {
       one: '',
-      'one.one': '',
       two: '',
       three(...words){
         words.should.eql(['what', 'say', 'you']);
         $.four(...words);
-        messages.should.eql(5);
+        messages.should.eql(4);
         done();
       },
       four: '',
-      some: {nested: {thing: ''}}
+      something: ''
     });
     $.one();
     $.two();
-    $.one.one();
 
     debug($).should.eql([
       '~:one',
-      '~:one.one',
       '~:two',
       '~:three',
       '~:four',
-      '~:some',
-      '~:some:nested',
-      '~:some:nested:thing'
+      '~:something'
     ]);
 
-    debug($.some).should.eql([
-      '~:some:nested',
-      '~:some:nested:thing'
-    ]);
-
-    ($.some.nested.toString()).should.eql('~:some:nested');
 
     $.three('what', 'say', 'you');
   });
