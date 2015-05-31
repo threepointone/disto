@@ -3,13 +3,13 @@ disto
 another take on [flux](http://facebook.github.io/flux)
 
 - strictly follows the original flux architecture
-- a simple api, with few new concepts
-- allows for stores and action creators to composed (because they're just functions)
+- a simple api, with no new concepts
+- stores and action creators are just functions
 - shorthand notation for action creators, with async function / promise support
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
-- react-native compatible, because apparently that's a thing
+- react-native compatible, because apparently that's a thing now
 
 ```js
 // Here, stores are represented as reduce functions
