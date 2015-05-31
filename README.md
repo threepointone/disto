@@ -60,8 +60,6 @@ let {dispose} = store.subscribe(fn)
 
 // notice the conspicuous lack of a .setState()
 
-// The dispatcher uses the facebook dispatcher under the hood, with a nicer api for these stores.
-
 // Actions can be whatever you please.
 // We include a helper to make debug friendly action collections
 // It's quite funky. See the unit tests and examples for more details.
