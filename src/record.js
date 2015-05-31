@@ -31,10 +31,10 @@ export default function recorder(dis){
 
   $.log = () => console.log(store.get());
 
-  var oldRegister = dis.register;
+  var register = dis.register;
   dis.register = (initial, reduce, compare) => {
     var state;
-    return oldRegister(initial, function(o, action, ...args){
+    return register(initial, function(o, action, ...args){
       switch(action){
         case $.record:
           state = o;
@@ -48,7 +48,7 @@ export default function recorder(dis){
     }, compare);
   };
 
-  store = oldRegister({
+  store = register({
     recording: false,
     playing: false,
     actions: []
