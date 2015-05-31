@@ -149,6 +149,19 @@ var {dispose} = store.subscribe(fn)
 
 // notice the conspicuous lack of a .setState()
 
+var Component = React.createClass({
+  mixins: [mix],
+  observe: function(props){
+    return {a: store1, b: store2};
+  },
+  render: function(){
+    var data = this.state.data;
+    return <div>
+      current value of store 1 : {data.a}
+      current value of store 2 : {data.b}
+    </div>;
+  }
+});
 
 ```
 
