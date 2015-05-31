@@ -10,30 +10,33 @@ another take on [flux](http://facebook.github.io/flux)
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - react-native compatible, because apparently that's a thing now
+- i love you
 
 ```js
 // Here, stores are represented as reduce functions
 // on every [actions, ...args] message that passes through the "system".
 // You register them onto the dispatcher with an initial state, and you're good to go.
 
-let {dispatch, register, unregister, waitFor} = new Dis();
+var dispatcher = new Dis();
 
-let store = register({
+let store = dispatcher.register({
   q: '',
   res: [],     // initial state
   err: null
-}, (state, action, ...args) => {
+}, function(state, action, ...args) {
   switch(action){
 
     case 'QUERY':
       let [q] = args;
-      return {...state, q};
+      return {
+        ...state, q
+      };
 
     case 'QUERY_DONE':
       let [err, res] = args;
-      return {...state, ...(err ?
-        {err, res: []} :
-        {err: null, res: res.body.data})};
+      return {
+        ...state, err, res
+      };
 
     default:
       return state;
@@ -48,11 +51,11 @@ let {dispose} = store.subscribe(fn)
 
 // The dispatcher uses the facebook dispatcher under the hood, with a nicer api for these stores.
 
-unregister(store)
+dispatcher.unregister(store)
 
-dispatch(action, ...args)
+dispatcher.dispatch(action, ...args)
 
-waitFor(...stores)
+dispatcher.waitFor(...stores)
 
 // Actions can be whatever you please.
 // We include a helper to make debug friendly action collections
