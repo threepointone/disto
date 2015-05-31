@@ -8,7 +8,7 @@ another take on [flux](http://facebook.github.io/flux)
 - shorthand notation for action creators, with async function / promise support
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
-- mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
+- includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 
 ```js
 // Here, stores are represented as reduce functions
