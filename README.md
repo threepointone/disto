@@ -70,7 +70,7 @@ var $ = act(dispatcher.dispatch, {
     // you can also return a Promise from an action creator,
     // and when it resolves, .done() will automatically
     // get called with (err, res), àla node
-    Promise(function(resolve, reject){
+    return new Promise(function(resolve, reject){
       resolve('success!');
     });
   },
