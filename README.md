@@ -15,9 +15,10 @@ disto
 
 `npm install disto --save`
 
+The dispatcher uses the fb dispatcher under the hood,
+but the api is tweaked for our stores / actions
+
 ```js
-// the dispatcher uses the fb dispatcher under the hood
-// the api is tweaked for our stores / actions
 
 var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
 
@@ -30,25 +31,26 @@ dispatcher.unregister(store)
 dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
+```
 
+Action creators can be however you choose.
+This is how I write them.
 
-// Action creators can be however you choose.
-// This is how I write them.
+The action creator helper takes a dispatch function and a map of key/values,
+and generates a collection of functions that, when each are called,
+dispatches a unique action along with passed arguments
+further calling any optional function passed in the map
 
-// The action creator helper takes a dispatch function and a map of key/values,
-// and generates a collection of functions that, when each are called,
-// dispatches a unique action along with passed arguments
-// further calling any optional function passed in the map
+indeed, we use the action creator *itself* as the 'actionType'
+to much convenience
 
-// indeed, we use the action creator *itself* as the 'actionType'
-// to much convenience
+what this means, is that you'll likely
+never have to dispatch a raw action by yourself
 
-// what this means, is that you'll likely
-// never have to dispatch a raw action by yourself
+also, since these are unique objects (with readable string representations),
+you also don't have to worry about global namepace clashes
 
-// also, since these are unique objects (with readable string representations),
-// you also don't have to worry about global namepace clashes
-
+```js
 var $ = act(dispatcher.dispatch, {
   init: '',   // use a blank string for default function
   a: '',
@@ -113,10 +115,13 @@ $.f();
 
 // these actions are consumed by stores,
 // which hold all the 'state'
+```
 
-// Stores are represented as initial state + a function
-// that get called on every [actions, ...args] message
-// that passes through the "system".
+Stores are represented as initial state + a function
+that get called on every [actions, ...args] message
+that passes through the "system".
+
+```js
 
 let store = dispatcher.register({
   q: '',
