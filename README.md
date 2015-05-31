@@ -29,22 +29,26 @@ dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
 
-// There are many ways to write action creators.
-// I hope you like this one.
 
-// The action creator helper takes a dispatch function a map of key/values
+// Action creators can be however you choose.
+// This is how I write them.
+
+// The action creator helper takes a dispatch function and a map of key/values,
 // and generates a collection of functions that, when each are called,
 // dispatches a unique action along with passed arguments
 // further calling any optional function passed in the map
 
+// indeed, we use the action creator *itself* as the 'actionType'
+// to much convenience
+
 // what this means, is that you'll likely
-// never have to dispatch an action by yourself
+// never have to dispatch a raw action by yourself
 
 // also, since these are unique objects (with readable string representations),
 // you also don't have to worry about global namepace clashes
 
 var $ = act(dispatcher.dispatch, {
-  init: '',
+  init: '',   // use a blank string for default function
   a: '',
   b: function(){
     console.log('possible fire an ajax request here');
@@ -105,7 +109,8 @@ $.f();
 
 // dispatches [$.f], then [$.f.done, null, response]
 
-
+// these actions are consumed by stores,
+// which hold all the 'state'
 
 // Stores are represented as initial state + a function
 // that get called on every [actions, ...args] message
@@ -117,7 +122,6 @@ let store = dispatcher.register({
   err: null
 }, function(state, action, ...args) {
   switch(action){
-
     case $.query:
       let [q] = args;
       return {
@@ -145,14 +149,10 @@ var {dispose} = store.subscribe(fn)
 
 // notice the conspicuous lack of a .setState()
 
-// Actions can be whatever you please.
-// We include a helper to make debug friendly action collections
-// It's quite funky. See the unit tests and examples for more details.
-
-// [action docs coming soon]
 
 ```
 
 tests
 ---
 `npm test`
+
