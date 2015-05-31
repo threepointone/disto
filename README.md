@@ -31,12 +31,9 @@ let store = register({
   }
 });
 
-// These are observables, with the following apis
-
 store.get()   // returns current value
 
-let {dispose} = store.subscribe(fn)  // gets called once with initial data,
-                                     // and then whenever said data changes
+let {dispose} = store.subscribe(fn)
 
 // notice the conspicuous lack of a .setState()
 
@@ -72,3 +69,4 @@ var App = React.createClass({
 });
 ```
 
+NEW! - Use with [disto-hot-loader](https://github.com/threepointone/disto-hot-loader) for live editing stores.
