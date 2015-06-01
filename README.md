@@ -9,7 +9,7 @@ disto
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
 - [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
-- react-native compatible, because apparently that's a thing now
+- browser / server / react-native compatible, because apparently that's a thing now
 - really tiny - 2k gzipped, incl. dependencies
 - [tests](https://github.com/threepointone/disto/blob/master/test/index.js), [examples](https://github.com/threepointone/disto-example) (to be fleshed out)
 - i love you
