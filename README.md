@@ -155,6 +155,7 @@ store.get()   // returns current value
 
 // you can optionally pass in a custom 'compare' function
 // which decides when to trigger 'change' events
+// analogous to 'shouldComponentUpdate'
 
 // eg, with immutable-js (https://facebook.github.io/immutable-js/)
 // we'd use immutable.is to compare states
