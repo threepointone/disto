@@ -202,7 +202,7 @@ time travel! (compatible with disto-hot, tests pending)
 // run this before registering any other stores
 // needs to be exactly like this to satify disto-hot
 
-var r = require('disto/record');
+var r = require('disto/lib/record');
 var rStore = dispatcher.register(r.initial, r.reduce, r.compare);
 r.setup(dispatcher, rStore);
 
