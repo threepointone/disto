@@ -17,8 +17,12 @@ disto
 `npm install disto --save`
 
 ```js
-var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
+var {Dis, act} = require('disto');
+// Dispatcher class, action creator helper
 ```
+
+dispatcher
+---
 
 The dispatcher uses the fb dispatcher under the hood,
 but the api is tweaked for our stores / actions
@@ -35,6 +39,9 @@ dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
 ```
+
+actions
+---
 
 Action creators can be however you choose. This is how I write them.
 
@@ -87,37 +94,26 @@ var $ = act(dispatcher.dispatch, {
 
 // $.a is now a function
 
-$.a(1, 2, 3);
+$.a(1, 2, 3);  // dispatches [$.a, 1, 2, 3] to all stores
 
-// dispatches [$.a, 1, 2, 3] to all stores
+console.log($.a.toString())  // baconium:~:a
 
-console.log($.a.toString())
+$.b();  // dispatches [$.b], and then logs "possibly fire..."
 
-// baconium:~:a
+$.c();  // dispatches [$.c], then [$.b], and then logs "possibly fire..."
 
-$.b();
+$.d();  // dispatches [$.d], later [$.d.done, 'any', 'args', 'you', 'like']
 
-// dispatches [$.b], and then logs "possibly fire..."
+$.e();  // dispatches [$.e], then [$.e.done, null, 'success!']
 
-$.c();
-
-// dispatches [$.c], then [$.b], and then logs "possibly fire..."
-
-$.d();
-
-// dispatches [$.d], later [$.d.done, 'any', 'args', 'you', 'like']
-
-$.e();
-
-// dispatches [$.e], then [$.e.done, null, 'success!']
-
-$.f();
-
-// dispatches [$.f], then [$.f.done, null, response]
+$.f();  // dispatches [$.f], later [$.f.done, null, response]
 
 // these actions are consumed by stores,
 // which hold all the 'state'
 ```
+
+stores
+---
 
 Stores are represented as initial state + a 'reduce' function
 that get called on every [actions, ...args] message
@@ -153,6 +149,7 @@ function reduce(state, action, ...args){
 });
 
 var store = dispatcher.register(initialState, reduce);
+
 store.get()   // returns current value
 
 // you can optionally pass in a custom 'compare' function
@@ -196,7 +193,10 @@ var Component = React.createClass({
 
 ```
 
-time travel! (compatible with disto-hot, tests pending)
+time travel!
+---
+
+(compatible with disto-hot, tests pending)
 
 ```js
 // run this before registering any other stores
