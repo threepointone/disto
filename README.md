@@ -117,17 +117,18 @@ $.f();
 // which hold all the 'state'
 ```
 
-Stores are represented as initial state + a function
+Stores are represented as initial state + a 'reduce' function
 that get called on every [actions, ...args] message
 that passes through the "system".
 
 ```js
-
-let store = dispatcher.register({
+var initialState = {
   q: '',
   res: [],     // initial state
   err: null
-}, function(state, action, ...args) {
+};
+
+var reduce = function(state, action, ...args){
   switch(action){
     case $.query:
       let [q] = args;
@@ -145,6 +146,8 @@ let store = dispatcher.register({
       return state;
   }
 });
+
+var store = dispatcher.register(initialState, reduce);
 
 store.get()   // returns current value
 
@@ -170,6 +173,8 @@ var Component = React.createClass({
       current value of store 2 : {data.b}
     </div>;
   }
-});
+};
+
+let store
 
 ```
