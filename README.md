@@ -121,6 +121,9 @@ Stores are represented as initial state + a 'reduce' function
 that get called on every [actions, ...args] message
 that passes through the "system".
 
+While this might seem terse, it's actually a fully open system,
+and you should be able to build any abstraction on top of it.
+
 ```js
 var initialState = {
   q: '',
@@ -148,8 +151,21 @@ var reduce = function(state, action, ...args){
 });
 
 var store = dispatcher.register(initialState, reduce);
-
 store.get()   // returns current value
+
+// you can optionally pass in a custom 'compare' function
+// which decides when to trigger 'change' events
+
+// eg, with immutable-js (https://facebook.github.io/immutable-js/)
+// we'd use immutable.is to compare states
+
+var iStore = dispatcher.register(immutable.Map({
+  loading: true,
+  err: null,
+  results: []
+}), function(o, action, ...args){
+  // returns immutable structures
+}, immutable.is);
 
 // stores are also lightweight 'observables',
 
