@@ -16,7 +16,7 @@ disto
 
 `npm install disto --save`
 
-```js 
+```js
 var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
 ```
 
@@ -133,7 +133,7 @@ var initialState = {
   err: null
 };
 
-var reduce = function(state, action, ...args){
+function reduce(state, action, ...args){
   switch(action){
     case $.query:
       let [q] = args;
