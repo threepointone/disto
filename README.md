@@ -16,12 +16,14 @@ disto
 
 `npm install disto --save`
 
+```js 
+var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
+```
+
 The dispatcher uses the fb dispatcher under the hood,
 but the api is tweaked for our stores / actions
 
 ```js
-
-var {Dis, act} = require('disto');  // Dispatcher class, action creator helper
 
 var dispatcher = new Dis();
 
