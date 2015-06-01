@@ -159,13 +159,13 @@ store.get()   // returns current value
 // eg, with immutable-js (https://facebook.github.io/immutable-js/)
 // we'd use immutable.is to compare states
 
-var iStore = dispatcher.register(immutable.Map({
+var iStore = dispatcher.register(Immutable.Map({
   loading: true,
   err: null,
   results: []
 }), function(o, action, ...args){
   // returns immutable structures
-}, immutable.is);
+}, Immutable.is);
 
 // stores are also lightweight 'observables',
 
