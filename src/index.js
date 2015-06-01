@@ -11,6 +11,8 @@ export class Dis {
     this.tokens = new WeakMap();  // store all the tokens returned by the dipatcher
     ['register', 'unregister', 'dispatch', 'waitFor'] // bind these functions, so you can pass them around
       .forEach(fn => this[fn] = this[fn].bind(this));
+    // this is a signal for hot loader
+    this.register.isdis = true;
   }
 
   register(initial, reduce = o => o, compare = (a, b) => a === b){
@@ -100,6 +102,8 @@ export function act(dispatch, map, prefix){
   });
   return o;
 }
+
+act.isdis = true; // mark for hot loader
 
 // outputs an array of actions on the object.
 export function debug(acts){
