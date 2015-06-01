@@ -123,7 +123,7 @@ Stores are represented as initial state + a 'reduce' function
 that get called on every [actions, ...args] message
 that passes through the "system".
 
-While this might seem terse, it's actually a fully open system,
+While this might seem terse, it's a fully open system,
 and you should be able to build any abstraction on top of it.
 
 ```js
