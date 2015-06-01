@@ -7,7 +7,7 @@ disto
 - stores have no setters or ajax / async calls
 - shorthand notation for action creators, with async function / promise support
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
-- [timetravel utilities](https://github.com/threepointone/disto-example/blob/master/_rest/record.js)
+- timetravel helper
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - browser / server / react-native compatible, because apparently that's a thing now
 - really tiny - 2k gzipped, incl. dependencies
@@ -193,5 +193,26 @@ var Component = React.createClass({
     </div>;
   }
 };
+
+```
+
+time travel! (compatible with disto-hot, tests pending)
+
+```js
+// run this before attaching any other stores
+// needs to be exactly like thos to satify disto-hot
+
+var r = require('disto/record');
+var rStore = dispatcher.register(r.initial, r.reduce, r.compare);
+r.setup(dispatcher, rStore);
+
+// this gives you a few helpers
+
+var i = dispatcher.snapshot()  // takes a snapshot of current state
+dispatcher.goTo(i)             // 'goes' to a particular snapshot
+
+dispatcher.record()    // to start recording
+dispatcher.stop()      // to stop recording
+dispatcher.play()      // to replay the session
 
 ```
