@@ -161,7 +161,7 @@ store.get()   // returns current value
 // we'd use immutable.is to compare states
 
 var iStore = dispatcher.register(Immutable.Map({
-  loading: true,
+  loading: false,
   err: null,
   results: []
 }), function(o, action, ...args){
