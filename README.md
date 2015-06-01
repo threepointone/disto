@@ -175,6 +175,4 @@ var Component = React.createClass({
   }
 };
 
-let store
-
 ```
