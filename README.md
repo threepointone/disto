@@ -199,8 +199,8 @@ var Component = React.createClass({
 time travel! (compatible with disto-hot, tests pending)
 
 ```js
-// run this before attaching any other stores
-// needs to be exactly like thos to satify disto-hot
+// run this before registering any other stores
+// needs to be exactly like this to satify disto-hot
 
 var r = require('disto/record');
 var rStore = dispatcher.register(r.initial, r.reduce, r.compare);
@@ -211,8 +211,8 @@ r.setup(dispatcher, rStore);
 var i = dispatcher.snapshot()  // takes a snapshot of current state
 dispatcher.goTo(i)             // 'goes' to a particular snapshot
 
-dispatcher.record()    // to start recording
-dispatcher.stop()      // to stop recording
-dispatcher.play()      // to replay the session
+dispatcher.record()    // start recording
+dispatcher.stop()      // stop recording
+dispatcher.play()      // replay the session
 
 ```
