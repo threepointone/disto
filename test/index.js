@@ -19,6 +19,7 @@ describe('stores', ()=>{
 
   // disabled this
   // unnecessary and has the hidden effect of calling the reduce function once for no reason
+  // that means your stateless store now holds state, which we're trying to avoid :|
 
   // it('can pass initial state as es6 default argument value', () => {
   //   let dis = new Dis(),
