@@ -86,19 +86,20 @@ export function act(dispatch, map, prefix){
   let o = {};
   Object.keys(map).forEach(key => {
     let fn = map[key] || (() => {});
-    o[key] = Object.assign(function(...args){
+    o[key] = (...args) => {
       dispatch(o[key], ...args);
       const p = fn(...args);
       if(p instanceof Promise){
         p.then(res => o[key].done(null, res)).catch(err => o[key].done(err));
       }
       return p;
-    }, {
-      toString: () => [prefix || '', '~', key].filter(x => !!x).join(':'),
-      done: Object.assign((...args) => dispatch(o[key].done, ...args), {
-        toString: () => [prefix || '', '~', key, 'done'].filter(x => !!x).join(':')
-      })
-    });
+    };
+
+    o[key].toString = () => [prefix || '', '~', key].filter(x => !!x).join(':');
+    o[key].done = (...args) => dispatch(o[key].done, ...args);
+    o[key].done.toString = () => [prefix || '', '~', key, 'done'].filter(x => !!x).join(':');
+
+    // });
   });
   return o;
 }
