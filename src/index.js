@@ -13,8 +13,17 @@ export class Dis {
       .forEach(fn => this[fn] = this[fn].bind(this));
   }
 
-  register(initial, reduce = o => o, compare = (a, b) => a === b){
+  register(initial, reduce, compare){
+
     var state = initial, handlers = [];
+
+    if(typeof initial === 'function'){ // using shorthand es6 notation
+      compare = reduce;
+      reduce = initial;
+      state = initial = reduce(undefined, {});
+    }
+    reduce = reduce || (x => x);
+    compare = compare || ((a, b) => a === b);
 
     const store = {
       get: () => state,

@@ -9,12 +9,21 @@ require('chai').should();
 
 import {Dis, act, debug} from '../src/index.js';
 
-describe('sto', ()=>{
+describe('stores', ()=>{
   it('initializes with seed value', ()=>{
     let dis = new Dis(),
       store = dis.register({x: 1, y: 2});
     store.get().should.eql({x: 1, y: 2});
 
+  });
+  it('can pass initial state as es6 default argument value', () => {
+    let dis = new Dis(),
+      store = dis.register((x = 10, a) => a === 'inc' ? x + 1 : x);
+
+    store.get().should.eql(10);
+    dis.dispatch('inc');
+    dis.dispatch('inc');
+    store.get().should.eql(12);
   });
 
   it('responds to actions / returns current state', ()=> {

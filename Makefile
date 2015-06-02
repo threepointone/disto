@@ -5,4 +5,7 @@ build:
 tests:
 	npm test
 
-.PHONY: build tests
+size:
+	browserify ./index.js | uglifyjs -m -c | gzip | wc -c
+
+.PHONY: build tests size

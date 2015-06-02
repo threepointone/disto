@@ -10,7 +10,7 @@ disto
 - timetravel helper
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - browser / server / react-native compatible, because apparently that's a thing now
-- really tiny - 2k gzipped, incl. dependencies
+- really tiny - ~2k gzipped, incl. dependencies
 - [tests](https://github.com/threepointone/disto/blob/master/test/index.js), [examples](https://github.com/threepointone/disto-example) (to be fleshed out)
 - i love you
 
