@@ -19,6 +19,7 @@ describe('stores', ()=>{
     store.subscribe();
     let s2 = dis.register();
     dis.dispatch('booga');
+    (()=> Dis()).should.throw();
 
 
   });
