@@ -15,6 +15,12 @@ describe('stores', ()=>{
       store = dis.register({x: 1, y: 2});
     store.get().should.eql({x: 1, y: 2});
 
+    // for coverage
+    store.subscribe();
+    let s2 = dis.register();
+    dis.dispatch('booga');
+
+
   });
 
   // disabled this
@@ -178,6 +184,10 @@ describe('act', () => {
       '~:four',
       '~:something'
     ]);
+
+    // for coverage
+    $.one.done.toString();
+    $.one.error.toString();
 
 
     $.three('what', 'say', 'you');
