@@ -111,7 +111,7 @@ $.e();  // dispatches [$.e], then [$.e.done, 'success!']
 
 $.f();  // dispatches [$.f], later [$.f.done, response]
 
-$.g();  // dispatches [$.g], then [$.g.error, Error:π]
+$.g();  // dispatches [$.g], then [$.g.error, Error:disto]
 
 // these actions are consumed by stores,
 // which hold all the 'state'
