@@ -4,7 +4,8 @@
   "description": "yet another flux thing",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "make build"
   },
   "keywords": [
     "flux",
