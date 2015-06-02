@@ -28,7 +28,6 @@ The dispatcher uses the fb dispatcher under the hood,
 but the api is tweaked for our stores / actions
 
 ```js
-
 var dispatcher = new Dis();
 
 dispatcher.register(initialState, fn, compare)
