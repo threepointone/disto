@@ -26,18 +26,24 @@ export const helpers = {
     this.dispatch(constants.stop);
   },
   play: function() {
-    var i = 0;
-    var t = this;
-    this.dispatch(constants.play);
-    let intval = setInterval(function(){
-      let [action, args] = t.recorderStore.get().actions[i];
-      t.dispatch(action, ...args);
-      i++;
-      if(i === t.recorderStore.get().actions.length){
-        clearInterval(intval);
-        t.dispatch(constants.playDone);
+    return new Promise(resolve => {
+      var i = 0;
+      var t = this;
+      if(t.recorderStore.recording) {
+        this.dispatch(constants.stop);
       }
-    }, 100);
+      this.dispatch(constants.play);
+      let intval = setInterval(function(){
+        let [action, args] = t.recorderStore.get().actions[i];
+        t.dispatch(action, ...args);
+        i++;
+        if(i === t.recorderStore.get().actions.length){
+          clearInterval(intval);
+          t.dispatch(constants.playDone);
+          resolve();
+        }
+      }, 100);
+    });
   }
 };
 

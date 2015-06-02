@@ -111,11 +111,10 @@ describe('Dis', ()=>{
 
   it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
-    var s3 = d.register(0, () => { d.waitFor(s1, s2); return (s1.get() + s2.get()); });
     var s1 = d.register(0, x => x + 1);
+    var s3 = d.register(0, () => { d.waitFor(s1, s2); return (s1.get() + s2.get()); });
     var s2 = d.register(0, x => x + 2);
 
-    // [s3, s2, s1].map(d.register);
     d.dispatch('xyz');
     s1.get().should.eql(1);
     s2.get().should.eql(2);
@@ -173,12 +172,7 @@ describe('act', () => {
   it('if an action returns a promise, it will call .done when finished, as a node style response', done => {
     var d = new Dis();
     var $ = act(d.dispatch, {
-      a: ()=> {
-        var p = new Promise(resolve => {
-          resolve(true);
-        });
-        return p;
-      }
+      a: () => new Promise(resolve => resolve(true))
     });
     d.register({}, (o, action) => {
       switch(action){
@@ -194,10 +188,7 @@ describe('act', () => {
   it('if an action is an async function, it will call .done when finished, as a node style response', done => {
     var d = new Dis();
     var $ = act(d.dispatch, {
-      b: async function(){
-        await timeout(100);
-        return;
-      }
+      b: async () => await timeout(100)
     });
     d.register({}, (o, action) => {
       switch(action){
@@ -212,8 +203,78 @@ describe('act', () => {
 });
 
 describe('record/replay', ()=> {
-  it('can snapshot state at any point, and goto that point whenever');
-  it('can record a session, and replay it');
-  it('works with disto-hot');
+  it('can snapshot state at any point, and goTo that point whenever', ()=> {
+    let d = new Dis();
+
+    let r = require('../src/record');
+    r.setup(d, d.register(r.initial, r.reduce, r.compare));
+
+    let s = d.register({x: 0}, (o, action) => {
+      switch(action){
+        case 'inc':
+          return {x: o.x + 1};
+        default:
+          return o;
+      }
+    });
+
+    d.snapshot();
+    d.dispatch('inc');
+    d.dispatch('inc');
+    d.snapshot();
+    d.dispatch('inc');
+    d.dispatch('inc');
+    d.snapshot();
+
+    d.goTo(0);
+    s.get().x.should.eql(0);
+    d.goTo(1);
+    s.get().x.should.eql(2);
+    d.goTo(2);
+    s.get().x.should.eql(4);
+    d.goTo(1);
+    s.get().x.should.eql(2);
+
+
+  });
+
+  it('can record a session, and replay it', done => {
+    let d = new Dis(), messages = 0;
+
+    let r = require('../src/record');
+    r.setup(d, d.register(r.initial, r.reduce, r.compare));
+
+    let s = d.register({x: 0}, (o, action) => {
+      switch(action){
+        case 'inc':
+          messages++;
+          return {x: o.x + 1};
+        default:
+          return o;
+      }
+    });
+
+    d.record();
+    for(var i = 0; i < 5; i++) {
+      d.dispatch('inc');
+    }
+    d.stop();
+    s.get().x.should.eql(5);
+    messages.should.eql(5);
+    d.play().then(() => {
+      s.get().x.should.eql(5);
+      messages.should.eql(10);
+
+      d.play().then(() => {
+        console.log('here');
+        s.get().x.should.eql(5);
+        messages.should.eql(15);
+        done();
+      }).catch(done);
+
+    }).catch(done);
+
+  });
+
 });
 
