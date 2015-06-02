@@ -146,7 +146,7 @@ function reduce(state, action, ...args){
     default:
       return state;
   }
-});
+}
 
 var store = dispatcher.register(initialState, reduce);
 

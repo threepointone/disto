@@ -12,7 +12,7 @@ const constants = {
   playDone: 'DISTO_PLAY_DONE'
 };
 
-export const $ = {
+export const helpers = {
   snapshot: function() {
     this.dispatch(constants.snapshot);
   },
@@ -40,8 +40,6 @@ export const $ = {
     }, 100);
   }
 };
-
-
 
 export const initial = {
   recording: false,
@@ -121,6 +119,6 @@ export function setup(dis, sto){
       return use(o, action, ...args) || red(o, action, ...args);
     }, comp);
   };
-  Object.assign(dis, $);
+  Object.assign(dis, helpers);
 
 }
