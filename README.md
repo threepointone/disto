@@ -196,7 +196,7 @@ var Component = React.createClass({
 time travel!
 ---
 
-(compatible with disto-hot, tests pending)
+(compatible with disto-hot-loader!)
 
 ```js
 // run this before registering any other stores
