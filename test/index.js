@@ -17,7 +17,7 @@ describe('sto', ()=>{
 
   });
 
-  it('responds to actions / returns current state', ()=>{
+  it('responds to actions / returns current state', ()=> {
     let dis = new Dis(),
       s = dis.register({x: 1, y: 2},
       (o, action, key, val=1) => (action === 'inc') ? Object.assign(o, {[key]: o[key] + val}) : o);
@@ -38,16 +38,9 @@ describe('sto', ()=>{
 
   it('does not emit change when state hasn\'t changed', done => {
     let dis = new Dis(),
-      s1 = dis.register(3, (num, action) => {
-      if(action === 'inc'){
-        return num + 1;
-      }
-      return num;
-    });
+      s = dis.register(3, (num, action) => (action === 'inc') ? num + 1 : num);
 
-    let {dispose} = s1.subscribe(()=> {
-      done('should not fire');
-    }, false);
+    let {dispose} = s.subscribe(()=> done('should not fire'), false);
     dis.dispatch('xyz');
     dis.dispatch('xyz');
     dis.dispatch('xyz');
@@ -107,8 +100,6 @@ describe('Dis', ()=>{
     var d = new Dis(),
       s = d.register(0, state => state + 1);
 
-    // d.register(s);
-
     d.dispatch('xyz'); d.dispatch('xyz'); d.dispatch('xyz');
 
     s.get().should.eql(3);
@@ -120,7 +111,7 @@ describe('Dis', ()=>{
 
   it('can waitFor stores before proceeding', ()=>{
     var d = new Dis();
-    var s3 = d.register(0, () => {d.waitFor(s1, s2); return (s1.get() + s2.get()); });
+    var s3 = d.register(0, () => { d.waitFor(s1, s2); return (s1.get() + s2.get()); });
     var s1 = d.register(0, x => x + 1);
     var s2 = d.register(0, x => x + 2);
 
@@ -152,10 +143,10 @@ describe('act', () => {
     and return 'action' functions at given paths,
     and have dev friendly representations`, done =>{
     var messages = 0;
-    var $ = act((action, ...args) => messages++, {
+    var $ = act(() => messages++, {
       one: '',
       two: '',
-      three(...words){
+      three(...words) {
         words.should.eql(['what', 'say', 'you']);
         $.four(...words);
         messages.should.eql(4);
