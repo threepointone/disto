@@ -29,11 +29,10 @@ describe('sto', ()=>{
     let dis = new Dis(),
       s = dis.register({times: 0}, state => ({times: state.times + 1}));
     let {dispose} = s.subscribe(()=> {
-      if(s.get().times === 1){
-        dispose();
-        done();
-      }
-    });
+      s.get().times.should.eql(1);
+      dispose();
+      done();
+    }, false);
     dis.dispatch('gogogo');
   });
 
@@ -46,50 +45,31 @@ describe('sto', ()=>{
       return num;
     });
 
-    var once = false;
     let {dispose} = s1.subscribe(()=> {
-      if(once){
-        done('should not fire');
-      }
-      else{
-        once = true;
-      }
-    });
+      done('should not fire');
+    }, false);
     dis.dispatch('xyz');
     dis.dispatch('xyz');
     dis.dispatch('xyz');
     dispose();
     done();
-  });
+  }, false);
 
   it('!!does not emit change when same object is mutated and returned!!!', done => {
     // this is by design!
     let dis = new Dis(),
       s1 = dis.register({x: 0}, state => Object.assign(state, {x: state.x + 1}));
 
-    var once = false;
     s1.subscribe(()=> {
-      if(once){
-        done('should not fire');
-      }
-      else{
-        once = true;
-      }
-
-    });
+      done('should not fire');
+    }, false);
     dis.dispatch('xyz');
 
     // so if you're using object.assign, make sure you start with a fresh object
     var s2 = dis.register({x: 0}, state => Object.assign({}, state, {x: state.x + 1}));
-    var once2 = false;
     s2.subscribe(()=> {
-      if(once2){
-        done(); // will fire
-      }
-      else{
-        once2 = true;
-      }
-    });
+      done(); // will fire
+    }, false);
     dis.dispatch('xyz');
   });
 
@@ -102,17 +82,11 @@ describe('sto', ()=>{
     let dis = new Dis(),
       s = dis.register({x: 0}, (state) => Object.assign(state, {x: state.x + 2}), eql);
 
-    var once = false;
-    s.subscribe((newS)=> {
+    s.subscribe(newS => {
       // ick, mutable shared object
-      if(once){
-        newS.x.should.eql(2);
-        done(); // will fire
-      }
-      else{
-        once = true;
-      }
-    });
+      newS.x.should.eql(2);
+      done();
+    }, false);
     dis.dispatch('xyz');
   });
 
@@ -121,9 +95,9 @@ describe('sto', ()=>{
     let dis = new Dis(),
       s = dis.register(0, x => x + 1);
 
-    var {dispose} = s.subscribe({onNext: state => (state === 2) && done() });
+    var {dispose} = s.subscribe({onNext: state => (state === 1) && done() });
     dis.dispatch('_');
-    dis.dispatch('_');
+    // dis.dispatch('_');
     dispose();
   });
 });
@@ -246,5 +220,9 @@ describe('act', () => {
   });
 });
 
-
+describe('record/replay', ()=> {
+  it('can snapshot state at any point, and goto that point whenever');
+  it('can record a session, and replay it');
+  it('works with disto-hot');
+});
 

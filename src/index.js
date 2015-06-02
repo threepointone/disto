@@ -18,14 +18,16 @@ export class Dis {
 
     const store = {
       get: () => state,
-      subscribe: (opts = {}) => {
+      subscribe: (opts = {}, immediate = true) => {
         if(typeof opts === 'function'){
           opts = {onNext: opts};
         }
         let onNext = opts.onNext || (x => x);
         handlers.push(onNext);
         // run it once to send initial value
-        onNext(state);
+        if(immediate){
+          onNext(state);
+        }
         return {
           dispose() {
             handlers = handlers.filter(x => x !== onNext);
