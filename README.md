@@ -79,16 +79,19 @@ var $ = act(dispatcher.dispatch, {
   }
   e: function(){
     // you can also return a Promise from an action creator,
-    // and when it resolves, .done() will automatically
-    // get called with (err, res), àla node
+    // and .done() gets called when it resolves
     return new Promise(function(resolve, reject){
       resolve('success!');
     });
   },
   f: async function(q){
-    // finally, you can use es7 async functions
+    // you can use es7 async functions
     // and .done() will get called when it finishes
-    await fetch(`/search/${q}`);
+    return await fetch(`/search/${q}`);
+  },
+  g: async function(q){
+    // finally, throwing errors / rejecting promises will call .error()
+    throw new Error('disto');
   }
 }, 'baconium' /* optional prefix to dev strings */);
 
@@ -104,9 +107,11 @@ $.c();  // dispatches [$.c], then [$.b], and then logs "possibly fire..."
 
 $.d();  // dispatches [$.d], later [$.d.done, 'any', 'args', 'you', 'like']
 
-$.e();  // dispatches [$.e], then [$.e.done, null, 'success!']
+$.e();  // dispatches [$.e], then [$.e.done, 'success!']
 
-$.f();  // dispatches [$.f], later [$.f.done, null, response]
+$.f();  // dispatches [$.f], later [$.f.done, response]
+
+$.g();  // dispatches [$.g], then [$.g.error, Error:π]
 
 // these actions are consumed by stores,
 // which hold all the 'state'

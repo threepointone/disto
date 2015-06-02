@@ -183,7 +183,7 @@ describe('act', () => {
     $.three('what', 'say', 'you');
   });
 
-  it('if an action returns a promise, it will call .done when finished, as a node style response', done => {
+  it('if an action returns a promise, it will call .done when finished', done => {
     var d = new Dis();
     var $ = act(d.dispatch, {
       a: () => new Promise(resolve => resolve(true))
@@ -191,6 +191,22 @@ describe('act', () => {
     d.register({}, (o, action) => {
       switch(action){
         case $.a.done:
+          done();
+          return o;
+        default: return o;
+      }
+    });
+    $.a();
+  });
+
+  it('if an action returns a promise, it will call .error on errors', done => {
+    var d = new Dis();
+    var $ = act(d.dispatch, {
+      a: () => new Promise((resolve, reject) => {x.y.z;})
+    });
+    d.register({}, (o, action) => {
+      switch(action){
+        case $.a.error:
           done();
           return o;
         default: return o;

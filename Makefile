@@ -5,7 +5,7 @@ build:
 test:
 	npm test
 
-size:
+size: build
 	browserify ./index.js | uglifyjs -m -c | gzip | wc -c
 
 cover:

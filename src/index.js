@@ -84,22 +84,30 @@ export class Dis {
 // ACTIONS
 export function act(dispatch, map, prefix){
   let o = {};
+
+  function str(...k){
+    return [prefix || '', '~', ...k].filter(x => !!x).join(':');
+  }
+
   Object.keys(map).forEach(key => {
     let fn = map[key] || (() => {});
     o[key] = (...args) => {
       dispatch(o[key], ...args);
       const p = fn(...args);
       if(p instanceof Promise){
-        p.then(res => o[key].done(null, res)).catch(err => o[key].done(err));
+        p.then(res => o[key].done(res)).catch(err => o[key].error(err));
       }
       return p;
     };
 
-    o[key].toString = () => [prefix || '', '~', key].filter(x => !!x).join(':');
-    o[key].done = (...args) => dispatch(o[key].done, ...args);
-    o[key].done.toString = () => [prefix || '', '~', key, 'done'].filter(x => !!x).join(':');
+    o[key].toString = () => str(key);
 
-    // });
+    o[key].done = (...args) => dispatch(o[key].done, ...args);
+    o[key].done.toString = () => str(key, 'done');
+
+    o[key].error = (...args) => dispatch(o[key].error, ...args);
+    o[key].error.toString = () => str(key, 'error');
+
   });
   return o;
 }
