@@ -266,7 +266,6 @@ describe('record/replay', ()=> {
       messages.should.eql(10);
 
       d.play().then(() => {
-        console.log('here');
         s.get().x.should.eql(5);
         messages.should.eql(15);
         done();
