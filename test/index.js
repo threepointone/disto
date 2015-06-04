@@ -20,23 +20,7 @@ describe('stores', ()=>{
     let s2 = dis.register();
     dis.dispatch('booga');
     (()=> Dis()).should.throw();
-
-
   });
-
-  // disabled this
-  // unnecessary and has the hidden effect of calling the reduce function once for no reason
-  // that means your stateless store now holds state, which we're trying to avoid :|
-
-  // it('can pass initial state as es6 default argument value', () => {
-  //   let dis = new Dis(),
-  //     store = dis.register((x = 10, a) => a === 'inc' ? x + 1 : x);
-
-  //   store.get().should.eql(10);
-  //   dis.dispatch('inc');
-  //   dis.dispatch('inc');
-  //   store.get().should.eql(12);
-  // });
 
   it('responds to actions / returns current state', ()=> {
     let dis = new Dis(),
@@ -226,7 +210,7 @@ describe('act', () => {
     $.a();
   });
 
-  it('if an action is an async function, it will call .done when finished, as a node style response', done => {
+  it('if an action is an async function, it will call .done when finished', done => {
     var d = new Dis();
     var $ = act(d.dispatch, {
       b: async () => await timeout(100)
@@ -318,3 +302,18 @@ describe('record/replay', ()=> {
 
 });
 
+
+
+// disabled this
+// unnecessary and has the hidden effect of calling the reduce function once for no reason
+// that means your stateless store now holds state, which we're trying to avoid :|
+
+// it('can pass initial state as es6 default argument value', () => {
+//   let dis = new Dis(),
+//     store = dis.register((x = 10, a) => a === 'inc' ? x + 1 : x);
+
+//   store.get().should.eql(10);
+//   dis.dispatch('inc');
+//   dis.dispatch('inc');
+//   store.get().should.eql(12);
+// });
