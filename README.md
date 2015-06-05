@@ -1,9 +1,11 @@
 disto
 ---
 
+(this api might change)
+
 - strictly follows the original [flux](http://facebook.github.io/flux) architecture
 - a simple api, with no new concepts
-- stores and action creators are just functions
+- leans heavily on regular functions
 - stores have no setters or ajax / async calls
 - shorthand notation for action creators, with async function / promise support
 - [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
