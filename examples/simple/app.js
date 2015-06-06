@@ -1,22 +1,25 @@
 import React from 'react';
-import {Dis, hot, record, mix} from '../../src';
+import {mix, hot} from '../../src';
 
-export const dis = new Dis();
 
-const r = record.setup(dis, module),
-  {register, act} = dis;
+import {dis} from './dis';
+
+const // r = record.setup(dis, module),
+  {register, act} = hot(dis, module);
 
 export const $ = act({
   click: ''
 });
 
-export const counter = register(0, (o, action) => {
+export const counter = register({x: 0}, (o, action) => {
   switch(action){
     case $.click:
-      return o + 1;
+      return {x: o.x + 2};
     default: return o;
   }
 });
+
+console.log(counter.get())
 
 export const App = React.createClass({
   mixins: [mix],
@@ -24,10 +27,10 @@ export const App = React.createClass({
     return {counter};
   },
   render() {
-    return <div onClick={$.click}>{this.state.data.counter}</div>;
+    return <div onClick={$.click}>{this.state.data.counter.x}</div>;
   }
 });
 
 
-window.r = r;
+// window.r = r;
 

@@ -1,3 +1,5 @@
+// todo - unregister on unload
+
 export function register(fn, m){
   if(!m.hot){
     return fn;

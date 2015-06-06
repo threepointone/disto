@@ -92,11 +92,11 @@ export function reduce(o, action, ...args){
 }
 
 export function setup(dis, m){
-  let {register} = require('./hot').hot(dis, m);
+  let register = (m ? require('./hot').hot(dis, m) : dis).register;
   let sto = register(initial, reduce);
   // todo - replace with plugin api
   dis.register = (init, red, comp) => {
-    var state, snapshots = [];
+    var recordStartState, snapshots = [];
 
     function use(o, action, ...args){
       switch(action){
@@ -114,11 +114,11 @@ export function setup(dis, m){
           return snapshots[i];
 
         case constants.record:
-          state = o;
+          recordStartState = o;
           return o;
 
         case constants.play:
-          return state;
+          return recordStartState;
 
         case constants.stop:
           return o;

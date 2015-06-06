@@ -220,7 +220,7 @@ time travel!
 
 ```js
 // run this before registering any other stores
-var r = require('disto/lib/record').setup(dispatcher);
+var r = require('disto/lib/record').setup(dispatcher, module);
 
 var i = r.snapshot()  // takes a snapshot of current state
 r.goTo(i)             // 'goes' to a particular snapshot
