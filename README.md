@@ -216,7 +216,7 @@ works well with [react-hot-loader](https://github.com/gaearon/react-hot-loader/)
 time travel!
 ---
 
-(compatible with hot loading!)
+(compatible with hot mode)
 
 ```js
 // run this before registering any other stores
