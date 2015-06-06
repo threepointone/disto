@@ -1,9 +1,10 @@
 // todo - unregister on unload
 
-export function register(fn, m){
+export function register(dis, m){
   if(!m.hot){
-    return fn;
+    return dis.register;
   }
+  let fn = dis.register;
   m.hot.data = m.hot.data || {};
   m.hot.data.dhl = m.hot.data.dhl || {};
   let dhl = m.hot.data.dhl;
@@ -23,6 +24,8 @@ export function register(fn, m){
 
   })(m.hot.sIndex);
 
+
+
   if(!m.hot.sAttached){
     m.hot.sAttached = true;
     m.hot.addDisposeHandler(data => {
@@ -38,10 +41,11 @@ export function register(fn, m){
   return couched;
 }
 
-export function act(fn, m){
+export function act(dis, m){
   if(!m.hot){
-    return fn;
+    return dis.act;
   }
+  let fn = dis.act;
   m.hot.data = m.hot.data || {};
   m.hot.data.dhl = m.hot.data.dhl || {};
   let dhl = m.hot.data.dhl;
@@ -86,7 +90,7 @@ export function act(fn, m){
 
 export function hot(dis, m){
   return {
-    register: register(dis.register, m),
-    act: act(dis.act, m)
+    register: register(dis, m),
+    act: act(dis, m)
   };
 }

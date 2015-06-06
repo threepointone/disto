@@ -19,8 +19,6 @@ export const counter = register({x: 0}, (o, action) => {
   }
 });
 
-console.log(counter.get())
-
 export const App = React.createClass({
   mixins: [mix],
   observe(){
@@ -30,7 +28,4 @@ export const App = React.createClass({
     return <div onClick={$.click}>{this.state.data.counter.x}</div>;
   }
 });
-
-
-// window.r = r;
 
