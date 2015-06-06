@@ -46,7 +46,7 @@ actions
 
 Action creators can be however you choose. This is how I write them.
 
-The action creator helper takes a dispatch function and a map of key/values,
+The action creator helper takes a map of key/values,
 and generates a collection of functions that, when each are called,
 dispatches a unique action along with passed arguments
 further calling any optional function passed in the map.
@@ -181,7 +181,7 @@ store.subscribe(function(state){
 
 // we use this to hook on to react components via the .observe() polyfill
 
-var mix = require('disto/mix');
+var mix = require('disto').mix;
 
 var Component = React.createClass({
   mixins: [mix],
@@ -221,7 +221,6 @@ time travel!
 ```js
 // run this before registering any other stores
 var r = require('disto/lib/record').setup(dispatcher);
-
 
 var i = r.snapshot()  // takes a snapshot of current state
 r.goTo(i)             // 'goes' to a particular snapshot
