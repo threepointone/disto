@@ -11,4 +11,7 @@ size: build
 cover:
 	istanbul cover node_modules/.bin/_mocha -- -R spec
 
-.PHONY: build test size
+dev:
+	babel-node server.js
+
+.PHONY: build test size dev cover

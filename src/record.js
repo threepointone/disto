@@ -12,40 +12,44 @@ const constants = {
   playDone: 'DISTO_PLAY_DONE'
 };
 
-export const helpers = {
-  snapshot: function() {
-    this.dispatch(constants.snapshot);
-  },
-  goTo: function(i) {
-    this.dispatch(constants.goTo, i);
-  },
-  record: function() {
-    this.dispatch(constants.record);
-  },
-  stop: function() {
-    this.dispatch(constants.stop);
-  },
-  play: function() {
-    return new Promise(resolve => {
-      var i = 0;
-      var t = this;
-      if(t.recorderStore.recording) {
-        this.dispatch(constants.stop);
+function timeout(t){
+  return new Promise(resolve => setTimeout(resolve, t));
+}
+
+export function helpers (dis, store) {
+  let {dispatch} = dis;
+  let o = {
+    snapshot: function() {
+      dispatch(constants.snapshot);
+    },
+    goTo: function(i) {
+      dispatch(constants.goTo, i);
+    },
+    record: function() {
+      dispatch(constants.record);
+    },
+    stop: function() {
+      dispatch(constants.stop);
+    },
+    play: async function() {
+      if(store.get().recording) {
+        o.stop();
       }
-      this.dispatch(constants.play);
-      let intval = setInterval(function(){
-        let [action, args] = t.recorderStore.get().actions[i];
-        t.dispatch(action, ...args);
-        i++;
-        if(i === t.recorderStore.get().actions.length){
-          clearInterval(intval);
-          t.dispatch(constants.playDone);
-          resolve();
-        }
-      }, 100);
-    });
-  }
-};
+
+      dispatch(constants.play);
+      for (var [action, args] of store.get().actions){
+        await timeout(100);
+        dispatch(action, ...args);
+      }
+      o.playDone();
+    },
+    playDone: function() {
+      dispatch(constants.playDone);
+    }
+  };
+
+  return o;
+}
 
 export const initial = {
   recording: false,
@@ -53,7 +57,7 @@ export const initial = {
   actions: []
 };
 
-export function reduce (o, action, ...args){
+export function reduce(o, action, ...args){
   switch(action){
     case constants.record:
       return {
@@ -63,6 +67,7 @@ export function reduce (o, action, ...args){
       };
 
     case constants.stop:
+      console.log('replacing');
       return {...o,
         recording: false
       };
@@ -86,9 +91,10 @@ export function reduce (o, action, ...args){
   }
 }
 
-export function setup(dis, sto){
-  dis.recorderStore = sto;
-  var regi = dis.register; // slip by disto-hot :S
+export function setup(dis, m){
+  let {register} = require('./hot').hot(dis, m);
+  let sto = register(initial, reduce);
+  // todo - replace with plugin api
   dis.register = (init, red, comp) => {
     var state, snapshots = [];
 
@@ -121,10 +127,11 @@ export function setup(dis, sto){
           return o;
       }
     }
-    return regi(init, function(o, action, ...args){
+    return register(init, function(o, action, ...args){
       return use(o, action, ...args) || red(o, action, ...args);
     }, comp);
   };
-  Object.assign(dis, helpers);
+
+  return helpers(dis, sto);
 
 }

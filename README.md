@@ -8,19 +8,19 @@ disto
 - leans heavily on regular functions
 - stores have no setters or ajax / async calls
 - shorthand notation for action creators, with async function / promise support
-- [live editing experience](https://github.com/threepointone/disto-hot-loader) across action creators / stores / views
+- live editing experience across action creators / stores / views
 - timetravel helper
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
 - browser / server / react-native compatible, because apparently that's a thing now
-- really tiny - ~2k gzipped, incl. dependencies
-- [tests](https://github.com/threepointone/disto/blob/master/test/index.js), [examples](https://github.com/threepointone/disto-example) (to be fleshed out)
+- really tiny - base ~2k, another 2k for dev goodies.
+- [tests](https://github.com/threepointone/disto/blob/master/test/index.js)
 - i love you
 
 `npm install disto --save`
 
 ```js
-var {Dis, act} = require('disto');
-// Dispatcher class, action creator helper
+var {Dis} = require('disto');
+// Dispatcher class.
 ```
 
 dispatcher
@@ -61,7 +61,7 @@ Also, since these are unique objects (with readable string representations),
 you also don't have to worry about global namepace clashes.
 
 ```js
-var $ = act(dispatcher.dispatch, {
+var $ = dispatcher.act({
   init: '',   // use a blank string for default function
   a: '',
   b: function(){
@@ -199,26 +199,35 @@ var Component = React.createClass({
 
 ```
 
+hot loading
+---
+
+to enable hot loading of stores/actions, use hot versions of the dispatcher register/act functions
+```js
+var {register, act} = require('disto').hot(dispatcher, module);
+
+var store = register(initial, reduce);
+
+// etc etc
+```
+
+works well with [react-hot-loader](https://github.com/gaearon/react-hot-loader/)
+
 time travel!
 ---
 
-(compatible with disto-hot-loader!)
+(compatible with hot loading!)
 
 ```js
 // run this before registering any other stores
-// needs to be exactly like this to satify disto-hot
+var r = require('disto/lib/record').setup(dispatcher);
 
-var r = require('disto/lib/record');
-var rStore = dispatcher.register(r.initial, r.reduce, r.compare);
-r.setup(dispatcher, rStore);
 
-// this gives you a few helpers
+var i = r.snapshot()  // takes a snapshot of current state
+r.goTo(i)             // 'goes' to a particular snapshot
 
-var i = dispatcher.snapshot()  // takes a snapshot of current state
-dispatcher.goTo(i)             // 'goes' to a particular snapshot
-
-dispatcher.record()    // start recording
-dispatcher.stop()      // stop recording
-dispatcher.play()      // replay the session
+r.record()    // start recording
+r.stop()      // stop recording
+r.play()      // replay the session
 
 ```
