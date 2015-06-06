@@ -6,7 +6,7 @@ export default {
   },
 
   componentWillMount() {
-    this.subscribe(this.props, this.context, ::this.setData);
+    this.subscribe(this.props, this.context, this.setData);
   },
 
   componentWillReceiveProps(props, context) {
