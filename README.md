@@ -11,7 +11,7 @@ disto
 - live editing experience across action creators / stores / views
 - timetravel helper
 - includes mixin to polyfill [sideloading data on components](https://github.com/facebook/react/issues/3398)
-- made for browsers / react-native (server side strategies coming soon)
+- browser / server / react-native compatible, because apparently that's a thing now
 - really tiny - base ~2k, another 2k for dev goodies.
 - [tests](https://github.com/threepointone/disto/blob/master/test/index.js)
 - i love you
@@ -19,24 +19,28 @@ disto
 `npm install disto --save`
 
 ```js
-var app = require('disto').app();
+var {Dis} = require('disto');
+// Dispatcher class.
 ```
 
-application
+dispatcher
 ---
-The application is a singleton, that uses the fb dispatcher under the hood.
-The api is tweaked for our stores / actions
+
+The dispatcher uses the fb dispatcher under the hood,
+but the api is tweaked for our stores / actions
 
 ```js
-app.register(initialState, fn, compare)
+var dispatcher = new Dis();
 
-app.unregister(store)
+dispatcher.register(initialState, fn, compare)
 
-app.dispatch(action, ...args)
+dispatcher.unregister(store)
 
-app.waitFor(...stores)
+dispatcher.dispatch(action, ...args)
 
-app.act(creators)
+dispatcher.waitFor(...stores)
+
+dispatcher.act(creators)
 ```
 
 actions
@@ -59,7 +63,7 @@ Also, since these are unique objects (with readable string representations),
 you also don't have to worry about global namepace clashes.
 
 ```js
-var $ = app.act({
+var $ = dispatcher.act({
   init: '',   // use a blank string for default function
   a: '',
   b: function(){
@@ -152,7 +156,7 @@ function reduce(state, action, ...args){
   }
 }
 
-var store = app.register(initialState, reduce);
+var store = dispatcher.register(initialState, reduce);
 
 store.get()   // returns current value
 
@@ -163,7 +167,7 @@ store.get()   // returns current value
 // eg, with immutable-js (https://facebook.github.io/immutable-js/)
 // we'd use immutable.is to compare states
 
-var iStore = app.register(Immutable.Map({
+var iStore = dispatcher.register(Immutable.Map({
   loading: false,
   err: null,
   results: []
@@ -200,9 +204,9 @@ var Component = React.createClass({
 hot loading
 ---
 
-to enable hot loading of stores/actions, use hot versions of the app's register/act functions
+to enable hot loading of stores/actions, use hot versions of the dispatcher register/act functions
 ```js
-var {register, act} = require('disto').hot(app, module);
+var {register, act} = require('disto').hot(dispatcher, module);
 
 var store = register(initial, reduce);
 
@@ -220,7 +224,7 @@ time travel!
 
 ```js
 // run this before registering any other stores
-var r = require('disto/lib/record').setup(app, module);
+var r = require('disto/lib/record').setup(dispatcher, module);
 
 var i = r.snapshot()  // takes a snapshot of current state
 r.goTo(i)             // 'goes' to a particular snapshot
