@@ -14,4 +14,7 @@ cover:
 dev:
 	babel-node server.js
 
+hot:
+	HOT=1 make dev
+
 .PHONY: build test size dev cover

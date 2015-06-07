@@ -12,7 +12,7 @@ export const $ = act({
 export const counter = register({x: 0}, (o, action) => {
   switch(action){
     case $.click:
-      return {x: o.x + 2};
+      return {x: o.x + 1};
     default: return o;
   }
 });
