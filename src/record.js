@@ -1,8 +1,6 @@
 // snapshot / record / replay
 // based on the the api from https://github.com/goatslacker/alt/blob/master/src/utils/DispatcherRecorder.js
 
-// todo - match timestamps, to be more realistic?
-
 const constants = {
   snapshot: 'DISTO_SNAPSHOT',
   goTo: 'DISTO_GOTO',
@@ -35,11 +33,12 @@ export function helpers (dis, store) {
       if(store.get().recording) {
         o.stop();
       }
-
+      let passed = 0;
       dispatch(constants.play);
-      for (var [action, args] of store.get().actions){
-        await timeout(100);
+      for (var [action, args, time] of store.get().actions){
+        await timeout(Math.max(time - passed, 0));
         dispatch(action, ...args);
+        passed = time;
       }
       o.playDone();
     },
@@ -52,6 +51,7 @@ export function helpers (dis, store) {
 }
 
 export const initial = {
+  start: -1,
   recording: false,
   playing: false,
   actions: []
@@ -62,6 +62,7 @@ export function reduce(o, action, ...args){
     case constants.record:
       return {
         ...o,
+        start: Date.now(),
         recording: true,
         actions: []
       };
@@ -86,7 +87,7 @@ export function reduce(o, action, ...args){
     default:
       return o.recording ? {
         ...o,
-        actions: o.actions.concat([[action, args]])
+        actions: o.actions.concat([[action, args, Date.now() - o.start]])
       } : o;
   }
 }
