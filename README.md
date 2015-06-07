@@ -39,6 +39,8 @@ dispatcher.unregister(store)
 dispatcher.dispatch(action, ...args)
 
 dispatcher.waitFor(...stores)
+
+dispatcher.act(creators)
 ```
 
 actions
