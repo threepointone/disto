@@ -1,6 +1,6 @@
 {
   "name": "disto",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "yet another flux thing",
   "main": "index.js",
   "scripts": {
