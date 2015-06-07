@@ -112,7 +112,3 @@ export class Dis {
 export function debug(acts){
   return Object.keys(acts).map(x => acts[x].toString());
 }
-
-export default function disto(config){
-  return new Dis(config);
-}

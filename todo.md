@@ -1,7 +1,3 @@
-- fix source maps on disto-hot (source-node transforms + eval-source-map?)
 - mini player + store inspector
-- a better detection strategy for disto-hot
-- a better integration strategy for /record
-- cli
-- boilerplate / config generator
+- cli / boilerplate / config generator
 - testing strategy (jest/jsdom/whatever)

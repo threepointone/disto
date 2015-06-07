@@ -211,6 +211,8 @@ var store = register(initial, reduce);
 // etc etc
 ```
 
+(there are quirks around this that I'll document soon)
+
 works well with [react-hot-loader](https://github.com/gaearon/react-hot-loader/)
 
 time travel!
