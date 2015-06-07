@@ -1,7 +1,8 @@
 import React from 'react';
-import {mix, hot, app} from '../../src';
+import {mix, hot} from '../../src';
 
-const dis = app();
+import dis from './dis';
+
 const {register, act} = hot(dis, module);
 
 export const $ = act({
@@ -11,7 +12,7 @@ export const $ = act({
 export const counter = register({x: 0}, (o, action) => {
   switch(action){
     case $.click:
-      return {x: o.x + 1};
+      return {x: o.x + 2};
     default: return o;
   }
 });
