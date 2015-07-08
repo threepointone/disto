@@ -2,7 +2,9 @@
 
 export default {
   getInitialState() {
-    return Object.keys(this.props || {}).reduce((o, key) => ({...o, [key]: this.props[key].get()}), {});
+    return Object.keys(this.props || {}).reduce((o, key) =>
+      ({...o, ...(this.props[key].DISTO_STORE ? {[key]: this.props[key].get()} : {}) }),
+      {});
   },
 
   componentWillMount() {

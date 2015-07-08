@@ -34,7 +34,8 @@ export class Dis {
             onNext = null;
           }
         };
-      }
+      },
+      DISTO_STORE: true
     };
 
     this.tokens.set(store,
