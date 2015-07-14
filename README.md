@@ -1,7 +1,7 @@
 disto
 ---
 
-(this api might change)
+(deprecated, cosnider using [redux](https://github.com/gaearon/redux) instead)
 
 - follows the original [flux](http://facebook.github.io/flux) architecture
 - a simple api, with no new concepts
