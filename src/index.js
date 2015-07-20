@@ -5,16 +5,22 @@ import { createStore, applyMiddleware, combineReducers, bindActionCreators, comp
 import thunk from 'redux-thunk';
 import { devTools, persistState } from 'redux-devtools';
 
-export class Flux extends React.Component{
-  state = {
-    store: this.props.store || compose(
+function store(stores){
+  return compose(
       applyMiddleware(thunk),
       devTools(),
       persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/)),
       createStore
-    )(combineReducers(this.props.stores))
-  }
+    )(combineReducers(stores))
+}
 
+export class Flux extends React.Component{
+  state = {
+    store: this.props.store || store(this.props.stores)
+  }
+  componentWillReceiveProps(nextProps){
+    this.setState({store: nextProps.store || store(nextProps.stores)})
+  }
   render(){
     return <Provider store={this.state.store}>{
       () => <Connector>{
