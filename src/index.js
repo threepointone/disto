@@ -1,22 +1,33 @@
 import React from 'react';
-import { Provider, Connector } from 'redux/react';
+import { Provider, Connector } from 'react-redux';
 
-import { createRedux, createDispatcher, composeStores, bindActionCreators } from 'redux';
-import thunkMiddleware from 'redux/lib/middleware/thunk';
+import { createStore, applyMiddleware, combineReducers, bindActionCreators, compose } from 'redux';
+import thunk from 'redux-thunk';
+import { devTools, persistState } from 'redux-devtools';
 
 export class Flux extends React.Component{
   state = {
-    redux: this.props.redux || createRedux(createDispatcher(
-      composeStores(this.props.stores),
-      getState => [thunkMiddleware(getState)]
-    ))
+    store: this.props.store || compose(
+      applyMiddleware(thunk),
+      devTools(),
+      persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/)),
+      createStore
+    )(combineReducers(this.props.stores))
   }
+
   render(){
-    return <Provider redux={this.state.redux}>{
+    return <Provider store={this.state.store}>{
       () => <Connector>{
-        state => this.props.children(state, bindActionCreators(this.props.actions || {}, state.dispatch))
+        state => this.props.children(
+          state,
+          bindActionCreators(this.props.actions || {}, state.dispatch),
+          this.state.store)
       }</Connector>
-    }</Provider>
+    }</Provider>;
   }
 }
+
+
+
+
 

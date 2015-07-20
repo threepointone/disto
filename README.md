@@ -1,9 +1,7 @@
 disto
 ---
 
-flux in a jiffy.
-
-`npm install redux disto --save`
+`npm install redux react-redux redux-thunk disto --save`
 
 ```js
 import {Flux} from 'disto';
