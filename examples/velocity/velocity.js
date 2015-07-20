@@ -1,15 +1,10 @@
 import React from 'react';
 import {Flux} from '../../src';
-
 import {Spring} from 'react-motion';
-
-import SyntheticMouseEvent from 'react/lib/SyntheticMouseEvent';
-
 import debounce from 'debounce';
 
 let stores = {
   tracker(o = {x: 0, y:0, velocity: 0, timeStamp: Date.now()}, action) {
-
     if(action.type === 'event'){
       let evt = action.evt,
         deltaX = o.x - evt.pageX,
