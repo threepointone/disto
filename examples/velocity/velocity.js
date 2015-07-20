@@ -24,7 +24,7 @@ export class Velocity{
   render(){
     return <Flux stores={{tracker}} actions={{move}}>{
       ({tracker}, {move}) =>
-        <Spring endValue={{velocity: {val: tracker.velocity * 1000} }}>{
+        <Spring endValue={{velocity: {val: tracker.velocity * 100} }}>{
           ({velocity}) => this.props.children(velocity.val, move)
         }</Spring>
     }</Flux>;
