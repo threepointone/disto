@@ -18,11 +18,19 @@ import {Flux} from 'disto';
 let counter = (o = {count: 0}, action) =>
   (action.type === 'inc') ?  {count: o.count + 1} : o;
 
+let actions = {
+  inc: '', // dispatches .type === 'inc'
+  decAsync: async function(){
+    await sleep(1000);
+  }   // dispatches .type === 'dec'
+      // and then .type ==='dec.done' after 1 second
+};
+
 export class App {
   render() {
-    return <Flux stores={{counter}}>{
+    return <Flux stores={{counter}} actions={{inc: ''}}>{
       ({counter}, dispatch) =>
-        <div onClick={() => dispatch({type: 'inc'})}>
+        <div onClick={() => $.inc()}>
           clicked {counter.count} times
         </div>
     }</Flux>;
