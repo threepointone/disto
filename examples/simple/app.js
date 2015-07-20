@@ -1,29 +1,17 @@
 import React from 'react';
-import {mix, hot} from '../../src';
+import {Flux} from '../../src';
 
-import dis from './dis';
+let counter = (o = {count: 0}, action) =>
+  (action.type === 'inc') ?  {count: o.count + 1} : o;
 
-const {register, act} = hot(dis, module);
-
-export const $ = act({
-  click: ''
-});
-
-export const counter = register({x: 0}, (o, action) => {
-  switch(action){
-    case $.click:
-      return {x: o.x + 1};
-    default: return o;
-  }
-});
-
-export const App = React.createClass({
-  mixins: [mix],
-  observe(){
-    return {counter};
-  },
+export class App {
   render() {
-    return <div onClick={$.click}>{this.state.data.counter.x}</div>;
+    return <Flux stores={{counter}}>{
+      ({counter}, dispatch) =>
+        <div onClick={() => dispatch({type: 'inc'})}>
+          clicked {counter.count} times
+        </div>
+    }</Flux>;
   }
-});
+}
 

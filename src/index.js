@@ -1,5 +1,16 @@
+import React from 'react';
+import { createRedux } from 'redux';
+import { Provider, Connector } from 'redux/react';
 
-export const {Dis, debug} = require('./flux.js');
-export const {hot} = require('./hot.js');
-export const record = require('./record.js');
-export const mix = require('./mix.js');
+export class Flux extends React.Component{
+  state = {
+    redux: createRedux(this.props.stores)
+  }
+  render(){
+    return <Provider redux={this.state.redux}>{
+      () => <Connector>{
+        state => this.props.children(state, state.dispatch)
+      }</Connector>
+    }</Provider>
+  }
+}
