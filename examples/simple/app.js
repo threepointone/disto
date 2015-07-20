@@ -5,7 +5,7 @@ import { DevTools, DebugPanel, LogMonitor } from 'redux-devtools/lib/react';
 
 let stores = {
   counter(o = {count: 0}, action) {
-    return (action.type === 'inc') ?  {count: o.count + 2} : o;
+    return (action.type === 'inc') ? {count: o.count + 1} : o;
   }
 }
 

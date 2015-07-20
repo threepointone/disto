@@ -4,7 +4,8 @@ let config = {
   devtool: 'source-map',
   target: 'web',
   entry: {
-    simple: ['./examples/simple/index.js']
+    simple: ['./examples/simple/index.js'],
+    velocity: ['./examples/velocity/index.js']
 
   },
   output: {
