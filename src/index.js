@@ -3,7 +3,7 @@ import { Provider, Connector } from 'react-redux';
 
 import { createStore, applyMiddleware, combineReducers, bindActionCreators, compose } from 'redux';
 import thunk from 'redux-thunk';
-import { devTools, persistState } from 'redux-devtools';
+// import { devTools, persistState } from 'redux-devtools';
 
 function store(stores){
   return compose(
@@ -11,7 +11,7 @@ function store(stores){
       // devTools(),
       // persistState(window.location.href.match(/[?&]debug_session=([^&]+)\b/)),
       createStore
-    )(combineReducers(stores))
+    )(combineReducers(stores));
 }
 
 export class Flux extends React.Component{
@@ -19,7 +19,7 @@ export class Flux extends React.Component{
     store: this.props.store || store(this.props.stores)
   }
   componentWillReceiveProps(nextProps){
-    this.setState({store: nextProps.store || store(nextProps.stores)})
+    this.setState({store: nextProps.store || store(nextProps.stores)});
   }
   render(){
     return <Provider store={this.state.store}>{
@@ -32,8 +32,5 @@ export class Flux extends React.Component{
     }</Provider>;
   }
 }
-
-
-
 
 

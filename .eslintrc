@@ -3,7 +3,7 @@
   "rules" :{
     "quotes": [1, "single"],
     "no-unused-vars": [1, {"vars": "all", "args": "all"}],
-    "strict": true
+    "strict": [2, "never"]
   },
   "env":{
     "browser": true,
