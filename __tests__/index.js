@@ -1,3 +1,5 @@
+// these don't work yet. node 0.12/iojs 2.3.4.
+
 /*global jest, describe, it, expect*/
 
 jest.dontMock('../src.js');
@@ -9,30 +11,23 @@ import {TestUtils} from 'react/addons';
 let render = ::TestUtils.renderIntoDocument;
 let find = ::TestUtils.findRenderedDOMComponentWithTag;
 let click = ::TestUtils.Simulate.click;
-
+let text = el => el.getDOMNode().textContent;
 
 describe('Flux', () => {
   it('represents flux as a component', () => {
     console.log('heeay');
     let counter = (n, a) => a.type === 'inc' ? n + 1 : n,
       inc = () => ({type: 'inc'}),
-      flux = <Flux stores={{counter}} actions={{inc}}>{
+      rendered = render(<Flux stores={{counter}} actions={{inc}}>{
         (state, $) => <div onClick={$.inc}>{`${state.counter}`}</div>
-      }</Flux>,
-      rendered = render(flux),
+      }</Flux>),
       div = find(rendered, 'div');
 
-console.log('heeay1');
-    expect(div.getDOMNode().textContent).toEql('0');
-console.log('heeay2');
+    expect(text(div)).toEql('0');
     // Simulate a click and verify that the value changed
     click(div);
-    console.log('heeay3');
-    expect(div.getDOMNode().textContent).toEql('1');
-    console.log('heeay4');
+    expect(text(div)).toEql('1');
     click(div);
-    console.log('heea5');
-    expect(div.getDOMNode().textContent).toEql('2');
-    console.log('heeay6');
+    expect(text(div)).toEql('2');
   });
 });
