@@ -9,8 +9,8 @@ flux in a jiffy.
 import {Flux} from 'disto';
 
 ...
-<Flux stores={{key: (state = initial, action) => state}}>{
-  state, dispatch => <App/>
+<Flux stores={stores} actions={actions}>{
+  state, $ => <App/>
 }</Flux>
 ```
 
@@ -20,9 +20,9 @@ let counter = (o = {count: 0}, action) =>
 
 export class App {
   render() {
-    return <Flux stores={{counter}}>{
-      ({counter}, dispatch) =>
-        <div onClick={() => dispatch({type: 'inc'})}>
+    return <Flux stores={{counter}} actions={{inc: () => ({type:'inc'})}}>{
+      ({counter}, $) =>
+        <div onClick={$.inc}>
           clicked {counter.count} times
         </div>
     }</Flux>;
