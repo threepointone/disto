@@ -12,8 +12,8 @@ let actions = {
   inc: '', // dispatches .type === 'inc'
   decAsync: async function(){
     await sleep(1000);
-  }   // dispatches .type === 'dec'
-      // and then .type ==='dec.done' after 1 second
+  }   // dispatches .type === 'decAsync'
+      // and then .type ==='decAsync.done' after 1 second
 };
 
 
