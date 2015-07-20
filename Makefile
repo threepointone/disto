@@ -1,6 +1,6 @@
 build:
 	rm -rf ./lib
-	babel src -d lib
+	./node_modules/.bin/babel src -d lib
 
 test:
 	npm test
@@ -12,7 +12,7 @@ cover:
 	istanbul cover node_modules/.bin/_mocha
 
 dev:
-	babel-node server.js
+	./node_modules/.bin/babel-node server.js
 
 hot:
 	HOT=1 make dev

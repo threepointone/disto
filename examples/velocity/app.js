@@ -1,5 +1,3 @@
-
-
 // a complete yakshave
 
 // redux provides a way to represent actions/reducers on a value
@@ -12,7 +10,7 @@ import {Flux} from '../../src';
 import {Spring} from 'react-motion';
 import debounce from 'debounce';
 
-const debounced = debounce(f => f(), 200),
+const debounced = debounce(f => f(), 100),
   move = evt => dispatch => dispatch({evt, type: 'event'}) && debounced(() => dispatch({type: 'settle'})),
   tracker = (o = {x: 0, y: 0, velocity: 0, timeStamp: Date.now()}, {type, evt}) => {
     if(type === 'event'){

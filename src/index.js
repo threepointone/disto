@@ -5,7 +5,7 @@ import { createStore, applyMiddleware, combineReducers, bindActionCreators, comp
 import thunk from 'redux-thunk';
 // import { devTools, persistState } from 'redux-devtools';
 
-function store(stores){
+function combine(stores){
   return compose(
       applyMiddleware(thunk),
       // devTools(),
@@ -16,10 +16,10 @@ function store(stores){
 
 export class Flux extends React.Component{
   state = {
-    store: this.props.store || store(this.props.stores)
+    store: this.props.store || combine(this.props.stores)
   }
   componentWillReceiveProps(nextProps){
-    this.setState({store: nextProps.store || store(nextProps.stores)});
+    this.setState({store: nextProps.store || combine(nextProps.stores)});
   }
   render(){
     return <Provider store={this.state.store}>{
