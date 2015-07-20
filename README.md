@@ -6,6 +6,9 @@ flux in a jiffy.
 `npm install redux disto --save`
 
 ```js
+import {Flux} from 'disto';
+
+...
 <Flux stores={{key: (state = initial, action) => state}}>{
   state, dispatch => <App/>
 }</Flux>
