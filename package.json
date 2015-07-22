@@ -28,6 +28,7 @@
     "react-hot-loader": "^1.2.7",
     "react-motion": "^0.1.0",
     "react-redux": "^0.2.2",
+    "react-springs": "^1.0.13",
     "redux": "1.0.0-rc",
     "redux-devtools": "^0.1.1",
     "redux-thunk": "^0.1.0",

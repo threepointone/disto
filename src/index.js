@@ -14,7 +14,8 @@ function combine(stores){
     )(combineReducers(stores));
 }
 
-export class Flux extends React.Component{
+
+export class Flux extends React.Component {
   state = {
     store: this.props.store || combine(this.props.stores)
   }
@@ -33,4 +34,14 @@ export class Flux extends React.Component{
   }
 }
 
-
+export class Connect extends React.Component{
+  static defaultProps = {
+    select: x => x
+  }
+  render(){
+    return <Connector select={this.props.select}>{
+      state => this.props.children(state,
+        bindActionCreators(this.props.actions || {}, state.dispatch))
+    }</Connector>;
+  }
+}
