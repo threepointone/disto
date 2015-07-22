@@ -6,7 +6,7 @@ flux as a component. built with [redux](https://github.com/gaearon/redux).
 `npm install redux react-redux redux-thunk disto --save`
 
 ```js
-import {Flux, COnnect} from 'disto';
+import {Flux, Connect} from 'disto';
 
 ...
 <Flux stores={stores} actions={actions}>{
@@ -37,8 +37,8 @@ export class App {
 
 export class Elsewhere{
   render(){
-    return <Connect select={ state => state.counter.count} actions={actions}>{
-      count, $ => <div> clicked {count} times </div>
+    return <Connect select={ state => state.counter} actions={actions}>{
+      counter, $ => <div> clicked {counter.count} times </div>
     }</Connect>
   }
 }

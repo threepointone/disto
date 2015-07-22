@@ -20,7 +20,7 @@ export class App {
   render() {
     return <Flux stores={stores} actions={actions}>{
       ({counter}, $) =>
-        <div onClick={$.inc}>
+        <div onClick={$.dec}>
           clicked {counter.count} times
 
         {/* no need to pass anything! */}
@@ -36,7 +36,7 @@ export class App {
 class SubComponent{
   render(){
     return <Connect select={state=> state.c2} actions={actions}>{
-      c2 => <div>while here it says {c2.count}</div>
+      (c2, $) => <div onClick={$.inc}>while here it says {c2.count}</div>
     }</Connect>;
   }
 }
