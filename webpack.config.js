@@ -5,7 +5,8 @@ let config = {
   target: 'web',
   entry: {
     simple: ['./examples/simple/index.js'],
-    velocity: ['./examples/velocity/index.js']
+    velocity: ['./examples/velocity/index.js'],
+    dnd: ['./examples/dnd/index.js']
 
   },
   output: {
