@@ -1,46 +1,11 @@
 disto
 ---
 
-flux as a component. built with [redux](https://github.com/gaearon/redux).
+stitching together some funny bits
 
-`npm install redux react-redux redux-thunk disto --save`
-
-```js
-import {Flux, Connect} from 'disto';
-
-...
-<Flux stores={stores} actions={actions}>{
-  state, $ => <App/>
-}</Flux>
-
-// stores are reducer functions
-let counter = (o = {count: 0}, action) =>
-  (action.type === 'inc') ?  {count: o.count + 1} : o;
-
-// action creators are functions that generate actions
-let inc =  () => ({type:'inc'})
-
-// make a top level flux component with stores and actions
-export class App {
-  render() {
-    return <Flux stores={{counter}} actions={{inc}}>{
-      ({counter}, $) =>
-        <div onClick={$.inc}>
-          clicked {counter.count} times
-        </div>
-    }</Flux>;
-  }
-}
-
-// deeper in the tree / in sub components,
-// you can hook up to app state without passing props
-
-export class Elsewhere{
-  render(){
-    return <Connect select={ state => state.counter} actions={actions}>{
-      counter, $ => <div> clicked {counter.count} times </div>
-    }</Connect>
-  }
-}
-
-```
+react
+redux
+redux-saga
+redux-optimist
+redux-react-local
+routah

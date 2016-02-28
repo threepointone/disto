@@ -17,4 +17,4 @@ xcuserdata
 .svn
 CVS
 node_modules
-coverage
+tests/coverage

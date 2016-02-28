@@ -6,7 +6,8 @@ let config = {
   entry: {
     simple: ['./examples/simple/index.js'],
     velocity: ['./examples/velocity/index.js'],
-    dnd: ['./examples/dnd/index.js']
+    dnd: ['./examples/dnd/index.js'],
+    sto: ['./examples/sto/index.js']
 
   },
   output: {
