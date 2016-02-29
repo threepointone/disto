@@ -1,54 +1,18 @@
-import webpack from 'webpack';
-
-let config = {
-  devtool: 'source-map',
-  target: 'web',
+const path = require('path')
+module.exports = {
   entry: {
-    simple: ['./examples/simple/index.js'],
-    velocity: ['./examples/velocity/index.js'],
-    dnd: ['./examples/dnd/index.js'],
-    sto: ['./examples/sto/index.js']
-
+    app: [ 'babel-polyfill', './example/counter.js' ]
   },
   output: {
-    path: __dirname,
-    filename: 'examples/[name]/bundle.js',
-    publicPath: '/'
+    path: path.join(__dirname, './example'),
+    publicPath: '/example',
+    filename: 'app.js'
   },
   module: {
-    loaders: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loaders: ['babel-loader']
-    }]
-  },
-  resolve: {
-    extensions: ['', '.js', '.jsx']
-  },
-  plugins: []
-};
-
-if(process.env.HOT){
-  config = {
-    ...config,
-    devtool: 'eval-source-map',
-    entry: Object.keys(config.entry).reduce((o, key) => ({...o, [key]: [
-      'webpack-dev-server/client?http://localhost:3000', // WebpackDevServer host and port
-      'webpack/hot/only-dev-server'
-    ].concat(config.entry[key])}), {}),
-    module: {...config.module,
-      loaders: [{
-        ...config.module.loaders[0],
-        loaders: [
-        'react-hot'
-        ].concat(config.module.loaders[0].loaders)
-      }]
-    },
-    plugins: [
-      new webpack.HotModuleReplacementPlugin(),
-      new webpack.NoErrorsPlugin()
-    ].concat(config.plugins)
-  };
+    loaders: [
+      { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
+      { test: /\.css$/, loader: 'style-loader!css-loader?modules' }
+    ]
+  }
 }
 
-module.exports = config;
