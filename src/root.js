@@ -43,14 +43,13 @@ function rafUpdateBatcher(notify) {
   notifyFunc = notify
 }
 
-export function makeStore(reducers = {}, initial = {}, middleware = []) {
+export function makeStore(initial = {}, reduce = x => x, middleware = []) {
   let sagaMiddleware = createSagaMiddleware()
   // create a redux store
   const store = createStore(
     // reducer
     optimist(combineReducers({
-      ...reducers,
-      disto: reducer,
+      _: reducer(reduce),
       local: Local.reducer
     })),
 
@@ -97,8 +96,8 @@ export class Root extends Component {
     }
   }
 
-  store = this.props.store ||
-    makeStore(this.props.reducers, this.props.initial, this.props.middleware)
+  store = this.props.store && this.props.store.dispatch ? this.props.store :
+    makeStore(this.props.store, this.props.reducer, this.props.middleware)
   render() {
     return <Provider store={this.store}>
       <Local.Root>

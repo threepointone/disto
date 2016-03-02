@@ -1,106 +1,91 @@
-/*
- * JSON Grammar
- * ============
- *
- * Based on the grammar from RFC 7159 [1].
- *
- * Note that JSON is also specified in ECMA-262 [2], ECMA-404 [3], and on the
- * JSON website [4] (somewhat informally). The RFC seems the most authoritative
- * source, which is confirmed e.g. by [5].
- *
- * [1] http://tools.ietf.org/html/rfc7159
- * [2] http://www.ecma-international.org/publications/standards/Ecma-262.htm
- * [3] http://www.ecma-international.org/publications/standards/Ecma-404.htm
- * [4] http://json.org/
- * [5] https://www.tbray.org/ongoing/When/201x/2014/03/05/RFC7159-JSON
- */
-
-/* ----- 2. JSON Grammar ----- */
 
 
-FQL
- = nodes:(
-    head:node
-    tail:(ws n:node {return n;})*
-    { return [head, ...tail]} )
-    { return nodes; }
+QueryRoot
+  = ws '[' ws
+    exprs:QueryExpr*
+    ws ']' ws
+    {return {type: 'root', children: exprs}}
 
-node
-  = n:node_name a:attrsOrTags? c:children?
+
+QueryExpr
+  = x:(JoinExpr
+  / ParamExpr
+  / IdentExpr
+  / KeyWord)
+  { return x }
+
+ParamExpr
+  = ws '\''
+    q:(QueryExpr
+  / KeyWord)
+    ws
+    p:ParamMapExpr
+  { return {...q, params: p }}
+
+ParamMapExpr
+  = ws '{' ws
+    params:Param*
+    ws '}' ws
+    { return params.reduce((o, x) => ({...o, ...x}), {}) }
+
+Param
+  = k:KeyWord
+    j:Value
+    ws
+    { return {k: j}}
+
+JoinExpr
+  = ws '{' ws
+    j:JoinUnit*
+    ws '}' ws
     {
-      let o = {node: n};
-      let p = a ? a
-        .filter(x => x.type === 'attr')
-        .reduce((p, attr) => (p[attr.key] = attr.value, p), {}) : {}
-
-      let t = a ? a
-        .filter(x => x.type === 'tag')
-        .reduce((p, tag) => [...p, tag.key], []) : []
-
-      if(Object.keys(p).length > 0){
-        o.props = p
+      return {
+        type: 'join',
+        children: Array.isArray(j) ? j : ((j==='...' || (!isNaN(parseFloat(j)) && isFinite(j))) ? null : j )
       }
-      if(t.length > 0){
-        o.tags = t
-      }
-      if(c){
-        o.fields = c
-      }
-      return o;
     }
 
-node_name
-  = ws
-    name:[A-Za-z0-9\/\-\\]+
+JoinUnit
+  = f:(IdentExpr
+  / KeyWord)
     ws
-    {return name.join('')}
+    l:(QueryRoot
+  / UnionExpr
+  / RecurExpr)
+  { return l.type === 'root' ? l.children : l  }
 
-children
-  = begin_object
-    fields:(
-      head:node
-      tail: (ws n:node {return n;})*
-      { return [head, ...tail] } )
-    end_object
-    { return fields }
+RecurExpr
+  = '...'
+  / number
 
-attrsOrTags
-  = begin_attrs
-    attrs:(
-      head:attrOrTag
-      tail:(ws a:attrOrTag {return a})*
-      { return [head, ...tail ] })?
-    end_attrs
-    { return attrs; }
 
-attrOrTag
-  = attrkeyvalue
-  / attrkey
-  / tag
 
-attrkeyvalue
-  = attr:attr_name
-    '='
-    value:JSON_text
-    { return {type: 'attr', key: attr, value}}
+UnionExpr
+  = ws '{' ws
+    u:UnionUnit+
+    ws '}' ws
+    {return {type: 'union', children: u }}
 
-attrkey
-  = attr:attr_name
-    { return {type: 'attr', key: attr, value: true }}
 
-tag
-  = ws
-    ':'
-    name:[A-Za-z0-9]+
+UnionUnit
+  = t:KeyWord
+    ws ':' ws
+    r:QueryRoot
+    {return {type: 'union-entry', union: t, query: r, children: r.children }}
+
+
+IdentExpr
+  = ws '[' ws
+    k:KeyWord
     ws
-    { return {type: 'tag', key: name.join('')}}
+    v:Value
+    ws ']' ws
+    {return {type: 'prop', dispatch: k.key, key: v}}
 
 
-attr_name
-  = ws
-    attr:[A-Za-z0-9]+
-    ws
-    { return attr.join('') }
+KeyWord = ws k:[A-Za-z0-9]+ ws { return {type: 'prop', dispatch: k.join(''), key: k.join('')}}
+
+Value = number / string
 
 JSON_text
   = ws value:value ws { return value; }

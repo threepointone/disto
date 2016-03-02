@@ -13,8 +13,7 @@ export const ACTIONS = {
 export class Reconciler {
   constructor({
     parser,
-    state = {},
-    initial = {},
+    store = {},
     normalize = true,
     remotes = [],
     send = (remotes, next) => {},
@@ -23,10 +22,10 @@ export class Reconciler {
   }) {
     this.env = {
       parser,
-      state,
       remotes,
       send,
-      store: makeStore(reducers, initial, middleware)
+      store: store.dispatch? store : makeStore(reducers, store, middleware),
+      getState: () => this.env.store.getState()
     }
   }
 
@@ -43,7 +42,12 @@ export class Reconciler {
 
   // *!*
   add(Component, element) {
-    render(<Root store={this.env.store} reconciler={this} ref={r => this.root = r}><Component/></Root>, element)
+    render(<Root
+      store={this.env.store}
+      reconciler={this}
+      ref={r => this.root = r}>
+      <Component/>
+    </Root>, element)
   }
 
   // *!*
@@ -55,7 +59,6 @@ export class Reconciler {
   // *!*
   transact(component, action, keys) {
     let desc = this.env.parser.mutate(this.env, action, keys)
-    // this.env.store.dispatch(action)
     desc.effect()
     // component.refresh({})
   }
@@ -65,8 +68,8 @@ export class Reconciler {
     this.store.dispatch({ type: ACTIONS.merge, payload: novelty })
   }
 
-  getState() {
-    return this.store.getState().disto
+  getState = () => {
+    return this.store.getState()
   }
 
   getRoot() {
@@ -80,7 +83,10 @@ export class Reconciler {
 }
 
 
-export function make(config) {
+export function makeReconciler(config) {
   return new Reconciler(config)
 }
 
+// export function addRoot(r, ) {
+
+// }

@@ -11,44 +11,40 @@ function log() {
   return this
 }
 
-toString(ƒ(`search (q="red shoes" a=123 :remote) {
+ƒ(`search (q="red shoes" a=123 :remote) {
   products {
     id
     name (:defer)
     styleid
-  }}`))::log()
+  }}`)::log()
 
 
 @ann({
   query: ƒ('counter')
 })
 class App extends Component {
-  onClick = () => {
-    this.props.transact({
-      type: 'increment', payload: 1 })
-  }
   render() {
-    return <div onClick={this.onClick}>
-      clicked {this.props.counter} times
+    let { transact, counter } = this.props
+    return <div onClick={() => transact({ type: 'tick' })}>
+      clicked { counter } times
     </div>
   }
 }
 
-const state = {
-  counter: 0
-}
 
 R.make({
-  state,
+  initial: { counter: 0 },
   parser: parser({
-    read: (env, key, node) => ({ value: env.state[key] }),
-    mutate(env, { type, payload }) {
-      if(type === 'increment') {
-        return {
-          keys: [ 'counter' ],
-          effect: () => state.counter = state.counter + payload
-        }
+    read: (env, key) => ({ value: env.store.getState()[key] }),
+    mutate(env, action) {
+      return {
+        keys: [ 'counter' ],
+        effect: () => env.store.dispatch(action)
       }
     }
-  })
+  }),
+  reducers: {
+    counter: (state = 0, action) =>
+      action.type === 'tick' ? state + 1 : state
+  }
 }).add(App, window.app)

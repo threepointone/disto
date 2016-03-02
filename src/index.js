@@ -1,11 +1,12 @@
-import { Root } from './root'
+import { Root, makeStore } from './root'
 import decorator from './decorator'
 import * as R from './reconciler'
-import parser from './parser'
+import makeParser from './parser'
 import reducer from './reducer'
-
+import { dbToTree, treeToDb } from './db'
+import { parse as ql } from './ql'
 
 module.exports = {
-  decorator, Root, R, parser, reducer
+  decorator, Root, R, makeParser, reducer, treeToDb, dbToTree, ql, makeStore
 }
 

@@ -27,19 +27,21 @@ describe('disto', () => {
       expect(ƒ('x(a=1 b="pqr")')).toEqual([ h('x', { a: 1, b:'pqr' }) ])
     })
 
+    it('can accept idents', () => {
+      expect(ƒ('[goo 1](a=1 b="pqr")')).toEqual([ h([ 'goo', 1 ], { a: 1, b:'pqr' }) ])
+    })
+
     it('can define sub nodes', () => {  // signicificant spacing!!!
-      expect(ƒ(` x {
-        y(n=2){ z }
-        a b
-      }`)).toEqual([ h('x', null, null, [ h('y', { n: 2 }, null, [ h('z') ]), h('a'), h('b') ]) ])
-
+      expect(ƒ('x {y(n=2){ z } a b}')).toEqual([ h('x', null, null, [ h('y', { n: 2 }, null, [ h('z') ]), h('a'), h('b') ]) ])
     })
 
-    it('can accept tags', () => {
-      expect(ƒ('x (:a :b)')).toEqual([ h('x', null, [ 'a', 'b' ]) ])
-    })
+    // it('can accept tags', () => {
+    //   expect(ƒ('x (:a :b)')).toEqual([ h('x', null, [ 'a', 'b' ]) ])
+    // })
 
-    it('can compose')
+    it('can compose', () => {
+      // getQuery(Component)
+    })
   })
 
 })

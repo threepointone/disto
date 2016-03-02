@@ -1,11 +1,12 @@
 {
   "extends": "eslint-config-rackt",
   "rules": {
+    "quotes": 0,
     "valid-jsdoc": 2,
     "react/jsx-uses-react": 1,
     "react/jsx-no-undef": 2,
     "react/jsx-uses-vars": 2,
-    "jsx-quotes": 0
+    "jsx-quotes": 2
   },
   "plugins": [
     "react"

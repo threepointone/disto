@@ -13,7 +13,7 @@ function log() {
 
 R.make({
   parser: parser({
-    read:
+
   })
 }).add(App, window.app)
 
