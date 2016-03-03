@@ -58,8 +58,6 @@ RecurExpr
   = '...'
   / number
 
-
-
 UnionExpr
   = ws '{' ws
     u:UnionUnit+

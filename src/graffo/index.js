@@ -21,17 +21,80 @@ function print() {
 // join + sub-select
 ƒ`{key [sub1 sub2 sub3]}`::print()
 
-// recursive join
-ƒ`key1 key2 {some ...}`::print()
+// // recursive join
+// ƒ`key1 key2 {some ...}`::print()
 
-// join + params
-ƒ`'{somekey [subkey]} { arg 1 }`::print()
+// // join + params
+// ƒ`'{somekey [subkey]} { arg 1 }`::print()
 
-// reference / ident
-ƒ`[foo 0]`::print()
+// // reference / ident
+// ƒ`[post 1234]`::print()
 
-// union
-ƒ`{ items {photo : [id title image] post: [id title post] } }`::print()
+// // union
+// ƒ`{ items {photo : [id title image] post: [id title post] } }`::print()
+
+// ƒ`{[byId 1] [age]}{[byId 3] [name]}`::print()
+
+// ;; Reads
+// [:some/key] ;; property read
+// [(:some/key {:some/param 42})] ;; parameterized property read
+
+// [{:some/key [:subkey/one :subkey/two]}] ;; join
+// '[{:some/key [*]}] ;; join (read all subkeys)
+// [({:some/key [:subkey/one :subkey/two]} {:some/param 42})] ;; parameterized join
+
+// [[:item/by-id 0]] ;; ident reference
+// '[[:active/panel _]] ;; link reference
+
+// [{:items/list {:foo [:item/id :item/type :foo/value]
+//                :bar [:item/id :item/type :bar/value]}}] ;; union query
+
+// '[{:tree [:id :value {:children ...}]}] ;; recursive query
+// [{:tree [:id :value {:children 5}]}] ;; recursive query with recursion limit
+
+// '[{:tree {:node/foo [:id :node/type :foo/value {:children ...}]
+//           :node/bar [:id :node/type :bar/value {:children ...}]}}] ;; recursive union query
+// [{:tree {:node/foo [:id :node/type :foo/value {:children 5}]
+//          :node/bar [:id :node/type :bar/value {:children 5}]}}] ;; recursive union query with recursion limit
+
+
+
+let data = {
+  items: [ { id: 1, text: 'lorem' }, { id: 2, text: 'ipsum' } ]
+}
+
+function parser({ read = () => {}, mutate = () => {}, elidePaths = false } = {}) {
+  let toRet = {}
+  if(typeof read !== 'function') {
+    // map
+    let _reads = read
+    read = function (env, query, target) {
+      return _reads[query.type](env, query.dispatch, query.params)
+    }
+  }
+  // query.
+  return function (env, query, target) {
+    // assume all reads for now
+    // get entity
+    // recurse on join with entity
+    let entity = reads(type)
+
+  }
+}
+
+function read(env, query, params) {
+  if(query.type === 'prop') {
+    return reader(env, query, query.params)
+  }
+  if(query.type === 'join') {
+    return reader(env, { key: query.key, dispatch: query.dispatch })
+  }
+
+}
+
+
+// read(data, ƒ`items`)::log()
+
 // [(fire-missiles!)]                       ;;mutation
 // [(fire-missiles! {:target :foo})]        ;;mutation + params
 // { :photo [...subquery...]
