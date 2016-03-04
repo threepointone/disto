@@ -7,8 +7,8 @@ function ƒ(strings, ...values) {
   // arrays
 }
 
-function log(x) {
-  console.log(this, x || '') // eslint-disable-line no-console
+function log() {
+  console.log(this) // eslint-disable-line no-console
   return this
 }
 
@@ -79,7 +79,11 @@ function callTo(call) {
 }
 
 let metaCache = new WeakMap()
+
 function meta(o, k) {
+  if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
+    return
+  }
   if(!metaCache.has(o)) {
     metaCache.set(o, {})
   }
@@ -110,7 +114,6 @@ function joinTo(j) {
     query: v,
     component: meta(v, 'component')
   }
-
   if(v !== Symbol.for('...') && typeof v !== 'number') {
     if(Array.isArray(v)) {
       ast = {
@@ -135,12 +138,12 @@ function identTo(i) {
   return {
     type: 'prop',
     dispatch: i[0],
-    key: i[1]
+    key: i
   }
 }
 
 function exprTo(expr) {
-  expr::log()
+  // expr::log()
   if(typeof expr === 'symbol') {
     return symbolTo(expr)
   }
@@ -169,25 +172,32 @@ function wrap(isRoot, expr) {
 }
 
 function astTo(ast, unParse = false) {
+
   if(ast.type === 'root') {
     return  withMeta(ast.children.map(c => astTo(c, unParse)),
       { component: meta(ast, 'component' ) })
   }
   let { key, query, queryRoot, params } = ast
   if(params) {
-    return wrap(queryRoot, new Set(astTo({ ...ast, params: null }), unParse), params)
+    return wrap(queryRoot, new Set([ astTo({ ...ast, params: undefined }, unParse), params ]))
   }
   if(ast.type === 'join') {
     if(query !== Symbol.for('...') && typeof query !== 'number' && unParse === true) {
       let { children } = ast
       if(children.length === 1 && children[0].type === 'union') {
-        return new Map([ [ key, new Map(children[0].children.map(({ union, children, component }) =>
-          withMeta([ union, children.map(c => astTo(c, unParse)) ], { component }))) ] ])
+        let unionChild = children[0].children.reduce( (o, { union, children, component }) => {
+          o[union]  = withMeta([ children.map(c => astTo(c, unParse)) ], { component })
+          return o
+        }, {})
+        return wrap(queryRoot, new Map([ [ key, unionChild ] ]))
+        // return new Map([ [ key, new Map(children[0].children.map(({ union, children, component }) =>
+        //   withMeta([ union, children.map(c => astTo(c, unParse)) ], { component }))) ] ])
       }
-      return
+      return wrap(queryRoot, new Map([ [ key, children.map(x => astTo(x, unParse)) ] ]))
     }
-    return new Map([ key, query ])
+    return wrap(queryRoot, new Map([ [ key, query ] ]))
   }
+  return wrap(queryRoot, key)
 }
 
 function pathMeta() {
@@ -272,30 +282,29 @@ function parser({ read, mutate, elidePaths }) {
   }
 }
 
-queryTo(ƒ`foo`)::print()
 
-// // prop
-queryTo(ƒ`foo`)::print()
+// // // prop
+astTo(queryTo(ƒ`foo`))::log()
 
-// // prop + params
-queryTo(ƒ`'foo {arg 123}`)::print()
+// // // prop + params
+astTo(queryTo(ƒ`'foo {arg 123}`))::log()
 
-// // join + sub-select
-queryTo(ƒ`{key [sub]}`)::print()
+// // // join + sub-select
+astTo(queryTo(ƒ`{key [sub]}`))::log()
 
 // // // recursive join
-// ƒ`key1 key2 {some ...}`::log()
+astTo(queryTo(ƒ`key1 key2 {some ...}`))::log()
 
 // // // join + params
-queryTo(ƒ`'{somekey [subkey]} { arg 1 }`)::print()
+astTo(queryTo(ƒ`'{somekey [subkey]} { arg 1 }`))::log()
 
-// // // reference / ident
-queryTo(ƒ`[post 1234]`)::print()
+// // // // reference / ident
+astTo(queryTo(ƒ`[post 1234]`))::log()
 
-// // // union
-queryTo(ƒ`{ items {photo : [id title image] post: [id title post] } }`)::print()
+// // // // union
+astTo(queryTo(ƒ`{ items {photo : [id title image] post: [id title post] } }`))::log()
 
-queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`)::print()
+astTo(queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`))::log()
 
 // ;; Reads
 // [:some/key] ;; property read
@@ -320,8 +329,6 @@ queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`)::print()
 //          :node/bar [:id :node/type :bar/value {:children 5}]}}] ;; recursive union query with recursion limit
 
 
-
-
 // read(data, ƒ`items`)::log()
 
 // [(fire-missiles!)]                       ;;mutation
@@ -330,96 +337,3 @@ queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`)::print()
 //   :video [...subquery...]
 //   :comment [...subquery...] }
 
-
-
-// ƒ('')
-
-
-
-
-
-
-
-
-
-
-// parser = function({read, mutate}){
-//   return function(query, {state}, ){
-//     // if vector, read
-//     // else, mutation
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-// export class Db{
-
-// }
-
-
-// export function treeToDb(Component, tree, db = new Db()) {
-//   let entitys = db.entitys
-
-//   let q = Component.query()
-//   let Entity = { key: q.dispatch }
-//   Entity.fields = q.fields
-//   if(q.type === 'prop'){
-//     // no more information
-//     // and we can just put the data into the db
-//     db = db.set(q.dispatch, '_', tree)
-//   }
-//   else if(q.type === 'ident') {
-//     // like prop, but with a possible id
-//     // return db.set(q.dispatch, q.ident[1], data)
-//     // can't set data just yet, but we know it's a collection
-//     Entity.type = 'collection'
-//     // do we know if it's a reference? not yet
-
-//     // what is id attribute though?
-//     // dunno yet frankly
-//     // db = db.set(q.ident[0], '_', tree)
-//     for( let el, i of tree) {
-//       db = db.set(q.ident[0], i, el)
-//     }
-//   }
-
-//   else if(q.type === 'join'){
-//     Entity.type === 'collection'
-//     if !isComponent(q.children){
-//       for( let el, i of tree) {
-//         db = db.set(q.ident[0], i, el)
-//       }
-//       else {
-//         // recurse
-//         for(let el, i of tree) {
-//           db = db.set(q.ident[0], i, q.children.ident(el))
-//           db = treeToDb(q.children, el, db)
-
-//         }
-
-
-//       }
-
-
-//     }
-
-//   }
-
-
-//   // Entitys[q.dispatch]  =
-
-
-// }
-
-// export function dbToTree(Component, tree){
-
-// }
