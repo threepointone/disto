@@ -4,7 +4,7 @@ QueryRoot
   = ws '[' ws
     exprs:QueryExpr*
     ws ']' ws
-    {return {type: 'root', children: exprs}}
+    {return exprs}
 
 
 QueryExpr
@@ -20,7 +20,7 @@ ParamExpr
   / KeyWord)
     ws
     p:ParamMapExpr
-  { return {...q, params: p }}
+  { return new Set([ q, p])}
 
 ParamMapExpr
   = ws '{' ws
@@ -32,17 +32,14 @@ Param
   = k:KeyWord
     j:Value
     ws
-    { return {k: j}}
+    { return {[k]: j}}
 
 JoinExpr
   = ws '{' ws
     j:JoinUnit*
     ws '}' ws
     {
-      return {
-        type: 'join',
-        children: Array.isArray(j) ? j : ((j==='...' || (!isNaN(parseFloat(j)) && isFinite(j))) ? null : j )
-      }
+      return j[0]
     }
 
 JoinUnit
@@ -52,24 +49,25 @@ JoinUnit
     l:(QueryRoot
   / UnionExpr
   / RecurExpr)
-  { return l.type === 'root' ? l.children : l  }
+  { return new Map([[f, l]]) }
 
 RecurExpr
-  = '...'
-  / number
+  = x:('...'
+  / number)
+  { return typeof x === 'string' ? Symbol.for('...') : x }
 
 UnionExpr
   = ws '{' ws
-    u:UnionUnit+
+    units:UnionUnit+
     ws '}' ws
-    {return {type: 'union', children: u }}
+    { return units.reduce((o, x) => ({...o, ...x}), {}) }
 
 
 UnionUnit
   = t:KeyWord
     ws ':' ws
     r:QueryRoot
-    {return {type: 'union-entry', union: t, query: r, children: r.children }}
+    {return {[t]: r}}
 
 
 IdentExpr
@@ -78,10 +76,10 @@ IdentExpr
     ws
     v:Value
     ws ']' ws
-    {return {type: 'prop', dispatch: k.key, key: v}}
+    {return [k, v]}
 
 
-KeyWord = ws k:[A-Za-z0-9]+ ws { return {type: 'prop', dispatch: k.join(''), key: k.join('')}}
+KeyWord = ws  k:( '*' / [A-Za-z0-9]+) ws { return k.join ? k.join('') : k }
 
 Value = number / string
 
