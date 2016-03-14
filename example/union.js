@@ -1,4 +1,12 @@
-import { getQuery, Component } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta } from '../src'
+import React, { Component, PropTypes } from 'react'
+
+function updateIn(o, [ key, ...rest ], fn) {
+  if(rest.length === 0) {
+    return { ...o, [key]: fn(o[key]) }
+  }
+  return { ...o, [key]: updateIn(o[key], rest, fn) }
+}
 
 const initial = {
   'items': [
@@ -9,7 +17,7 @@ const initial = {
       content: 'Lorem ipsum dolor sit amet, quem atomorum te quo',
       favorites: 0
     }, {
-      id: 0, type: 'photo',
+      id: 1, type: 'photo',
       title: 'A Photo!',
       content: 'Lorem ipsum',
       favorites: 0
@@ -36,11 +44,20 @@ const initial = {
 }
 
 class Post extends Component {
-  static query = () => [ 'id', 'type', 'title', 'author', 'content' ]
+  static query = () => ƒ`id type title author content`
+  render() {
+    let { title, author, content } = this.props
+    return <div>
+      <h3>{title}</h3>
+      <h4>{author}</h4>
+      <p>{content}</p>
+    </div>
+
+  }
 }
 
 class Photo extends Component {
-  static query = () => [ 'id', 'type', 'title', 'image', 'caption' ]
+  static query = () => ƒ`id type title image caption`
   render() {
     let { title, image, caption } = this.props
     return <div>
@@ -52,9 +69,9 @@ class Photo extends Component {
 }
 
 class Graphic extends Component {
-  static query = () => [ 'id', 'type', 'title', 'image' ]
+  static query = () => ƒ`id type title image`
   render() {
-    let { title, image } = this.this.props
+    let { title, image } = this.props
     return <div>
       <h3>Graphic {title}</h3>
       <div>{image}</div>
@@ -62,84 +79,70 @@ class Graphic extends Component {
   }
 }
 
+function andKey(key) {
+  return withMeta([ ... this, key ], { component: meta(this, 'component') })
+}
+
 class DashboardItem extends Component {
   static ident = ({ type, id }) => [ type, id ]
-  static query = () => zipmap([ 'dashboard/post', 'dashboard/photo', 'dashboard/graphic' ],
-    [ getQuery(Post), getQuery(Photo), getQuery(Graphic) ].map(x => [ ...x, 'favorites' ]))
+  static query = () => {
+    return {
+      post: getQuery(Post)::andKey('favorites'),
+      photo: getQuery(Photo)::andKey('favorites'),
+      graphic: getQuery(Graphic)::andKey('favorites')
+    }
+  }
+
+  static contextTypes = {
+    disto: PropTypes.object
+  }
+
+  renderItem() {
+    let { type } = this.props
+    switch(type) {
+      case 'post': return <Post {...this.props} />
+      case 'photo': return <Photo {...this.props} />
+      case 'graphic': return <Graphic {...this.props} />
+    }
+  }
   render() {
     let { id, type, favorites } = this.props
-    return <li>
-      {do { let el; switch(type) {
-        case 'dashboard/'
-      }}}
-    </li>
+    return <div>
+      {this.renderItem()}
+      <p>{favorites} favorites</p>
+      <button onClick={() => this.context.disto.transact({ type: 'favorite', payload: [ type, id ] })}>favorite!</button>
+    </div>
   }
 }
 
+class Dashboard extends Component {
+  static query = () => ƒ`{items ${getQuery(DashboardItem)}}`
+  render() {
+    let { items } = this.props
+    return <div>
+      {items.map(item => <DashboardItem key={item.id} {...item}/>)}
+    </div>
+  }
+}
 
+function read(env, key /*, params */) {
+  return {
+    value: dbToTree([ astTo(env.ast) ], env.get())[key]
+  }
+}
 
-// (defui DashboardItem
-//   static om/Ident
-//   (ident [this {:keys [id type]}]
-//     [type id])
-//   static om/IQuery
-//   (query [this]
-//     (zipmap
-//       [:dashboard/post :dashboard/photo :dashboard/graphic]
-//       (map #(conj % :favorites)
-//         [(om/get-query Post)
-//          (om/get-query Photo)
-//          (om/get-query Graphic)])))
-//   Object
-//   (render [this]
-//     (let [{:keys [id type favorites] :as props} (om/props this)]
-//       (dom/li
-//         #js {:style #js {:padding 10 :borderBottom "1px solid black"}}
-//         (dom/div nil
-//           (({:dashboard/post    post
-//              :dashboard/photo   photo
-//              :dashboard/graphic graphic} type)
-//             (om/props this)))
-//         (dom/div nil
-//           (dom/p nil (str "Favorites: " favorites))
-//           (dom/button
-//             #js {:onClick
-//                  (fn [e]
-//                    (om/transact! this
-//                      `[(dashboard/favorite {:ref [~type ~id]})]))}
-//             "Favorite!"))))))
+const normalized = treeToDb(getQuery(Dashboard), initial)
 
-// (def dashboard-item (om/factory DashboardItem))
+function reduce(state = normalized, { type, payload }) {
+  if(type === 'favorite') {
+    return updateIn(state, [ 'entities', payload[0], payload[1], 'favorites' ], v => v + 1)
+  }
+  return state
+}
 
-// (defui Dashboard
-//   static om/IQuery
-//   (query [this]
-//     [{:dashboard/items (om/get-query DashboardItem)}])
-//   Object
-//   (render [this]
-//     (let [{:keys [dashboard/items]} (om/props this)]
-//       (apply dom/ul
-//         #js {:style #js {:padding 0}}
-//         (map dashboard-item items)))))
+let reconciler = makeReconciler({
+  parser: makeParser({ read }),
+  store: makeStore(reduce)
+})
 
-// (defmulti read om/dispatch)
-
-// (defmethod read :dashboard/items
-//   [{:keys [state]} k _]
-//   (let [st @state]
-//     {:value (into [] (map #(get-in st %)) (get st k))}))
-
-// (defmulti mutate om/dispatch)
-
-// (defmethod mutate 'dashboard/favorite
-//   [{:keys [state]} k {:keys [ref]}]
-//   {:action
-//    (fn []
-//      (swap! state update-in (conj ref :favorites) inc))})
-
-// (def reconciler
-//   (om/reconciler
-//     {:state  init-data
-//      :parser (om/parser {:read read :mutate mutate})}))
-
-// (om/add-root! reconciler Dashboard (gdom/getElement "app"))
+reconciler.add(Dashboard, window.app)

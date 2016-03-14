@@ -1,43 +1,37 @@
-import React, { Component } from 'react'
-import { decorator as ann, parser, R } from '../src'
-import { toString, parse as ƒ }  from '../src/ql'
+import React, { Component, PropTypes } from 'react'
+import { ƒ, makeParser, makeStore, makeReconciler } from '../src'
 
-function print() {
-  return JSON.stringify(this, null, ' ')::log()
-}
-
-function log() {
-  console.log(this) // eslint-disable-line no-console
-  return this
-}
-
-
-@ann({
-  query: ƒ('counter')
-})
 class App extends Component {
+  static query = () => ƒ`counter`
+  static contextTypes = {
+    disto: PropTypes.object
+  }
+  onClick = () => this.context.disto.transact({ type: 'tick' })
   render() {
-    let { transact, counter } = this.props
-    return <div onClick={() => transact({ type: 'tick' })}>
+    let { counter } = this.props
+    return <div onClick={this.onClick}>
       clicked { counter } times
     </div>
   }
 }
 
-
-R.make({
-  initial: { counter: 0 },
-  parser: parser({
-    read: (env, key) => ({ value: env.store.getState()[key] }),
-    mutate(env, action) {
-      return {
-        keys: [ 'counter' ],
-        effect: () => env.store.dispatch(action)
-      }
-    }
-  }),
-  reducers: {
-    counter: (state = 0, action) =>
-      action.type === 'tick' ? state + 1 : state
+function read(env, key /*, params */) {
+  return {
+    value: env.get()[key]
   }
-}).add(App, window.app)
+}
+
+function reduce(state = { counter: 0 }, { type }) {
+  if(type === 'tick') {
+    return { counter : state.counter + 1 }
+  }
+  return state
+}
+
+let reconciler = makeReconciler({
+  parser: makeParser({ read }),
+  store: makeStore(reduce)
+})
+
+
+reconciler.add(App, window.app)

@@ -43,6 +43,8 @@ export class Reconciler {
 
   // *!*
   add(Component, element) {
+    this.element = element
+    this.Component = Component
     let answer = this.read(getQuery(Component))
     render(<Root
       answer={answer}
@@ -60,9 +62,19 @@ export class Reconciler {
 
   }
   // *!*
-  transact(component, action, keys) {
-    let desc = this.env.parser.mutate(this.env, action, keys)
-    desc.effect()
+  transact(action, query) { // query === keys to refresh
+    this.env.store.dispatch(action)
+    let element = this.element
+    let Component = this.Component
+    let answer = this.read(getQuery(Component))
+    render(<Root
+      answer={answer}
+      store={this.env.store}
+      reconciler={this}
+      ref={r => this.root = r}>
+      <Component/>
+    </Root>, element)
+    // desc.effect()
     // component.refresh({})
   }
 

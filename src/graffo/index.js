@@ -34,9 +34,9 @@ export function ƒ(strings, ...values) {
   let refs = {}, parsed = parse('[' + strings.reduce((arr, s, i) => {
       let v = values[i]
 
-      let c = Array.isArray(v) ? meta(v, 'component') : null, rando = randomStr()
+      let c = (Array.isArray(v) || isPlainObject(v)) ? meta(v, 'component') : null, rando = randomStr()
       if(c) {
-        // console.log(v, rando)
+
         refs[rando] = v
         v = '[ ' + rando + ' ]'
       }
@@ -53,6 +53,9 @@ export function ƒ(strings, ...values) {
 
 function ƒreplace(q, refs) {
   if(typeof q[0] === 'string' && q.length === 1 && refs[q[0]]) {
+    if(isPlainObject(refs[q[0]])) {
+      return Object.keys(refs[q[0]]).reduce((o, k) => (o[k] = ƒreplace(refs[q[0]][k], refs) ,o), {})
+    }
     return withMeta(ƒreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
   }
   return q.map(expr => {
@@ -266,7 +269,8 @@ export function makeParser({ read, mutate, elidePaths }) {
       parser: null, // ??
       target,
       'query-root': 'ROOTROOTROOT',
-      path: env.path || []
+      path: env.path || [],
+      get() { return this.store.getState()['_']}
     }
 
     function step(ret, expr) {
@@ -318,7 +322,7 @@ export function makeParser({ read, mutate, elidePaths }) {
           }
 
         }
-        if(value) {
+        if(value !== undefined) {
           ret = { ...ret, [key]: value }
         }
         if(mutRet) {
@@ -470,9 +474,9 @@ function schemaToTree(ast, result, entities, schema = {}) {
   return o
 }
 
-export function dbToTree(q, result, db) {
+export function dbToTree(q, state, appState = state) {
   let ast = queryTo(q)
-  return schemaToTree(ast, result, db.entities, db.schema)
+  return schemaToTree(ast, state.result, appState.entities, appState.schema)
 }
 
 

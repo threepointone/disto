@@ -44,6 +44,11 @@ function rafUpdateBatcher(notify) {
 }
 
 export function makeStore(initial = {}, reduce = x => x, middleware = []) {
+  if(typeof initial === 'function') {
+    middleware = reduce
+    reduce = initial
+    initial = {}
+  }
   let sagaMiddleware = createSagaMiddleware()
   // create a redux store
   const store = createStore(
