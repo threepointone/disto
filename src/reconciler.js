@@ -24,7 +24,7 @@ export class Reconciler {
       parser,
       remotes,
       send,
-      store: store.dispatch? store : makeStore(reducers, store, middleware),
+      store: store.dispatch ? store : makeStore(reducers, store, middleware),
       getState: () => this.env.store.getState()
     }
   }
@@ -37,6 +37,7 @@ export class Reconciler {
   }
 
   register(instance) {
+    console.log('register', instance)
     // update indices
   }
 
@@ -64,8 +65,8 @@ export class Reconciler {
   }
 
   // *!*
-  merge(novelty) {
-    this.store.dispatch({ type: ACTIONS.merge, payload: novelty })
+  merge(payload) {
+    this.store.dispatch({ type: ACTIONS.merge, payload })
   }
 
   getState = () => {

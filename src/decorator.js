@@ -6,25 +6,6 @@ export default function disto({
   queryParams = () => {}
 }) {
 
-  function getId(props) {
-
-    if(typeof ident === 'function') {
-      return ident(props)
-    }
-    return ident
-
-  }
-
-  function getQ(props) {
-    if(typeof query === 'function') {
-      return query(props)
-    }
-    return query
-  }
-
-  function getQP(props) {
-
-  }
 
   return function (Target) {
     return class Disto extends Component {
@@ -42,8 +23,8 @@ export default function disto({
         let { disto } = this.context
 
         let qp = queryParams(this.props),
-          id = getId(this.props),
-          q = getQ(this.props, qp),
+          id = ident(this.props),
+          q = query(this.props, qp),
           v = disto.read(q)
 
         return {

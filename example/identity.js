@@ -1,4 +1,4 @@
-import { ql as ƒ, makeParser, makeStore, makeReconciler, addRoot } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery } from '../src'
 
 import { Component } from 'react'
 
@@ -32,19 +32,16 @@ const initial = {
   ]
 }
 
-function getQuery(Component) {
-  return Component
-}
 
-
-function read(env, key, node) {
-  console.log(key, node)
+function read(env, key, params) {
   return {
     value: env.store.getState()['_'][key]
   }
 }
 
-function mutate() {}
+function mutate() {
+
+}
 
 function reduce(state = {}, { type, payload: { name } = {} } = {}) {
   if(type === 'increment') {
@@ -57,13 +54,11 @@ function reduce(state = {}, { type, payload: { name } = {} } = {}) {
 
 class Person extends Component {
   static ident = ctx => [ 'byname', ctx.name ]
-  static query = () => ƒ`name points`
+  static query = () => ƒ`name points age`
   onClick = () => {
-    this.props.transact(ƒ`!increment (by=1)`)//'{ type: 'increment', payload: this.props })
+    this.props.transact(ƒ`'increment (by=1)`)//'{ type: 'increment', payload: this.props })
   }
   render() {
-    // 'personview'::log()
-    // this.props.name::log()
     let { points, name } = this.props
     return <li>
       <label>{name}, points: {points}</label>
@@ -75,8 +70,6 @@ class Person extends Component {
 
 class ListView extends Component {
   render() {
-    // 'listview'::log()
-    // this.props.list::log()
     let { list } = this.props
     return <ul>{list.map(person =>
       <Person key={person.name} {...person}/>)}
@@ -87,9 +80,8 @@ class ListView extends Component {
 
 class RootView extends Component {
   static query = () =>
-    ƒ`one {${getQuery(Person)} two {${{ uniontype: getQuery(Person) }}}`
+    ƒ`{one ${getQuery(Person)}} two ${getQuery(Person)}`
   render() {
-    // 'rootview'::log()
     let { one, two } = this.props
     return <div>
       <h2>List A</h2>
@@ -110,7 +102,7 @@ let reconciler = makeReconciler({
   store: makeStore(initial, reduce)
 })
 
-addRoot(reconciler, RootView, window.app)
+reconciler.add(RootView, window.app)
 
 // const normalized = treeTodb(RootView, initial, true)::log()
 

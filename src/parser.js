@@ -45,19 +45,19 @@ export function exprToAst(expr) {
 
 }
 
-`
+// `
 
-{[foo 0] [bar]}
-  (is (= (parser/expr->ast '(:foo {:bar 1}))
-         {:type :prop :key :foo :dispatch-key :foo :params {:bar 1}}))
-  (is (= (dissoc (parser/expr->ast '({:foo [:bar :baz]} {:woz 1})) :children)
-         {:type :join, :dispatch-key :foo, :key :foo, :query [:bar :baz]
-          :params {:woz 1}}))
-  (is (= (dissoc (parser/expr->ast '({[:foo 0] [:bar :baz]} {:woz 1})) :children)
-         {:type :join, :dispatch-key :foo, :key [:foo 0], :query [:bar :baz]
-          :params {:woz 1}}))
-  (is (= (parser/expr->ast '(do/it {:woz 1}))
-         {:type :call :key 'do/it :dispatch-key 'do/it :params {:woz 1}}))
-  (is (= (parser/expr->ast '(do/it))
-         {:type :call :key 'do/it :dispatch-key 'do/it :params {}})))
+// {[foo 0] [bar]}
+//   (is (= (parser/expr->ast '(:foo {:bar 1}))
+//          {:type :prop :key :foo :dispatch-key :foo :params {:bar 1}}))
+//   (is (= (dissoc (parser/expr->ast '({:foo [:bar :baz]} {:woz 1})) :children)
+//          {:type :join, :dispatch-key :foo, :key :foo, :query [:bar :baz]
+//           :params {:woz 1}}))
+//   (is (= (dissoc (parser/expr->ast '({[:foo 0] [:bar :baz]} {:woz 1})) :children)
+//          {:type :join, :dispatch-key :foo, :key [:foo 0], :query [:bar :baz]
+//           :params {:woz 1}}))
+//   (is (= (parser/expr->ast '(do/it {:woz 1}))
+//          {:type :call :key 'do/it :dispatch-key 'do/it :params {:woz 1}}))
+//   (is (= (parser/expr->ast '(do/it))
+//          {:type :call :key 'do/it :dispatch-key 'do/it :params {}})))
 

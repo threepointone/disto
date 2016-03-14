@@ -11,13 +11,6 @@ function log() {
   return this
 }
 
-ƒ(`search (q="red shoes" a=123 :remote) {
-  products {
-    id
-    name (:defer)
-    styleid
-  }}`)::log()
-
 
 @ann({
   query: ƒ('counter')

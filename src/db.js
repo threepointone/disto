@@ -1,8 +1,8 @@
 import { Schema, arrayOf, normalize } from 'normalizr'
 
-function memoize(fn, c = new WeakMap(), hasher = i => i) {
+function memoize(fn, c = new WeakMap(), keyFn = i => i) {
   return (...args) => {
-    let hash = hasher(...args)
+    let hash = keyFn(...args)
     if(c.has(hash)) {
       return c.get(hash)
     }

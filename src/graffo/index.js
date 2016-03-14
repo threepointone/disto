@@ -1,18 +1,58 @@
 import { parse } from './parser'
+import { Schema, normalize, arrayOf, unionOf } from 'normalizr'
 import isPlainObject from 'lodash.isplainobject'
 
-function ƒ(strings, ...values) {
-  return parse('[' + strings.reduce((arr, s, i) => [ ...arr, s, values[i] ], []).join('') + ']')
-  // this will be modified to handle
-  // arrays
+import ArraySchema from 'normalizr/lib/IterableSchema'
+import UnionSchema from 'normalizr/lib/UnionSchema'
+
+let metaCache = new WeakMap()
+
+export function meta(o, k) {
+  if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
+    return
+  }
+  if(!metaCache.has(o)) {
+    metaCache.set(o, {})
+  }
+  return metaCache.get(o)[k]
 }
 
-function log() {
-  console.log(this) // eslint-disable-line no-console
+export function withMeta(o, m) {
+  // only for objects!
+  let newObj = Array.isArray(o) ? [ ...o ] : { ...o } // sets, maps?
+  metaCache.set(newObj, m)
+  return newObj
+}
+
+function randomStr() {
+  let s = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", N = 16
+  return Array(N).join().split(',').map(() =>  s.charAt(Math.floor(Math.random() * s.length)) ).join('')
+}
+
+
+export function ƒ(strings, ...values) {
+  let refs = {}, parsed = parse('[' + strings.reduce((arr, s, i) => {
+      let v = values[i]
+      let c = Array.isArray(v) ? meta(v, 'component') : null, rando = randomStr()
+      if(c) {
+        refs[rando] = v
+        v = '[' + rando + ']'
+      }
+      return [ ...arr, s, v ]
+    }, []).join('') + ']')
+  return parsed
+
+  // this will be modified to handle interpolations
+
+}
+
+
+export function log(msg) {
+  console.log(msg || this) // eslint-disable-line no-console
   return this
 }
 
-function print() {
+export function print() {
   return JSON.stringify(this, null, ' ')::log()
 }
 
@@ -57,7 +97,7 @@ function callTo(call) {
   if(typeof f === 'symbol') {
     return {
       ...exprTo(args),
-      target: meta(call, 'target')|| 'remote'
+      target: meta(call, 'target') || 'remote'
     }
   }
   let ast  = exprTo(f)
@@ -76,25 +116,6 @@ function callTo(call) {
   }
   return ast
 
-}
-
-let metaCache = new WeakMap()
-
-function meta(o, k) {
-  if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
-    return
-  }
-  if(!metaCache.has(o)) {
-    metaCache.set(o, {})
-  }
-  return metaCache.get(o)[k]
-}
-
-function withMeta(o, m) {
-  // only for objects!
-  let newObj = Array.isArray(o) ? [ ...o ] : { ...o } // sets, maps?
-  metaCache.set(newObj, m)
-  return newObj
 }
 
 function queryTo(query) {
@@ -175,7 +196,7 @@ function astTo(ast, unParse = false) {
 
   if(ast.type === 'root') {
     return  withMeta(ast.children.map(c => astTo(c, unParse)),
-      { component: meta(ast, 'component' ) })
+      { gg: ast.component })
   }
   let { key, query, queryRoot, params } = ast
   if(params) {
@@ -204,7 +225,11 @@ function pathMeta() {
 
 }
 
-function parser({ read, mutate, elidePaths }) {
+export function getQuery(Component) {
+  return withMeta(Component.query(Component.params()), { component: Component })
+}
+
+export function makeParser({ read, mutate, elidePaths }) {
 
   return function (env, query, target) {
     env = {
@@ -224,8 +249,8 @@ function parser({ read, mutate, elidePaths }) {
         ...env,
         ast,
         query: do {
-          if(!query) { undefined }
-          if(query === Symbol.for('...')) { query }
+          if(!query__) { undefined }
+          if(query__ === Symbol.for('...')) { query }
           else query__
         },
         'query-root': Array.isArray(key) ? query : query__
@@ -239,12 +264,12 @@ function parser({ read, mutate, elidePaths }) {
         if(ast__ === true) {
           ret = [ ...ret, expr ]
         }
-        if(ast__ instanceof Map) {
+        if(isPlainObject(ast__)) {
           ret = [ ...ret, astTo(ast__) ]
         }
       }
 
-      if(!(isCall || (ast.target === undefined) || res.value)) {
+      if(!(isCall || (ast.target === undefined) || res.hasOwnProperty('value'))) {
         return ret
       }
       let error, mutRet
@@ -282,29 +307,218 @@ function parser({ read, mutate, elidePaths }) {
   }
 }
 
+// let p = parser({ read(env, key, params) {
+//   return { value: env.state[key] }
+// }, mutate(env, key, params) {
 
-// // // prop
-astTo(queryTo(ƒ`foo`))::log()
+// } })
 
-// // // prop + params
-astTo(queryTo(ƒ`'foo {arg 123}`))::log()
+// function normalize(q, data){}
 
-// // // join + sub-select
-astTo(queryTo(ƒ`{key [sub]}`))::log()
+function isPrimitive(x) {
+  return typeof x === 'number' ||
+  typeof x === 'string' ||
+  typeof x === 'boolean'
 
-// // // recursive join
-astTo(queryTo(ƒ`key1 key2 {some ...}`))::log()
+}
 
-// // // join + params
-astTo(queryTo(ƒ`'{somekey [subkey]} { arg 1 }`))::log()
+function find(fn) {
+  for(let i=0; i< this.length; i++) {
+    if(fn(this[i]))
+      return this[i]
+  }
+}
 
-// // // // reference / ident
-astTo(queryTo(ƒ`[post 1234]`))::log()
+function treeToSchema(ast, state) {
+  // todo - what if state doesn't exist for ast?
+  // somehow need to keep marching forward
+  let o = {}
 
-// // // // union
-astTo(queryTo(ƒ`{ items {photo : [id title image] post: [id title post] } }`))::log()
+  ast.children.forEach(c => {
+    let st = state[c.dispatch]
+    if(c.type === 'prop' && c.dispatch!== '*' && !isPrimitive(st)) {
+      // s.define({ [c.dispatch]: new Schema(c.dispatch) })
+    }
 
-astTo(queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`))::log()
+    if(c.type === 'join') {
+      if(Array.isArray(st)) { // this might be a problem, when st doesn't exist at the moment
+        if(c.children[0].type === 'union') {
+          o[c.dispatch] = arrayOf(unionOf(c.children[0].children.reduce((o, x) => {
+            let ss = new Schema(x.union)
+            ss.define(treeToSchema(x, st::find(y => y.type === x.union)))
+            o[x.union] = ss
+            return o
+          }, {}), { schemaAttribute: 'type' }))
+        }
+        else{
+          let ss = new Schema(c.dispatch)
+          ss.define(treeToSchema(c, st[0]))
+          o[c.dispatch] = arrayOf(ss)
+        }
+      }
+      else {
+        // todo - handle unions here
+        if(c.children[0].type === 'union') {
+          o[c.dispatch] = unionOf(c.children[0].children.reduce((o, x) => {
+            let ss = new Schema(x.union)
+            ss.define(treeToSchema(x, st)) // dangerous in this case
+            o[x.union] = ss
+            return o
+          }, {}), { schemaAttribute: 'type' })
+        }
+        else {
+          o[c.dispatch] = treeToSchema(c, st)
+        }
+
+      }
+    }
+  })
+  return o
+  // walk query+ state
+
+}
+
+
+export function treeToDb(q, state) {
+  let ast = queryTo(q)
+  let schema = treeToSchema(ast, state)::log()
+  return {
+    ...normalize(state, schema),
+    schema
+  }
+}
+
+function schemaToTree(ast, result, entities, schema = {}) {
+
+  let o = {}
+  ast.children.forEach(c => {
+    let s = schema[c.dispatch]
+    if(s instanceof ArraySchema) {
+      if(s._itemSchema instanceof UnionSchema) {
+        let ss = s._itemSchema.getItemSchema()
+
+        o[c.dispatch] = result[c.dispatch].map(r => {
+          let cc = c.children[0].children::find(x => x.union === r.schema)
+          return schemaToTree(cc, entities[r.schema][r.id], entities, ss[r.schema])
+        })
+      }
+      else {
+        o[c.dispatch] = result[c.dispatch].map(r =>  {
+          return schemaToTree(c, entities[s._itemSchema.getKey()][r], entities, s)
+        })
+      }
+
+    }
+    else{
+      // todo - * aka all attribs
+      if(c.type === 'prop') {
+        if(c.dispatch === '*') {
+          Object.assign(o, result)
+        }
+        else {
+          o[c.dispatch] = result[c.dispatch]
+        }
+
+      }
+      else {
+        o[c.dispatch] = schemaToTree(c, result[c.dispatch], entities, schema[c.dispatch])
+      }
+    }
+  })
+  return o
+}
+
+export function dbToTree(q, result, db) {
+  let ast = queryTo(q)
+  return schemaToTree(ast, result, db.entities, db.schema)
+}
+
+
+let state = {
+  foo: [ 'abc' ],
+  woz: 'boz',
+  jayjay: [ { id: 0, xyz: '123a', type: 'one', a: 1123123 }, { id: 1, xyz: '456b', type: 'two' } ],
+  foofoo: [ { id: 'a', abc: 'hjhjhj' }, { id: 'b', xyz: 'uydusd' } ],
+  maca: {
+    rena: {
+      hola: 'poopoo'
+    }
+  }
+}
+
+let db = treeToDb(ƒ`
+  foo
+  {all [*]}
+  [iden 1]
+  {jayjay
+    {
+      one: [a b c]
+      two: [d e f]
+    }
+  }
+  {foofoo  [id abc]}
+  { maca [{rena [hola]} dance]}
+  woz
+  `, state)
+
+
+dbToTree(ƒ`{jayjay
+    {
+      one: [*]
+      two: [d e f]
+    }
+  }`, db.result, db)::log()
+
+ƒ`
+  foo
+  {all [*]}
+  [iden 1]
+  {jayjay
+    {
+      one: [a b c]
+      two: [d e f]
+    }
+  }
+  {foofoo  [id abc]}
+  { maca [{rena [hola]} dance]}
+  woz
+  `::log()
+
+// dbToTree(ƒ`{foofoo [id abc]}`, db.result, db)::log()
+
+
+// normalize(state, s)::print()
+
+// function exec(remote) {
+//   // console.log(this)
+//   return p({ state }, this, remote)
+// }
+// let exec = (remote) => p({ state }, query, remote)
+
+// ƒ`[foo 0]`::log()
+
+// // prop
+// astTo(queryTo(ƒ`foo`))::log()
+
+// // prop + params
+// astTo(queryTo(ƒ`'foo {arg 123}`))::log()
+
+// // join + sub-select
+// astTo(queryTo(ƒ`{key [sub]}`))::log()
+
+// // recursive join
+// astTo(queryTo(ƒ`key1 key2 {some ...}`))::log()
+
+// // join + params
+// astTo(queryTo(ƒ`'{somekey [subkey]} { arg 1 }`))::log()
+
+// // reference / ident
+// astTo(queryTo(ƒ`[post 1234]`))::log()
+
+// // union
+// astTo(queryTo(ƒ`{ items {photo : [id title image] post: [id title post] } }`))::log()
+
+// astTo(queryTo(ƒ`{[byId 1] [age]}{[byId 3] [name]}`))::log()
 
 // ;; Reads
 // [:some/key] ;; property read
