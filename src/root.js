@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react'
+import React, { Component, PropTypes, Children } from 'react'
 
 // redux
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
@@ -96,14 +96,13 @@ export class Root extends Component {
     }
   }
 
-  store = this.props.store && this.props.store.dispatch ? this.props.store :
-    makeStore(this.props.store, this.props.reducer, this.props.middleware)
+  store = this.props.store
   render() {
     return <Provider store={this.store}>
       <Local.Root>
         <Sagas middleware={this.store.sagas}>
           <Optimist>
-            {this.props.children}
+            {React.cloneElement(Children.only(this.props.children), { ...this.props.children.props, ...this.props.answer })}
           </Optimist>
         </Sagas>
       </Local.Root>

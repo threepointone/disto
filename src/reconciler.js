@@ -2,6 +2,7 @@ import { render, unmountComponentAtNode } from 'react-dom'
 import React from 'react'
 
 import { Root, makeStore } from './root'
+import { getQuery, log } from './graffo'
 
 export const ACTIONS = {
   merge: 'disto.reconciler.merge',
@@ -31,11 +32,10 @@ export class Reconciler {
 
   read(query) {
     // remotes etc
-    let result = this.env.parser.read(this.env, query)
-    return Object.keys(result)
-      .reduce((o, key) => (o[key] = result[key].value, o), {})
+    return this.env.parser(this.env, query)
   }
 
+  // *!*
   register(instance) {
     console.log('register', instance)
     // update indices
@@ -43,7 +43,9 @@ export class Reconciler {
 
   // *!*
   add(Component, element) {
+    let answer = this.read(getQuery(Component))
     render(<Root
+      answer={answer}
       store={this.env.store}
       reconciler={this}
       ref={r => this.root = r}>

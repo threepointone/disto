@@ -1,4 +1,4 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo } from '../src'
 
 import React, { Component } from 'react'
 
@@ -16,41 +16,6 @@ function updateIn(o, [ head, ...tail ], fn) {
     return { ...o, [head]: fn(o[head]) }
   }
   return { ...o, [head]: updateIn(o[head], tail, fn) }
-}
-
-
-const initial = {
-  _ : {
-    'one': [
-      { name: 'john', points: 0 },
-      { name: 'mary', points: 0 },
-      { name: 'bob', points: 0 }
-    ],
-    'two': [
-      { name: 'mary', points: 0, age: 27 },
-      { name: 'gwen', points: 0 },
-      { name: 'jeff', points: 0 }
-    ]
-  }
-}
-
-
-function read(env, key, params) {
-  return {
-    value: env.store.getState()['_'][key]
-  }
-}
-
-function mutate() {
-
-}
-
-function reduce(state = {}, { type, payload: { name } = {} } = {}) {
-  if(type === 'increment') {
-    return updateIn(state, [ 'entities', 'byname', name ],
-      val => ({ ...val, points: val.points + 1 }))
-  }
-  return state
 }
 
 
@@ -88,13 +53,49 @@ class RootView extends Component {
     let { one, two } = this.props
     return <div>
       <h2>List A</h2>
-      <ListView {...one} />
+      <ListView list={one} />
       <h2>List B</h2>
-      <ListView {...two} />
+      <ListView list={two} />
     </div>
   }
 }
 
+
+const initial = {
+  'one': [
+    { name: 'john', points: 0 },
+    { name: 'mary', points: 0 },
+    { name: 'bob', points: 0 }
+  ],
+  'two': [
+    { name: 'mary', points: 0, age: 27 },
+    { name: 'gwen', points: 0 },
+    { name: 'jeff', points: 0 }
+  ]
+}
+
+
+const normalized = treeToDb(getQuery(RootView), initial, true)
+
+// dbToTree(getQuery(RootView), normalized.result, normalized)::log()
+
+function read(env, key, params) {
+  return {
+    value: dbToTree([ astTo(env.ast) ], env.store.getState()['_'].result, env.store.getState()['_'])[key]
+  }
+}
+
+function mutate() {
+
+}
+
+function reduce(state = {}, { type, payload: { name } = {} } = {}) {
+  if(type === 'increment') {
+    return updateIn(state, [ 'entities', 'byname', name ],
+      val => ({ ...val, points: val.points + 1 }))
+  }
+  return state
+}
 
 let parser = makeParser({
   read, mutate
@@ -102,14 +103,12 @@ let parser = makeParser({
 
 let reconciler = makeReconciler({
   parser,
-  store: makeStore(initial, reduce)
+  store: makeStore({ _: normalized }, reduce)
 })
+
 
 reconciler.add(RootView, window.app)
 
-const normalized = treeToDb(getQuery(RootView), initial._, true)::log()
-
-dbToTree(getQuery(RootView), normalized.result, normalized)::log()
 
 // getQuery(RootView)::log()
 
