@@ -1,6 +1,6 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb } from '../src'
 
-import { Component } from 'react'
+import React, { Component } from 'react'
 
 function print() {
   return JSON.stringify(this, null, ' ')::log()
@@ -20,16 +20,18 @@ function updateIn(o, [ head, ...tail ], fn) {
 
 
 const initial = {
-  'one': [
-    { name: 'john', points: 0 },
-    { name: 'mary', points: 0 },
-    { name: 'bob', points: 0 }
-  ],
-  'two': [
-    { name: 'mary', points: 0, age: 27 },
-    { name: 'gwen', points: 0 },
-    { name: 'jeff', points: 0 }
-  ]
+  _ : {
+    'one': [
+      { name: 'john', points: 0 },
+      { name: 'mary', points: 0 },
+      { name: 'bob', points: 0 }
+    ],
+    'two': [
+      { name: 'mary', points: 0, age: 27 },
+      { name: 'gwen', points: 0 },
+      { name: 'jeff', points: 0 }
+    ]
+  }
 }
 
 
@@ -54,6 +56,7 @@ function reduce(state = {}, { type, payload: { name } = {} } = {}) {
 
 class Person extends Component {
   static ident = ctx => [ 'byname', ctx.name ]
+  static idAttribute = 'name'
   static query = () => ƒ`name points age`
   onClick = () => {
     this.props.transact(ƒ`'increment (by=1)`)//'{ type: 'increment', payload: this.props })
@@ -71,7 +74,7 @@ class Person extends Component {
 class ListView extends Component {
   render() {
     let { list } = this.props
-    return <ul>{list.map(person =>
+    return <ul>{(list|| []).map(person =>
       <Person key={person.name} {...person}/>)}
     </ul>
   }
@@ -80,7 +83,7 @@ class ListView extends Component {
 
 class RootView extends Component {
   static query = () =>
-    ƒ`{one ${getQuery(Person)}} two ${getQuery(Person)}`
+    ƒ`{one ${getQuery(Person)}} {two ${getQuery(Person)}}`
   render() {
     let { one, two } = this.props
     return <div>
@@ -104,7 +107,8 @@ let reconciler = makeReconciler({
 
 reconciler.add(RootView, window.app)
 
-// const normalized = treeTodb(RootView, initial, true)::log()
+const normalized = treeToDb(getQuery(RootView), initial._, true)::log()
+// getQuery(RootView)::log()
 
 
 // const store = makeStore(normalized, reduce)

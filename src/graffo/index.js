@@ -33,17 +33,44 @@ function randomStr() {
 export function ƒ(strings, ...values) {
   let refs = {}, parsed = parse('[' + strings.reduce((arr, s, i) => {
       let v = values[i]
+
       let c = Array.isArray(v) ? meta(v, 'component') : null, rando = randomStr()
       if(c) {
+        // console.log(v, rando)
         refs[rando] = v
-        v = '[' + rando + ']'
+        v = '[ ' + rando + ' ]'
       }
       return [ ...arr, s, v ]
     }, []).join('') + ']')
-  return parsed
+  // console.log(parsed, refs)
 
-  // this will be modified to handle interpolations
+  let replaced = ƒreplace(parsed, refs)
+  // console.log('replaced', replaced)
+  return replaced
 
+
+}
+
+function ƒreplace(q, refs) {
+  if(typeof q[0] === 'string' && q.length === 1 && refs[q[0]]) {
+    return withMeta(ƒreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
+  }
+  return q.map(expr => {
+    if(typeof expr === 'string' || typeof expr === 'number') { // symbol? ident?
+      return expr
+    }
+
+    if(expr instanceof Map) {
+      // join
+      return new Map([ ...expr.entries() ].map(([ k, v ]) => {
+        if(isPlainObject(v)) {
+          // union
+          return [ k, Object.keys(v).reduce((o, kk) => (o[kk] = ƒreplace(v[kk], refs) ,o), {}) ]
+        }
+        return [ k, ƒreplace(v, refs) ]
+      }))
+    }
+  })
 }
 
 
@@ -118,7 +145,7 @@ function callTo(call) {
 
 }
 
-function queryTo(query) {
+export function queryTo(query) {
   return  {
     type: 'root',
     children: query.map(exprTo),
@@ -129,6 +156,7 @@ function queryTo(query) {
 function joinTo(j) {
   let [ k, v ] = [ ...j.entries() ][0],
     ast = exprTo(k)
+
   ast = {
     ...ast,
     type: 'join',
@@ -163,8 +191,7 @@ function identTo(i) {
   }
 }
 
-function exprTo(expr) {
-  // expr::log()
+export function exprTo(expr) {
   if(typeof expr === 'symbol') {
     return symbolTo(expr)
   }
@@ -192,11 +219,11 @@ function wrap(isRoot, expr) {
   return expr
 }
 
-function astTo(ast, unParse = false) {
+export function astTo(ast, unParse = false) {
 
   if(ast.type === 'root') {
     return  withMeta(ast.children.map(c => astTo(c, unParse)),
-      { gg: ast.component })
+      { component: ast.component })
   }
   let { key, query, queryRoot, params } = ast
   if(params) {
@@ -225,8 +252,10 @@ function pathMeta() {
 
 }
 
+function noop() {}
+
 export function getQuery(Component) {
-  return withMeta(Component.query(Component.params()), { component: Component })
+  return withMeta((Component.query || noop)((Component.params || noop)()), { component: Component })
 }
 
 export function makeParser({ read, mutate, elidePaths }) {
@@ -329,7 +358,7 @@ function find(fn) {
   }
 }
 
-function treeToSchema(ast, state) {
+function treeToSchema(ast, state = {}) {
   // todo - what if state doesn't exist for ast?
   // somehow need to keep marching forward
   let o = {}
@@ -351,8 +380,21 @@ function treeToSchema(ast, state) {
           }, {}), { schemaAttribute: 'type' }))
         }
         else{
-          let ss = new Schema(c.dispatch)
-          ss.define(treeToSchema(c, st[0]))
+          let compo = c.component, idAttribute = (x => x.id), ss
+          if(compo) {
+            idAttribute = compo.idAttribute || idAttribute
+            if(!meta(compo, 'schema')) {
+              ss = new Schema(compo.ident(st[0])[0] || c.dispatch, { idAttribute })
+              ss.define(treeToSchema(c, st[0]))
+              metaCache.set(compo, { ...metaCache.get(compo) || {}, schema: ss })
+            }
+            ss = meta(compo, 'schema')
+          }
+          else {
+            ss = new Schema(c.dispatch, { idAttribute })
+            ss.define(treeToSchema(c, st[0]))
+          }
+
           o[c.dispatch] = arrayOf(ss)
         }
       }
@@ -381,7 +423,7 @@ function treeToSchema(ast, state) {
 
 export function treeToDb(q, state) {
   let ast = queryTo(q)
-  let schema = treeToSchema(ast, state)::log()
+  let schema = treeToSchema(ast, state)
   return {
     ...normalize(state, schema),
     schema
@@ -434,55 +476,55 @@ export function dbToTree(q, result, db) {
 }
 
 
-let state = {
-  foo: [ 'abc' ],
-  woz: 'boz',
-  jayjay: [ { id: 0, xyz: '123a', type: 'one', a: 1123123 }, { id: 1, xyz: '456b', type: 'two' } ],
-  foofoo: [ { id: 'a', abc: 'hjhjhj' }, { id: 'b', xyz: 'uydusd' } ],
-  maca: {
-    rena: {
-      hola: 'poopoo'
-    }
-  }
-}
+// let state = {
+//   foo: [ 'abc' ],
+//   woz: 'boz',
+//   jayjay: [ { id: 0, xyz: '123a', type: 'one', a: 1123123 }, { id: 1, xyz: '456b', type: 'two' } ],
+//   foofoo: [ { id: 'a', abc: 'hjhjhj' }, { id: 'b', xyz: 'uydusd' } ],
+//   maca: {
+//     rena: {
+//       hola: 'poopoo'
+//     }
+//   }
+// }
 
-let db = treeToDb(ƒ`
-  foo
-  {all [*]}
-  [iden 1]
-  {jayjay
-    {
-      one: [a b c]
-      two: [d e f]
-    }
-  }
-  {foofoo  [id abc]}
-  { maca [{rena [hola]} dance]}
-  woz
-  `, state)
+// let db = treeToDb(ƒ`
+//   foo
+//   {all [*]}
+//   [iden 1]
+//   {jayjay
+//     {
+//       one: [a b c]
+//       two: [d e f]
+//     }
+//   }
+//   {foofoo  [id abc]}
+//   { maca [{rena [hola]} dance]}
+//   woz
+//   `, state)
 
 
-dbToTree(ƒ`{jayjay
-    {
-      one: [*]
-      two: [d e f]
-    }
-  }`, db.result, db)::log()
+// dbToTree(ƒ`{jayjay
+//     {
+//       one: [*]
+//       two: [d e f]
+//     }
+//   }`, db.result, db)::log()
 
-ƒ`
-  foo
-  {all [*]}
-  [iden 1]
-  {jayjay
-    {
-      one: [a b c]
-      two: [d e f]
-    }
-  }
-  {foofoo  [id abc]}
-  { maca [{rena [hola]} dance]}
-  woz
-  `::log()
+// ƒ`
+//   foo
+//   {all [*]}
+//   [iden 1]
+//   {jayjay
+//     {
+//       one: [a b c]
+//       two: [d e f]
+//     }
+//   }
+//   {foofoo  [id abc]}
+//   { maca [{rena [hola]} dance]}
+//   woz
+//   `::log()
 
 // dbToTree(ƒ`{foofoo [id abc]}`, db.result, db)::log()
 
