@@ -384,7 +384,7 @@ function treeToSchema(ast, state = {}) {
           if(compo) {
             idAttribute = compo.idAttribute || idAttribute
             if(!meta(compo, 'schema')) {
-              ss = new Schema(compo.ident(st[0])[0] || c.dispatch, { idAttribute })
+              ss = new Schema(compo.ident ? compo.ident(st[0])[0] : c.dispatch, { idAttribute })
               ss.define(treeToSchema(c, st[0]))
               metaCache.set(compo, { ...metaCache.get(compo) || {}, schema: ss })
             }

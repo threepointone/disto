@@ -1,4 +1,4 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree } from '../src'
 
 import React, { Component } from 'react'
 
@@ -108,6 +108,9 @@ let reconciler = makeReconciler({
 reconciler.add(RootView, window.app)
 
 const normalized = treeToDb(getQuery(RootView), initial._, true)::log()
+
+dbToTree(getQuery(RootView), normalized.result, normalized)::log()
+
 // getQuery(RootView)::log()
 
 
