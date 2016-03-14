@@ -105,12 +105,13 @@ class DashboardItem extends Component {
       case 'graphic': return <Graphic {...this.props} />
     }
   }
+  onClick = () => this.context.disto.transact({ type: 'favorite', payload: [ this.props.type, this.props.id ] })
   render() {
-    let { id, type, favorites } = this.props
+    let { favorites } = this.props
     return <div>
       {this.renderItem()}
       <p>{favorites} favorites</p>
-      <button onClick={() => this.context.disto.transact({ type: 'favorite', payload: [ type, id ] })}>favorite!</button>
+      <button onClick={this.onClick}>favorite!</button>
     </div>
   }
 }
