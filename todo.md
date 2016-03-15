@@ -1,13 +1,17 @@
-- mini player + store inspector
-- cli / boilerplate / config generator
-- testing strategy (jest/jsdom/whatever)
 
-indexing
- - by id
- - by Component
+ what works -
+ treeToDb/dbToTree
+ query language / composition
+ parser
+ basic reconciler
+ mutations
+
+to be done
+
+idents
 tempids
 server side
+precise rendering - only updating the components that change
+query params / set-query
+tests
 
-
-components, identity, and normalization
-  - mutations

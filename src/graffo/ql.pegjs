@@ -81,7 +81,9 @@ IdentExpr
 
 KeyWord = ws  k:( '*' / [A-Za-z0-9]+) ws { return k.join ? k.join('') : k }
 
-Value = number / string
+Value = number / string / '_'
+
+ws "whitespace" = [ \t\n\r]*
 
 JSON_text
   = ws value:value ws { return value; }
@@ -95,7 +97,7 @@ end_object      = ws "}" ws
 name_separator  = ws ":" ws
 value_separator = ws "," ws
 
-ws "whitespace" = [ \t\n\r]*
+
 
 /* ----- 3. Values ----- */
 

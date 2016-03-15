@@ -42,12 +42,9 @@ export function ƒ(strings, ...values) {
       }
       return [ ...arr, s, v ]
     }, []).join('') + ']')
-  // console.log(parsed, refs)
 
   let replaced = ƒreplace(parsed, refs)
-  // console.log('replaced', replaced)
   return replaced
-
 
 }
 
@@ -59,7 +56,7 @@ function ƒreplace(q, refs) {
     return withMeta(ƒreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
   }
   return q.map(expr => {
-    if(typeof expr === 'string' || typeof expr === 'number') { // symbol? ident?
+    if(typeof expr === 'string' || typeof expr === 'number' || Array.isArray(expr)) { // symbol? ident?
       return expr
     }
 
@@ -211,7 +208,7 @@ export function exprTo(expr) {
     return callTo(expr)
   }
   else {
-    throw new Error('invalid expression')
+    throw new Error('invalid expression', expr)
   }
 }
 
@@ -377,6 +374,9 @@ function treeToSchema(ast, state = {}) {
       if(Array.isArray(st)) { // this might be a problem, when st doesn't exist at the moment
         if(c.children[0].type === 'union') {
           o[c.dispatch] = arrayOf(unionOf(c.children[0].children.reduce((o, x) => {
+
+            // let compo = c.component, idAttribute = (x => x.id), schemaAttribute = (x => x.type), ss
+
             let ss = new Schema(x.union)
             ss.define(treeToSchema(x, st::find(y => y.type === x.union)))
             o[x.union] = ss
@@ -384,11 +384,12 @@ function treeToSchema(ast, state = {}) {
           }, {}), { schemaAttribute: 'type' }))
         }
         else{
-          let compo = c.component, idAttribute = (x => x.id), ss
+          let compo = c.component, idAttribute = (x => x.id), schemaAttribute = (x => x.type), ss
           if(compo) {
+            // this has to be up there too
             idAttribute = compo.idAttribute || idAttribute
             if(!meta(compo, 'schema')) {
-              ss = new Schema(compo.ident ? compo.ident(st[0])[0] : c.dispatch, { idAttribute })
+              ss = new Schema(compo.ident ? compo.ident(st[0])[0] : c.dispatch, { idAttribute, schemaAttribute })
               ss.define(treeToSchema(c, st[0]))
               metaCache.set(compo, { ...metaCache.get(compo) || {}, schema: ss })
             }
@@ -403,7 +404,7 @@ function treeToSchema(ast, state = {}) {
         }
       }
       else {
-        // todo - handle unions here
+
         if(c.children[0].type === 'union') {
           o[c.dispatch] = unionOf(c.children[0].children.reduce((o, x) => {
             let ss = new Schema(x.union)
@@ -425,49 +426,60 @@ function treeToSchema(ast, state = {}) {
 }
 
 
-export function treeToDb(q, state) {
+export function treeToDb(q, state, mergeIdents = true) {
   let ast = queryTo(q)
   let schema = treeToSchema(ast, state)
+  let normalized = normalize(state, schema)
   return {
-    ...normalize(state, schema),
+    ...normalized.result,
+    ...mergeIdents ? normalized.entities : {},
     schema
   }
 }
 
-function schemaToTree(ast, result, entities, schema = {}) {
-
+function schemaToTree(ast, state, appState, schema = {}) {
   let o = {}
   ast.children.forEach(c => {
-    let s = schema[c.dispatch]
+    let s = schema[c.dispatch]    // what if schema is a real schema?
+
     if(s instanceof ArraySchema) {
       if(s._itemSchema instanceof UnionSchema) {
         let ss = s._itemSchema.getItemSchema()
 
-        o[c.dispatch] = result[c.dispatch].map(r => {
+        o[c.dispatch] = state[c.dispatch].map(r => {
           let cc = c.children[0].children::find(x => x.union === r.schema)
-          return schemaToTree(cc, entities[r.schema][r.id], entities, ss[r.schema])
+          return schemaToTree(cc, appState[r.schema][r.id], appState, ss[r.schema])
         })
       }
       else {
-        o[c.dispatch] = result[c.dispatch].map(r =>  {
-          return schemaToTree(c, entities[s._itemSchema.getKey()][r], entities, s)
+        o[c.dispatch] = state[c.dispatch].map(r =>  {
+          return schemaToTree(c, appState[s._itemSchema.getKey()][r], appState, s)
         })
       }
 
     }
     else{
-      // todo - * aka all attribs
+
       if(c.type === 'prop') {
-        if(c.dispatch === '*') {
-          Object.assign(o, result)
+        if(Array.isArray(c.key)){
+
+          // ident
+          o[c.dispatch] = appState[c.dispatch]
+          if(c.key[1] !== '_'){
+            o[c.dispatch] = o[c.dispatch][c.key[1]]
+          }
+
+        }
+        else if(c.dispatch === '*') {
+          Object.assign(o, state)
         }
         else {
-          o[c.dispatch] = result[c.dispatch]
+          o[c.dispatch] = state[c.dispatch]
         }
 
       }
       else {
-        o[c.dispatch] = schemaToTree(c, result[c.dispatch], entities, schema[c.dispatch])
+        o[c.dispatch] = schemaToTree(c, state[c.dispatch], appState, schema[c.dispatch])
       }
     }
   })
@@ -476,7 +488,7 @@ function schemaToTree(ast, result, entities, schema = {}) {
 
 export function dbToTree(q, state, appState = state) {
   let ast = queryTo(q)
-  return schemaToTree(ast, state.result, appState.entities, appState.schema)
+  return schemaToTree(ast, state, appState, appState.schema)
 }
 
 

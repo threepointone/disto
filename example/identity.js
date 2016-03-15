@@ -76,8 +76,7 @@ const normalized = treeToDb(getQuery(RootView), initial, true)
 
 function reduce(state = normalized, { type, payload: { name } = {} }) {
   if(type === 'increment') {
-    return updateIn(state, [ 'entities', 'byname', name ],
-      val => ({ ...val, points: val.points + 1 }))
+    return updateIn(state, [ 'byname', name, 'points' ], val => val + 1)
   }
   return state
 }

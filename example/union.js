@@ -1,6 +1,7 @@
 import { ƒ, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta } from '../src'
 import React, { Component, PropTypes } from 'react'
 
+// helper to do deep 'immutable' update
 function updateIn(o, [ key, ...rest ], fn) {
   if(rest.length === 0) {
     return { ...o, [key]: fn(o[key]) }
@@ -105,7 +106,10 @@ class DashboardItem extends Component {
       case 'graphic': return <Graphic {...this.props} />
     }
   }
-  onClick = () => this.context.disto.transact({ type: 'favorite', payload: [ this.props.type, this.props.id ] })
+  onClick = () => this.context.disto.transact({
+    type: 'favorite',
+    payload: [ this.props.type, this.props.id ]
+  })
   render() {
     let { favorites } = this.props
     return <div>
@@ -136,7 +140,7 @@ const normalized = treeToDb(getQuery(Dashboard), initial)
 
 function reduce(state = normalized, { type, payload }) {
   if(type === 'favorite') {
-    return updateIn(state, [ 'entities', payload[0], payload[1], 'favorites' ], v => v + 1)
+    return updateIn(state, [ payload[0], payload[1], 'favorites' ], v => v + 1)
   }
   return state
 }

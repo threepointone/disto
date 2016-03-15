@@ -28,6 +28,7 @@ export class Reconciler {
       store: store.dispatch ? store : makeStore(reducers, store, middleware),
       getState: () => this.env.store.getState()
     }
+    window.$$$ = this
   }
 
   read(query) {
