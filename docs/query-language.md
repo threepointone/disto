@@ -82,4 +82,7 @@ let query = ql`[ [ currentUser _ ] ]`
 ```
 
 
+
+nb
+---
 this tries to follow om.next's semantics, but we make do with javascript's data structures. as such, we use strings as a replacement for keywords, Sets to associate expressions with parameters, arrays for vectors, and Maps/objects for cljs Maps as appropriate
