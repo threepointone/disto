@@ -1,12 +1,10 @@
-import React, { Component, PropTypes } from 'react'
-import { ƒ, makeParser, makeStore, makeReconciler } from '../src'
+import React, { Component } from 'react'
+import { ƒ, makeParser, makeStore, makeReconciler, decorator as $ } from '../src'
 
+@$()
 class App extends Component {
   static query = () => ƒ`counter`
-  static contextTypes = {
-    disto: PropTypes.object
-  }
-  onClick = () => this.context.disto.transact({ type: 'tick' })
+  onClick = () => this.props.transact({ type: 'tick' })
   render() {
     let { counter } = this.props
     return <div onClick={this.onClick}>

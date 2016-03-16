@@ -20,7 +20,7 @@ import Local from 'redux-react-local'
 import ensureFSA from './ensure-fsa'
 
 // import * as R from './reconciler'
-import reducer from './reducer'
+import reducer, { components } from './reducer'
 
 // perf
 import raf from 'raf'
@@ -43,6 +43,7 @@ function rafUpdateBatcher(notify) {
   notifyFunc = notify
 }
 
+
 export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = []) {
   if(typeof initial === 'function') {
     middleware = reduce
@@ -55,7 +56,8 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
     // reducer
     optimist(combineReducers({
       _: reducer(reduce),
-      local: Local.reducer
+      local: Local.reducer,
+      components
     })),
 
     // initial state
@@ -72,7 +74,7 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
       }())),
       typeof window === 'object' &&
       typeof window.devToolsExtension !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
+      global.DISTO === 'development'
         ? window.devToolsExtension() : f => f,
       batchedSubscribe(process.env.RAF === true ?
         rafUpdateBatcher : unstable_batchedUpdates))

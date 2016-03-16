@@ -8,10 +8,10 @@
 
 to be done
 
-idents
-tempids
-server side
-precise rendering - only updating the components that change
+~ idents
 query params / set-query
+precise rendering - only updating the components that change
+server side
+tempids
 tests
 

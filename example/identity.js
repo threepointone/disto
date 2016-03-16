@@ -1,6 +1,8 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo } from '../src'
+import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo, decorator as $, log } from '../src'
 
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
+
+global.DISTO = 'development'
 
 function updateIn(o, [ key, ...rest ], fn) {
   if(rest.length === 0) {
@@ -22,15 +24,13 @@ const initial = {
   ]
 }
 
+@$()
 class Person extends Component {
-  static ident = ({ name }) => [ 'byname', name ]
+  static ident =  ({ name }) => [ 'byname', name ]
   static idAttribute = 'name'
   static query = () => ƒ`name points age`
-  static contextTypes = {
-    disto: PropTypes.object
-  }
   onClick = () => {
-    this.context.disto.transact({ type: 'increment', payload: this.props })
+    this.props.transact({ type: 'increment', payload: { name: this.props.name } })
   }
   render() {
     let { points, name } = this.props
@@ -52,6 +52,7 @@ class ListView extends Component {
 }
 
 
+@$()
 class RootView extends Component {
   static query = () =>
     ƒ`{one ${getQuery(Person)}} {two ${getQuery(Person)}}`
@@ -72,7 +73,7 @@ function read(env, key /*, params */) {
   }
 }
 
-const normalized = treeToDb(getQuery(RootView), initial, true)
+const normalized = treeToDb(getQuery(RootView), initial)::log()
 
 function reduce(state = normalized, { type, payload: { name } = {} }) {
   if(type === 'increment') {

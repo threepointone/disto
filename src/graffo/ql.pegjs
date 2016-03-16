@@ -15,12 +15,13 @@ QueryExpr
   { return x }
 
 ParamExpr
-  = ws '\''
+  = ws '(' ws
     q:(QueryExpr
   / KeyWord)
     ws
     p:ParamMapExpr
-  { return new Set([ q, p])}
+    ws ')' ws
+  { return new Set([q, p])}
 
 ParamMapExpr
   = ws '{' ws
@@ -30,7 +31,7 @@ ParamMapExpr
 
 Param
   = k:KeyWord
-    j:Value
+    j:(Value / ParamSub)
     ws
     { return {[k]: j}}
 
@@ -65,7 +66,6 @@ UnionExpr
 
 UnionUnit
   = t:KeyWord
-    ws ':' ws
     r:QueryRoot
     {return {[t]: r}}
 
@@ -74,14 +74,20 @@ IdentExpr
   = ws '[' ws
     k:KeyWord
     ws
-    v:Value
+    v:(number / string / '_')
     ws ']' ws
     {return [k, v]}
 
+ParamSub
+  = ws '?'
+  k: [A-Za-z0-9\\\/\-]+
+  ws
+  { return Symbol.for(k.join('')) }
 
-KeyWord = ws  k:( '*' / [A-Za-z0-9]+) ws { return k.join ? k.join('') : k }
 
-Value = number / string / '_'
+KeyWord = ws  k:( '*' / [A-Za-z0-9\\\/\-]+) ws { return k.join ? k.join('') : k }
+
+Value = JSON_text
 
 ws "whitespace" = [ \t\n\r]*
 
