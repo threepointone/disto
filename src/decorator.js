@@ -1,63 +1,67 @@
 import React, { PropTypes, Component } from 'react'
 
+import { bindParams } from './graffo'
+
 export default function decorator() {
   return function (Target) {
 
     return class Disto extends Component {
+      static displayName = '∂:' + (Target.displayName || Target.name)
       // pull some statics from target
       static query = Target.query
       static ident = Target.ident
       static params = Target.params
-      static idAttribute = Target.idAttribute
       static schemaAttribute = Target.schemaAttribute
 
       static contextTypes = {
         disto: PropTypes.object
       }
-      state = this.resolve()
       componentWillMount() {
-        let { disto } = this.context
-        disto.register(this)
-
-      }
-      resolve(p = this.props) {
-
-        let qp = Disto.params ? Disto.params(p) : undefined,
-          id = Disto.ident ? Disto.ident(p) : undefined,
-          q = Disto.query ? Disto.query(p, qp) : undefined
-
-        return {
-          ident: id,
-          query: q,
-          params: qp
-        }
+        let { disto } = this.context;
+        (this.props.onRef || (() => {}))(this)
+        disto.register(this, Disto)
       }
       componentWillReceiveProps(nextProps) {
-        this.setState(this.resolve(nextProps))
+        // this.context.disto.nextProps(this, nextProps)
       }
       setQuery = (query, params) => {
-
+        let { disto } = this.context
+        disto.setParams(this, query, params)
       }
       setParams = params => {
+        let { disto } = this.context
+        disto.setParams(this, params)
 
+      }
+      _setState = state => {
+        this.context.disto.setState(this, state)
       }
       updateQuery = fn => {
 
       }
       transact = (action, keys) => {
         this.context.disto.transact(action, keys)
-        // this.setState(this.resolve())
+      }
+      makeRef = key => {
+        return (el => this.refs[key] = el)
       }
       render() {
+        let { query, ident, params, state } = this.context.disto.env.store.getState().components.get(this) || {}
         return <Target
           {...this.props}
-          ident={this.state.ident}
-          query={this.state.query}
-          params={this.state.params}
+          query={query}
+          ident={ident}
+          params={params}
+          state={state}
           setQuery={this.setQuery}
           setParams={this.setParams}
+          setState={this._setState}
           transact={this.transact}
+          makeRef={this.makeRef}
         >{this.props.children}</Target>
+      }
+      componentWillUnmount() {
+        this.context.disto.unregister(this)
       }
     }
   }

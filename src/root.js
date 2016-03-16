@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 
 // redux-saga
 import createSagaMiddleware from 'redux-saga'
+import { take } from 'redux-saga/effects'
 import { Sagas } from 'react-redux-saga'
 
 // optimist
@@ -21,6 +22,7 @@ import ensureFSA from './ensure-fsa'
 
 // import * as R from './reconciler'
 import reducer, { components } from './reducer'
+
 
 // perf
 import raf from 'raf'
@@ -84,6 +86,17 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
   return store
 }
 
+function * saga(_, r) {
+  while(true) {
+    yield take('disto.merge')
+    console.log('refreshing')
+    r.refresh()
+
+  }
+
+
+}
+
 
 export class Root extends Component {
   // optionally accept middleware/reducers to add on to the redux store
@@ -94,6 +107,9 @@ export class Root extends Component {
       getState: PropTypes.func.isRequired
     })
   }
+  state = {
+    answer: this.props.answer
+  }
   static childContextTypes = {
     disto: PropTypes.object
   }
@@ -103,16 +119,30 @@ export class Root extends Component {
     }
   }
 
+  setAnswer(answer) {
+    this.setState({ answer })
+  }
+  componentDidMount() {
+    this.saga = this.store.sagas.run(saga, this.props.reconciler)
+  }
+
   store = this.props.store
   render() {
+    let C = this.props.Component
     return <Provider store={this.store}>
       <Local.Root>
         <Sagas middleware={this.store.sagas}>
           <Optimist>
-            {React.cloneElement(Children.only(this.props.children), { ...this.props.children.props, ...this.props.answer })}
+            <C {...this.state.answer} onRef={r => {this.props.reconciler.setRoot(r)}}/>
           </Optimist>
         </Sagas>
       </Local.Root>
     </Provider>
+  }
+  componentWillUnmount() {
+    if(this.saga) {
+      this.saga.cancel()
+      delete this.saga
+    }
   }
 }

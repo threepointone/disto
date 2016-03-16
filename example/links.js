@@ -1,4 +1,4 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta } from '../src'
+import { ql, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta } from '../src'
 import React, { Component } from 'react'
 
 
@@ -8,7 +8,6 @@ const initial = {
 }
 
 function read(env, key /*, params */) {
-  console.log('read', arguments)
   return {
     value: dbToTree([ astTo(env.ast) ], env.get())[key]
   }
@@ -16,7 +15,7 @@ function read(env, key /*, params */) {
 
 class Item extends Component {
   static ident = ctx => [ 'byId', ctx.id ]
-  static query = () => ƒ`id title [currentUser _]`
+  static query = () => ql`id title [currentUser _]`
   render() {
     let { title, currentUser = {} } = this.props
     return <li>
@@ -27,7 +26,7 @@ class Item extends Component {
 }
 
 class List extends Component {
-  static query = () => ƒ`{items ${getQuery(Item)}}`
+  static query = () => ql`{items ${getQuery(Item)}}`
   render() {
     return <div>
       <h2>A List!</h2>

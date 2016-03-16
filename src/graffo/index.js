@@ -30,7 +30,7 @@ function randomStr() {
 }
 
 
-export function ƒ(strings, ...values) {
+export function ql(strings, ...values) {
   let refs = {}, parsed = parse(strings.reduce((arr, s, i) => {
       let v = values[i]
 
@@ -43,19 +43,19 @@ export function ƒ(strings, ...values) {
       return [ ...arr, s, v ]
     }, []).join(''))
 
-  let replaced = ƒreplace(parsed, refs)
+  let replaced = qlreplace(parsed, refs)
   return replaced
 
 }
 
-function ƒreplace(q, refs) {
+function qlreplace(q, refs) {
 
-  // console.log({q})
   if(typeof q[0] === 'string' && q.length === 1 && refs[q[0]]) {
     if(isPlainObject(refs[q[0]])) {
-      return Object.keys(refs[q[0]]).reduce((o, k) => (o[k] = ƒreplace(refs[q[0]][k], refs) ,o), {})
+      return Object.keys(refs[q[0]]).reduce((o, k) =>
+        (o[k] = qlreplace(refs[q[0]][k], refs) ,o), {})
     }
-    return withMeta(ƒreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
+    return withMeta(qlreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
   }
   return q.map(expr => {
     if(typeof expr === 'string' || typeof expr === 'number' || Array.isArray(expr)) { // symbol? ident?
@@ -63,7 +63,7 @@ function ƒreplace(q, refs) {
     }
     if(expr instanceof Set) {
       let [ e, params ] = [ ...expr.values() ]
-      return new Set([  ƒreplace([ e ], refs)[0], params ] )
+      return new Set([  qlreplace([ e ], refs)[0], params ] )
     }
 
     if(expr instanceof Map) {
@@ -71,12 +71,34 @@ function ƒreplace(q, refs) {
       return new Map([ ...expr.entries() ].map(([ k, v ]) => {
         if(isPlainObject(v)) {
           // union
-          return [ k, Object.keys(v).reduce((o, kk) => (o[kk] = ƒreplace(v[kk], refs) ,o), {}) ]
+          return [ k, Object.keys(v).reduce((o, kk) => (o[kk] = qlreplace(v[kk], refs) ,o), {}) ]
         }
-        return [ k, ƒreplace(v, refs) ]
+        return [ k, qlreplace(v, refs) ]
       }))
     }
   })
+}
+
+export function bindParams(q, params) {
+  // cycle through, replace symbol params with actual param values
+  return withMeta(q.map(expr => {
+    if(expr instanceof Set) {
+      let [ e, pps ] = [ ...expr.values() ]
+      return new Set([ bindParams([ e ], params)[0],
+        Object.keys(pps).reduce((o, p) => (o[p] = typeof pps[p] === 'symbol' ? params[Symbol.keyFor(pps[p])] : pps[p], o),{})
+      ])
+
+    }
+    if(expr instanceof Map) {
+      let [ e, qq ] = [ ...expr.entries() ][0]
+      return new Map([ e, Array.isArray(qq) ? bindParams(qq, params) :
+        Object.keys(qq).reduce((o, qqq) => (o[qqq] = bindParams(qq[qqq], params), o), {}) ])
+    }
+    if(typeof expr === 'symbol' && expr !== Symbol.for('...')) {
+      return params[Symbol.keyFor(expr)]
+    }
+    else return expr
+  }), { component: meta(q, 'component') })
 }
 
 
@@ -254,17 +276,22 @@ export function astTo(ast, unParse = false) {
   return wrap(queryRoot, key)
 }
 
-function pathMeta() {
+function pathMeta() { // eslint-disable-line
 
 }
 
 function noop() {}
 
-export function getQuery(Component) {
-  return withMeta((Component.query || noop)((Component.params || noop)()), { component: Component })
+export function getQuery(Component, props) {
+  // params
+  let q = (Component.query || noop)(null, props)
+  if(Component.params) {
+    q = bindParams(q, Component.params())
+  }
+  return withMeta(q, { component: Component })
 }
 
-export function makeParser({ read, mutate, elidePaths }) {
+export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-line
 
   return function (env, query, target) {
     env = {
@@ -325,7 +352,7 @@ export function makeParser({ read, mutate, elidePaths }) {
           }
 
         }
-        if(value !== undefined) {
+        if(value !== undefined && !target) {
           ret = { ...ret, [key]: value }
         }
         if(mutRet) {
@@ -374,8 +401,6 @@ function treeToSchema(ast, state = {}) {
         if(c.children[0].type === 'union') {
           o[c.dispatch] = arrayOf(unionOf(c.children[0].children.reduce((o, x) => {
 
-            // let compo = c.component, idAttribute = (x => x.id), schemaAttribute = (x => x.type), ss
-
             let ss = new Schema(x.union)
             ss.define(treeToSchema(x, st::find(y => y.type === x.union)))
             o[x.union] = ss
@@ -386,9 +411,9 @@ function treeToSchema(ast, state = {}) {
           let compo = c.component, idAttribute = (x => x.id), schemaAttribute = (x => x.type), ss
           if(compo) {
             // this has to be up there too
-            idAttribute = compo.idAttribute || idAttribute
             if(!meta(compo, 'schema')) {
-              ss = new Schema(compo.ident ? compo.ident(st[0])[0] : c.dispatch, { idAttribute, schemaAttribute })
+              ss = new Schema(compo.ident ? compo.ident(st[0])[0] : c.dispatch,
+                { idAttribute: compo.ident ? (x => compo.ident(x)[1]) : idAttribute, schemaAttribute })
               ss.define(treeToSchema(c, st[0]))
               metaCache.set(compo, { ...metaCache.get(compo) || {}, schema: ss })
             }
@@ -489,6 +514,12 @@ export function dbToTree(q, state, appState = state) {
   return schemaToTree(ast, state, appState, appState.schema)
 }
 
-export function subquery(component, ref, klass) {
+export function subquery(component, ref, klass, props) {
+  if(component && component.refs[ref]) {
+    return component.context.disto.store.getState().components.get(component.refs[ref]).query
+  }
 
+  else {
+    return getQuery(klass, props)
+  }
 }

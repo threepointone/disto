@@ -1,4 +1,4 @@
-import { ƒ, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo, decorator as $, log } from '../src'
+import { ql, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo, decorator as $, log } from '../src'
 
 import React, { Component } from 'react'
 
@@ -28,7 +28,7 @@ const initial = {
 class Person extends Component {
   static ident =  ({ name }) => [ 'byname', name ]
   static idAttribute = 'name'
-  static query = () => ƒ`name points age`
+  static query = () => ql`name points age`
   onClick = () => {
     this.props.transact({ type: 'increment', payload: { name: this.props.name } })
   }
@@ -55,7 +55,7 @@ class ListView extends Component {
 @$()
 class RootView extends Component {
   static query = () =>
-    ƒ`{one ${getQuery(Person)}} {two ${getQuery(Person)}}`
+    ql`{one ${getQuery(Person)}} {two ${getQuery(Person)}}`
   render() {
     let { one, two } = this.props
     return <div>

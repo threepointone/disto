@@ -10,6 +10,7 @@ QueryRoot
 QueryExpr
   = x:(JoinExpr
   / ParamExpr
+  / ParamSub
   / IdentExpr
   / KeyWord)
   { return x }
