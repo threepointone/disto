@@ -45,13 +45,13 @@ read({foo: [ { id: 0, title: 'the killing joke', rating: 5 }, { id: 1, title: 'h
 joins can be on heterogenous lists, so our joins might be predicated on types. A union is thus like a join; a `Map` with a single pair that denotes a join from an `expression` to an object `{ type > query }*`. simpler to explain with an example -
 
 ```jsx
-let expr = new Map([ [ 'foo', {
+let expr = new Map([ [ 'items', {
   photo: [ 'id', 'title', 'image' ],
   graphic: [ 'id', 'image', 'caption' ]
 }]])
 
 // or with shorthand
-let query = ql`[ { foo {
+let query = ql`[ { items {
   photo [ id title image ]
   post [ id title text ]
   graphic [ id image caption ]
