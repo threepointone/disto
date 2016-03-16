@@ -1,4 +1,4 @@
-import { ql, makeParser, makeStore, makeReconciler, decorator as $, exprTo } from '../src'
+import { ql, makeParser, makeStore, makeReconciler, decorator as disto, exprTo } from '../src'
 
 import React from 'react'
 
@@ -12,7 +12,7 @@ function searchWiki(query, done) {
   })
 }
 
-@$()
+@disto()
 class AutoCompleter extends React.Component {
   static params =  () =>
     ({ term: '' })

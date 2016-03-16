@@ -5,9 +5,11 @@ parser
 basic reconciler
 mutations
 idents
+query params / set-query
+send / remotes
 
 working on -
-query params / set-query
+
 precise rendering - only updating the components that change
 server side
 tempids
