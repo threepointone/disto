@@ -3,7 +3,7 @@ import decorator from './decorator'
 import { makeReconciler } from './reconciler'
 // import makeParser from './parser'
 // import reducer from './reducer'
-import { dbToTree, treeToDb, ql, makeParser, getQuery, astTo, log, print, withMeta, meta, bindParams, exprTo } from './graffo'
+import { dbToTree, treeToDb, ql, makeParser, getQuery, astTo, log, print, withMeta, meta, bindParams, exprTo } from './ql'
 // import { parse as ql } from './ql'
 
 module.exports = {

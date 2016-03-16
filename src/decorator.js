@@ -1,6 +1,6 @@
 import React, { PropTypes, Component } from 'react'
 
-import { bindParams } from './graffo'
+// import { bindParams } from './ql'
 
 export default function decorator() {
   return function (Target) {

@@ -2,16 +2,16 @@ import { render, unmountComponentAtNode } from 'react-dom'
 import React from 'react'
 
 import { Root, makeStore } from './root'
-import { getQuery, log, bindParams } from './graffo'
+import { getQuery, log, bindParams } from './ql'
 
 export const ACTIONS = {
   register: 'disto.register',
-  merge: 'disto.reconciler.merge',
-  fromHistory: 'disto.reconciler.fromHistory',
+  fromHistory: 'disto.fromHistory',
   setParams: 'disto.setParams',
   setQuery: 'disto.setQuery',
   remoteSend: 'disto.remoteSend',
-  merge: 'disto.merge'
+  merge: 'disto.merge',
+  setState: 'disto.setState'
 
 }
 
@@ -19,7 +19,7 @@ export const ACTIONS = {
 export class Reconciler {
   constructor({
     parser,
-    store = {},
+    store,
     normalize = true,
     remotes = [],
     reduce = (x = {}) => x,
@@ -27,9 +27,10 @@ export class Reconciler {
     send = () => {}
   }) {
     this.env = {
+      normalize,
       parser,
       remotes,
-      store: typeof store.dispatch === 'function' ? store : makeStore(store, reduce, middleware),
+      store: store && typeof store.dispatch === 'function' ? store : makeStore(store, reduce, middleware),
       send
       // getState: () => this.env.store.getState(),
     }
@@ -43,9 +44,7 @@ export class Reconciler {
 
       let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
       this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
-      this.env.send(remotes, (err, data) => {
-        this.env.store.dispatch({ type: ACTIONS.merge, payload: data })
-      })
+      this.env.send(remotes, (err, data) => data && this.merge(data))
     }
     return answer
   }
@@ -81,17 +80,18 @@ export class Reconciler {
   }
 
   // *!*
-  remove(element) {
-    unmountComponentAtNode(element)
+  remove() {
+    unmountComponentAtNode(this.element)
     delete this.root
 
   }
   // *!*
-  transact(action, remote = true) { // query === keys to refresh
+  transact(action, query, remote = true) { // query === keys to refresh
+    // knowing that ut
     this.env.store.dispatch(action)
-    this.refresh(remote)
-    // desc.effect()
-    // component.refresh({})
+    if(query) {
+      this.read(query, remote) // just for the side effect
+    }
   }
 
   refresh(remote) {
@@ -113,19 +113,21 @@ export class Reconciler {
   }
 
   // *!*
-  merge(payload) {
-    this.store.dispatch({ type: ACTIONS.merge, payload })
+  setState(component, state) {
+    this.env.store.dispatch({ type: ACTIONS.setState, payload: { component, state } })
   }
 
-  getState = () => {
-    return this.store.getState()
+  // *!*
+  merge(payload) {
+    this.env.store.dispatch({ type: ACTIONS.merge, payload })
   }
+
+  // getState = () => {
+  //   return this.store.getState()
+  // }
 
   setRoot(instance) {
     this.root = instance
-  }
-  getRoot() {
-    return this.root
   }
 
   fromHistory(r, uuid) {
@@ -139,6 +141,3 @@ export function makeReconciler(config) {
   return new Reconciler(config)
 }
 
-// export function addRoot(r, ) {
-
-// }

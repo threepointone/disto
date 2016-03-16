@@ -88,7 +88,7 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
 
 function * saga(_, r) {
   while(true) {
-    yield take('disto.merge')
+    yield take('disto.merge') // next tick?
     r.refresh()
   }
 }

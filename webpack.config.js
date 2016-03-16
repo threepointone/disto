@@ -9,7 +9,9 @@ module.exports = {
     filename: 'app.js'
   },
   module: {
+
     loaders: [
+      { test: /\.pegjs$/, loader: 'pegjs-loader' },
       { test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader' },
       { test: /\.css$/, loader: 'style-loader!css-loader?modules' }
     ]

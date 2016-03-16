@@ -5,7 +5,6 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "NODE_ENV=production babel src -d lib",
-    "parser": "babel-node src/graffo/build.js",
     "start": "webpack-dev-server --hot --inline --port 3000 --config webpack.config.js",
     "test": "NODE_ENV=test babel-node ./node_modules/.bin/karma start tests/karma.conf.js"
   },
@@ -57,6 +56,7 @@
     "mocha": "^2.4.5",
     "normalizr": "^2.0.0",
     "pegjs": "^0.9.0",
+    "pegjs-loader": "^0.4.0",
     "raf": "^3.2.0",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",

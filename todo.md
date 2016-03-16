@@ -9,6 +9,11 @@ query params / set-query
 send / remotes
 
 working on -
+subquery
+optimistic updates
+normalizing incoming data
+pull out mutations/calls from parser
+routing
 
 precise rendering - only updating the components that change
 server side

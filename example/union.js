@@ -125,7 +125,8 @@ class Dashboard extends Component {
   render() {
     let { items } = this.props
     return <div>
-      {items.map(item => <DashboardItem key={item.id} {...item}/>)}
+      {items.map(item =>
+        <DashboardItem key={item.id} {...item}/>)}
     </div>
   }
 }

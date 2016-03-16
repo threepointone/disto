@@ -1,4 +1,4 @@
-import { parse } from './parser'
+import { parse } from './ql.pegjs'
 import { Schema, normalize, arrayOf, unionOf } from 'normalizr'
 import isPlainObject from 'lodash.isplainobject'
 
