@@ -1,6 +1,6 @@
-import { ql, makeParser, makeStore, makeReconciler, decorator as disto, exprTo } from '../src'
-
 import React from 'react'
+
+import { ql, makeParser, makeReconciler, decorator as disto, exprTo } from '../src'
 
 import JSONP from './jsonp'
 
