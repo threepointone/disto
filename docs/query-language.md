@@ -19,7 +19,7 @@ there are 5 types of expressions
 a string denoting a 'prop'/ 'key'
 
 ```jsx
-let query = [ 'foo' ]
+let expr = 'foo'
 // or
 let query = ql`[ foo ]`
 
