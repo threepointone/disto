@@ -13,9 +13,7 @@ let q = [ 'foo', [ 'bar', 2 ], new Map([ [ 'baz', [ 'prop1', 'prop2', 'prop3' ] 
 let q = ql`[ foo [ bar 2 ] { baz [ prop1 prop2 prop3 ] } ]`
 ```
 
-
-### expressions
---
+there are 5 types of expressions
 
 ### prop
 
@@ -35,7 +33,7 @@ read({ foo: 123, bar: 'abc' }, query)
 a `Map` with a single pair that denotes a join from one `expression` to another `query`
 
 ```jsx
-let expr = new Map([ [ 'foo', [ 'id', 'title' ] ] ]), query = [ expr ]
+let expr = new Map([ [ 'foo', [ 'id', 'title' ] ] ])
 // or use the shorthand
 let query = ql`[ { foo [ id title expr ] } ]`
 
@@ -52,7 +50,7 @@ joins can be on heterogenous lists, so our joins might be predicated on types. A
 let expr = new Map([ [ 'foo', {
   photo: [ 'id', 'title', 'image' ],
   graphic: [ 'id', 'image', 'caption' ]
-}]]), query = [ expr ]
+}]])
 
 // or with shorthand
 let query = ql`[ { foo {
@@ -67,7 +65,7 @@ let query = ql`[ { foo {
 a `Set` with 2 elements; an `expression`, and associated `params` object
 
 ```jsx
-let expr = new Set([ 'foo', { p1: 5, p2: 'abc' } ]), query = [ expr ]
+let expr = new Set([ 'foo', { p1: 5, p2: 'abc' } ])
 // much simpler with shorthand
 let expr = ql`[ ( foo { p1 5 p2 "abc" } ) ]`
 
@@ -77,10 +75,10 @@ let expr = ql`[ ( foo { p1 5 p2 "abc" } ) ]`
 a two element array `[ entity, id ]` for referencing an entity in your 'db'
 
 ```jsx
-let expr = [ 'byname', 'mary' ], query = [ expr ]
+let expr = [ 'byname', 'mary' ]
 // or
 let query = ql`[ [ byname "mary" ] ]`
 
-// like om.next, you can use '_' to denote a not use an id
+// like om.next, you can use '_' to not use an id when doing the lookup
 let query = ql`[ [ currentUser _ ] ]`
 ```
