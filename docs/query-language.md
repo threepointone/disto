@@ -1,8 +1,6 @@
 query language
 ---
 
-this tries to follow om.next's semantics, but we make do with javascript's data structures. as such, we use strings as a replacement for keywords, Sets to associate expressions with parameters, arrays for vectors, and Maps/objects for cljs Maps as appropriate
-
 ### query
 
 A `query` is an array of expressions
@@ -82,3 +80,6 @@ let query = ql`[ [ byname "mary" ] ]`
 // like om.next, you can use '_' to not use an id when doing the lookup
 let query = ql`[ [ currentUser _ ] ]`
 ```
+
+
+this tries to follow om.next's semantics, but we make do with javascript's data structures. as such, we use strings as a replacement for keywords, Sets to associate expressions with parameters, arrays for vectors, and Maps/objects for cljs Maps as appropriate
