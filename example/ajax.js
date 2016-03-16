@@ -58,7 +58,6 @@ function send({ search }, cb) {
 
 let reconciler = makeReconciler({
   parser: makeParser({ read }),
-  store: makeStore(),
   send,
   remotes: [ 'search' ]
 })
