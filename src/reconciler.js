@@ -57,7 +57,7 @@ export class Reconciler {
       let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
       this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
       let d = {}
-      d.merge = data => this.transact({ type: 'disto.merge', payload: data })
+      d.merge = data => this.transact(null, { type: 'disto.merge', payload: data })
       d.optimistic = (...args) => this.optimistic(null, ...args)
       d.transact = (...args) => this.transact(null, ...args)
       this.env.send(remotes, d)
