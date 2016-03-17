@@ -27,7 +27,7 @@ function reduce(state = { counter: 0 }, { type }) {
 }
 
 let reconciler = makeReconciler({
-  parser: makeParser({ read }),
+  read,
   reduce
 })
 

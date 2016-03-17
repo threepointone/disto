@@ -1,4 +1,4 @@
-import { ql, makeParser, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log } from '../src'
+import { ql, application, getQuery, dbToTree, astTo, treeToDb, log } from '../src'
 import React, { Component } from 'react'
 
 
@@ -39,9 +39,9 @@ class List extends Component {
 
 const normalized = treeToDb(getQuery(List), initial)::log()
 
-let reconciler = makeReconciler({
-  parser: makeParser({ read }),
+let app = application({
+  read,
   store: { _: normalized }
 })
 
-reconciler.add(List, window.app)
+app.add(List, window.app)

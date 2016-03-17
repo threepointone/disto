@@ -2,7 +2,8 @@ import { render, unmountComponentAtNode } from 'react-dom'
 import React from 'react'
 
 import { Root, makeStore } from './root'
-import { getQuery, log, bindParams } from './ql'
+import { getQuery, log, bindParams, makeParser } from './ql'
+import { take } from 'redux-saga/effects'
 
 export const ACTIONS = {
   register: 'disto.register',
@@ -15,11 +16,20 @@ export const ACTIONS = {
 
 }
 
+function * saga(_, r) {
+  while(true) {
+    yield take('disto.merge') // next tick?
+    r.refresh()
+  }
+}
+
 
 export class Reconciler {
   constructor({
     parser,
     store,
+    read,
+    mutate,
     normalize = true,
     remotes = [],
     reduce = (x = {}) => x,
@@ -28,7 +38,7 @@ export class Reconciler {
   }) {
     this.env = {
       normalize,
-      parser,
+      parser: parser || makeParser({ read, mutate }),
       remotes,
       store: store && typeof store.dispatch === 'function' ? store : makeStore(store, reduce, middleware),
       send
@@ -77,12 +87,16 @@ export class Reconciler {
       reconciler={this}
       Component={Component}
     />, element)
+
+    this.saga = this.env.store.sagas.run(saga, this)
   }
 
   // *!*
   remove() {
+    this.saga.cancel()
     unmountComponentAtNode(this.element)
     delete this.root
+    delete this.saga
 
   }
   // *!*
@@ -97,8 +111,8 @@ export class Reconciler {
 
   refresh(remote) {
     let c = this.env.store.getState().components.get(this.root)
-    let answer =  this.read(bindParams(c.query, c.params), remote)
-    this.baseRoot.setAnswer(answer)
+    // let answer =
+    this.baseRoot.setAnswer(this.read(bindParams(c.query, c.params), remote))
 
   }
 

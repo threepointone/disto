@@ -16,7 +16,7 @@ pull out mutations/calls from parser
 routing
 
 precise rendering - only updating the components that change
-server side
+server side rendering
 tempids
 tests
 

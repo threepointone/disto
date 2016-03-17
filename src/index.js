@@ -7,5 +7,6 @@ import { dbToTree, treeToDb, ql, makeParser, getQuery, astTo, log, print, withMe
 // import { parse as ql } from './ql'
 
 module.exports = {
+  application: makeReconciler,
   Root, makeReconciler, treeToDb, dbToTree, ql, makeStore, makeParser, getQuery, astTo, log, print, withMeta, meta, decorator, bindParams, exprTo
 }

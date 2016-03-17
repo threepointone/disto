@@ -509,6 +509,7 @@ function schemaToTree(ast, state, appState, schema = {}) {
   return o
 }
 
+// todo - handle remotes?
 export function dbToTree(q, state, appState = state) {
   let ast = queryTo(q)
   return schemaToTree(ast, state, appState, appState.schema)

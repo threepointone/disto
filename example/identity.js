@@ -1,4 +1,4 @@
-import { ql, makeParser, makeStore, makeReconciler, getQuery, treeToDb, dbToTree, astTo, decorator as disto, log } from '../src'
+import { ql, application, getQuery, treeToDb, dbToTree, astTo, decorator as disto, log } from '../src'
 
 import React, { Component } from 'react'
 
@@ -81,9 +81,9 @@ function reduce(state = normalized, { type, payload: { name } = {} }) {
   return state
 }
 
-let reconciler = makeReconciler({
-  parser: makeParser({ read }),
-  store: makeStore(reduce)
+let app = application({
+  read,
+  reduce
 })
 
-reconciler.add(RootView, window.app)
+app.add(RootView, window.app)

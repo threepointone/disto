@@ -1,4 +1,4 @@
-import { ql, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta, decorator as disto } from '../src'
+import { ql, application, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta, decorator as disto } from '../src'
 import React, { Component, PropTypes } from 'react'
 
 // helper to do deep 'immutable' update
@@ -151,9 +151,9 @@ function reduce(state = normalized, { type, payload }) {
   return state
 }
 
-let reconciler = makeReconciler({
-  parser: makeParser({ read }),
-  store: makeStore(reduce)
+let app = application({
+  read,
+  reduce
 })
 
-reconciler.add(Dashboard, window.app)
+app.add(Dashboard, window.app)

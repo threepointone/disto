@@ -86,13 +86,6 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
   return store
 }
 
-function * saga(_, r) {
-  while(true) {
-    yield take('disto.merge') // next tick?
-    r.refresh()
-  }
-}
-
 
 export class Root extends Component {
   // optionally accept middleware/reducers to add on to the redux store
@@ -119,7 +112,7 @@ export class Root extends Component {
     this.setState({ answer })
   }
   componentDidMount() {
-    this.saga = this.store.sagas.run(saga, this.props.reconciler)
+    // this.saga = this.store.sagas.run(saga, this.props.reconciler)
   }
 
   store = this.props.store
@@ -136,9 +129,9 @@ export class Root extends Component {
     </Provider>
   }
   componentWillUnmount() {
-    if(this.saga) {
-      this.saga.cancel()
-      delete this.saga
-    }
+    // if(this.saga) {
+    //   this.saga.cancel()
+    //   delete this.saga
+    // }
   }
 }
