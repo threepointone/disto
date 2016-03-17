@@ -161,13 +161,7 @@ etc
 - hot loading
 - streaming results
 - server side rendering
-
-- ttl caching *
-- pagination *
-- 'precise' rendering *
-
-(* - todo)
-
-examples
----
+- ttl caching (todo)
+- pagination (todo)
+- 'precise' rendering (todo)
 
