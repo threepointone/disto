@@ -39,12 +39,18 @@ export default function decorator() {
       updateQuery = fn => {
 
       }
-      transact = (action, keys) => {
-        this.context.disto.transact(action, keys)
+      transact = (action, query, remote) => {
+        this.context.disto.transact(this, action, query, remote)
       }
+      optimistic = (...args) => {
+        return this.context.disto.optimistic(this, ...args)
+      }
+
+      // todo - make this work for subquery
       makeRef = key => {
         return (el => this.refs[key] = el)
       }
+
       render() {
         let { query, ident, params, state } = this.context.disto.env.store.getState().components.get(this) || {}
         return <Target
@@ -56,6 +62,7 @@ export default function decorator() {
           setQuery={this.setQuery}
           setParams={this.setParams}
           setState={this._setState}
+          optimistic={this.optimistic}
           transact={this.transact}
           makeRef={this.makeRef}
         >{this.props.children}</Target>

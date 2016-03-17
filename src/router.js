@@ -1,7 +1,10 @@
-class Router {
-  constructor(){
+import { queryTo } from './ql'
 
+class Router {
+  constructor(env) {
+    this.env = env
   }
+  handlers = []
   readHandlers = {}
   mutateHandlers = {}
   read(key, fn) {
@@ -16,11 +19,16 @@ class Router {
     }
     this.mutateHandlers[key] = fn
   }
-  doRead(query) {
-
+  async doRead(query) {
+    let ast = queryTo(query)
+    readHandlers(ast.key)
   }
   doMutate() {
 
+  }
+  subscribe(fn) {
+    this.handlers.push(fn)
+    return () => this.handlers = this.handlers.filter(f => f !== fn)
   }
 }
 

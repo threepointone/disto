@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ql, makeParser, makeReconciler, decorator as disto, exprTo } from '../src'
+import { ql, application, decorator as disto, exprTo } from '../src'
 
 import JSONP from './jsonp'
 
@@ -46,20 +46,22 @@ function read(env, key /* , params */ ) {
 }
 
 
-function send({ search }, cb) {
+function send({ search }, { merge /*, dispatch, optimistic */ }) {
   for(let expr of search) {
     let { key, params } = exprTo(expr)
     if(key === 'results') {
-      searchWiki(params.query, cb)
+      searchWiki(params.query, (err, res) => {
+        if(res) { merge(res) }
+        else{ /* silent fail */ }
+      })
     }
   }
 }
 
 
-let reconciler = makeReconciler({
+application({
   read,
   send,
   remotes: [ 'search' ]
-})
+}).add(AutoCompleter, window.app)
 
-reconciler.add(AutoCompleter, window.app)

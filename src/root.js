@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 
 // redux-saga
 import createSagaMiddleware from 'redux-saga'
-import { take } from 'redux-saga/effects'
+// import { take } from 'redux-saga/effects'
 import { Sagas } from 'react-redux-saga'
 
 // optimist

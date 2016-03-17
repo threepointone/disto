@@ -1,5 +1,6 @@
 import { render, unmountComponentAtNode } from 'react-dom'
 import React from 'react'
+import { BEGIN, COMMIT, REVERT } from 'redux-optimist'
 
 import { Root, makeStore } from './root'
 import { getQuery, log, bindParams, makeParser } from './ql'
@@ -25,6 +26,7 @@ function * saga(_, r) {
 
 
 export class Reconciler {
+
   constructor({
     parser,
     store,
@@ -44,7 +46,7 @@ export class Reconciler {
       send
       // getState: () => this.env.store.getState(),
     }
-    window.$$$ = this // why not
+    global.$$$ = this // dev only, why not
   }
 
   read(query, remote) {
@@ -54,7 +56,11 @@ export class Reconciler {
 
       let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
       this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
-      this.env.send(remotes, (err, data) => data && this.merge(data))
+      let d = {}
+      d.merge = data => this.transact({ type: 'disto.merge', payload: data })
+      d.optimistic = (...args) => this.optimistic(null, ...args)
+      d.transact = (...args) => this.transact(null, ...args)
+      this.env.send(remotes, d)
     }
     return answer
   }
@@ -100,7 +106,7 @@ export class Reconciler {
 
   }
   // *!*
-  transact(action, query, remote = true) { // query === keys to refresh
+  transact(component, action, query, remote = true) { // query === keys to refresh
     // knowing that ut
     this.env.store.dispatch(action)
     this.refresh()
@@ -110,9 +116,21 @@ export class Reconciler {
   }
 
   refresh(remote) {
+
+    if(!this.root) {
+      console.warn('root missing?')
+      return
+
+    }
     let c = this.env.store.getState().components.get(this.root)
-    // let answer =
-    this.baseRoot.setAnswer(this.read(bindParams(c.query, c.params), remote))
+    let answer = this.read(bindParams(c.query, c.params), remote)
+
+    if(!this.baseRoot) {
+      console.warn('base root missing?')
+    }
+    else {
+      this.baseRoot.setAnswer(answer)
+    }
 
   }
 
@@ -137,6 +155,21 @@ export class Reconciler {
     this.env.store.dispatch({ type: ACTIONS.merge, payload })
   }
 
+  transactionID = 0
+  optimistic(component, action, query, remote) {
+    // we don't really use component, just for consistency
+    const id = this.transactionID++
+    this.transact(component, { ...action, optimist: { type: BEGIN, id } })
+    return {
+      commit: (a = {}) => {
+        this.transact(component, { ...action, type: `${action.type}:commit`, ...a, optimist: { type: COMMIT, id } }, query, remote)
+      },
+      revert: (a = {}) => {
+        this.transact(component, { ...action, type: `${action.type}:revert`, ...a, optimist: { type: REVERT, id } })
+      }
+    }
+  }
+
   // getState = () => {
   //   return this.store.getState()
   // }
@@ -155,4 +188,48 @@ export class Reconciler {
 export function makeReconciler(config) {
   return new Reconciler(config)
 }
+
+
+// import {PropTypes, Component, Children} from 'react';
+// import {BEGIN, COMMIT, REVERT} from 'redux-optimist';
+
+// export class Optimist extends Component{
+//   transactionID = 0;
+
+//   optimist = name => {
+//     const id = this.transactionID++;
+//     return {
+//       begin: action => ({
+//         type: name,
+//         ...action,
+//         optimist: {type: BEGIN, id}
+//       }),
+//       commit: action => ({
+//         type: `${name}:commit`,
+//         ...action,
+//         optimist: {type: COMMIT, id}
+//       }),
+//       revert: action => ({
+//         type: `${name}:revert`,
+//         ...action,
+//         optimist: {type: REVERT, id}
+//       })
+//     };
+//   };
+
+//   static childContextTypes = {
+//     optimist: PropTypes.func
+//   };
+
+//   getChildContext(){
+//     return {
+//       optimist: this.optimist
+//     };
+//   }
+
+//   render(){
+//     return Children.only(this.props.children);
+//   }
+// }
+
 
