@@ -1,14 +1,13 @@
 import React, { Component } from 'react'
-import { ql, makeParser, makeReconciler, decorator as $ } from '../src'
+import { ql, application, decorator as disto } from '../src'
 
-@$()
+@disto()
 class App extends Component {
   static query = () => ql`[counter]`
   onClick = () => this.props.transact({ type: 'tick' })
   render() {
-    let { counter } = this.props
     return <div onClick={this.onClick}>
-      clicked { counter } times
+      clicked { this.props.counter } times
     </div>
   }
 }
@@ -26,10 +25,5 @@ function reduce(state = { counter: 0 }, { type }) {
   return state
 }
 
-let reconciler = makeReconciler({
-  read,
-  reduce
-})
+application({ read, reduce }).add(App, window.app)
 
-
-reconciler.add(App, window.app)

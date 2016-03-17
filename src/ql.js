@@ -1,4 +1,4 @@
-import { parse } from './ql.pegjs'
+import { parse } from './parser.js'
 import { Schema, normalize, arrayOf, unionOf } from 'normalizr'
 import isPlainObject from 'lodash.isplainobject'
 
@@ -6,6 +6,7 @@ import ArraySchema from 'normalizr/lib/IterableSchema'
 import UnionSchema from 'normalizr/lib/UnionSchema'
 
 let metaCache = new WeakMap()
+
 
 export function meta(o, k) {
   if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
@@ -34,9 +35,8 @@ export function ql(strings, ...values) {
   let refs = {}, parsed = parse(strings.reduce((arr, s, i) => {
       let v = values[i]
 
-      let c = (Array.isArray(v) || isPlainObject(v)) ? meta(v, 'component') : null, rando = randomStr()
-      if(c) {
-
+      let isQ = Array.isArray(v) || isPlainObject(v), rando = randomStr()
+      if(isQ) {
         refs[rando] = v
         v = '[ ' + rando + ' ]'
       }
@@ -300,7 +300,6 @@ export function getQuery(Component, props) {
 }
 
 export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-line
-
   return function (env, query, target) {
     env = {
       ...env,

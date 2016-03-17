@@ -92,24 +92,25 @@ export class Reconciler {
     this.element = element
     this.Component = Component
     let answer = this.read(getQuery(Component), true)
-    render(<Root
+    render(this.createElement(Component, answer), element)
+  }
+
+  createElement(Component, answer) {
+    return <Root
       ref={r => this.baseRoot = r}
       answer={answer}
       store={this.env.store}
       reconciler={this}
       Component={Component}
-    />, element)
-
-    // this.saga = this.env.store.sagas.run(saga, this)
+    />
   }
 
   // *!*
   remove() {
-    // this.saga.cancel()
+
     unmountComponentAtNode(this.element)
     delete this.root
     delete this.baseRoot
-    // delete this.saga
 
   }
   // *!*
@@ -126,7 +127,7 @@ export class Reconciler {
   refresh(remote) {
 
     if(!this.root) {
-      console.warn('root missing?')   // eslint-disable-line no-console
+      // console.warn('root missing?')   // eslint-disable-line no-console
       return
 
     }
@@ -177,6 +178,10 @@ export class Reconciler {
         this.transact(component, { ...action, type: `${action.type}:revert`, ...a, optimist: { type: REVERT, id } })
       }
     }
+  }
+
+  run(saga, ...args) {
+    return this.env.store.sagas.run(saga, ...args)
   }
 
   setRoot(instance) {

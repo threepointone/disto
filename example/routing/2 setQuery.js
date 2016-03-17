@@ -1,13 +1,6 @@
 import React, { Component } from 'react'
 import { log, ql, getQuery, application, decorator as disto } from '../../src'
 
-function getIn(o, head, ...tail) {
-  if(tail.length === 0) {
-    return o[head]
-  }
-  return getIn(o[head], ...tail)
-}
-
 @disto()
 class Home extends Component {
   static query = () => ql`[ home/title home/content ]`
@@ -76,12 +69,8 @@ const initial = {
 
 function read(env, key) {
   if(key === 'route/data') {
-    let route = env.get()['app/route']
-    if(route[1] === '_') {
-      route = [ route[0] ]
-    }
     return {
-      value: getIn(env.get(), ...route)
+      value: env.get()[env.get()['app/route'][0]]
     }
   }
   return {

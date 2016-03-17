@@ -9,15 +9,17 @@ query params / set-query
 send / remotes
 optimistic reads / updates
 subquery / routing !!
+server side reads
 
 working on -
+
+server side writes
 
 force
 ~ recursive joins
 normalizing incoming data
 pull out mutations/calls from parser?
 allow params in more spots
-api endpoint
 
 long lists perf
 pagination
