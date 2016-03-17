@@ -28,9 +28,7 @@ class Counter extends Component {
 }
 
 function read(env, key) {
-  return {
-    value: env.get()[key]
-  }
+  return { value: env.get()[key] }
 }
 
 function reduce(state = { count: 0, errors: [], attempts: 0 }, action) {
