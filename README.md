@@ -45,7 +45,7 @@ features
 ---
 
 - built on redux
-- composabale queries
+- composable queries
 - generic graph data model
 - 'precise' requests
 - intelligent data normalization (via normalizr)
