@@ -1,7 +1,7 @@
 const path = require('path')
 module.exports = {
   entry: {
-    app: [ 'babel-polyfill', './example/ajax.js' ]
+    app: [ 'babel-polyfill', './example/routing/2 setQuery.js' ]
   },
   output: {
     path: path.join(__dirname, './example'),

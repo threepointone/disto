@@ -4,8 +4,9 @@ import { ql, application, decorator as disto, exprTo } from '../src'
 
 import jsonp from 'jsonp'
 
+let baseUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
+
 function searchWiki(query, done) {
-  let baseUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
   jsonp(baseUrl + query, {}, (err, data) => done(err, { results: data }))
 }
 

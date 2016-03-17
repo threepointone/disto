@@ -49,6 +49,9 @@ export function ql(strings, ...values) {
 }
 
 function qlreplace(q, refs) {
+  if(typeof q === 'symbol') {
+    return q
+  }
 
   if(typeof q[0] === 'string' && q.length === 1 && refs[q[0]]) {
     if(isPlainObject(refs[q[0]])) {
@@ -58,7 +61,7 @@ function qlreplace(q, refs) {
     return withMeta(qlreplace(refs[q[0]], refs), { component: meta(refs[q[0]], 'component') })
   }
   return q.map(expr => {
-    if(typeof expr === 'string' || typeof expr === 'number' || Array.isArray(expr)) { // symbol? ident?
+    if(typeof expr === 'string' || typeof expr === 'number' || Array.isArray(expr) || typeof expr === 'symbol') { // symbol? ident?
       return expr
     }
     if(expr instanceof Set) {
@@ -80,6 +83,10 @@ function qlreplace(q, refs) {
 }
 
 export function bindParams(q, params) {
+  if(typeof q === 'symbol') {
+
+    return params[Symbol.keyFor(q)]
+  }
   // cycle through, replace symbol params with actual param values
   return withMeta(q.map(expr => {
     if(expr instanceof Set) {
@@ -91,7 +98,8 @@ export function bindParams(q, params) {
     }
     if(expr instanceof Map) {
       let [ e, qq ] = [ ...expr.entries() ][0]
-      return new Map([ [ bindParams([ e ], params)[0], Array.isArray(qq) ? bindParams(qq, params) :
+
+      return new Map([ [ bindParams([ e ], params)[0], (Array.isArray(qq) || (typeof qq === 'symbol')) ? bindParams(qq, params) :
         Object.keys(qq).reduce((o, qqq) => (o[qqq] = bindParams(qq[qqq], params), o), {}) ] ])
     }
     if(typeof expr === 'symbol' && expr !== Symbol.for('...')) {

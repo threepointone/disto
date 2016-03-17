@@ -8,21 +8,23 @@ import { take } from 'redux-saga/effects'
 
 export const ACTIONS = {
   register: 'disto.register',
+  unregister: 'disto.unregister',
   fromHistory: 'disto.fromHistory',
   setParams: 'disto.setParams',
   setQuery: 'disto.setQuery',
-  remoteSend: 'disto.remoteSend',
+
   merge: 'disto.merge',
+  remoteSend: 'disto.remoteSend',
   setState: 'disto.setState'
 
 }
 
-function * saga(_, r) {
-  while(true) {
-    yield take('disto.merge') // next tick?
-    r.refresh()
-  }
-}
+// function * saga(_, r) {
+//   while(true) {
+//     yield take('disto.refresh') // next tick?
+//     r.refresh()
+//   }
+// }
 
 
 export class Reconciler {
@@ -49,6 +51,7 @@ export class Reconciler {
     global.$$$ = this // dev only, why not
   }
 
+  // *!*
   read(query, remote) {
     // remotes etc
     let answer = this.env.parser(this.env, query)
@@ -57,7 +60,7 @@ export class Reconciler {
       let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
       this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
       let d = {}
-      d.merge = data => this.transact(null, { type: 'disto.merge', payload: data })
+      d.merge = data => this.merge(data)
       d.optimistic = (...args) => this.optimistic(null, ...args)
       d.transact = (...args) => this.transact(null, ...args)
       this.env.send(remotes, d)
@@ -80,6 +83,9 @@ export class Reconciler {
     this.env.store.dispatch({ type: ACTIONS.register, payload: { component: instance, data } })
     // update indices
   }
+  unregister(instance) {
+    this.env.store.dispatch({ type: ACTIONS.unregister, payload: { component: instance } })
+  }
 
   // *!*
   add(Component, element) {
@@ -94,15 +100,16 @@ export class Reconciler {
       Component={Component}
     />, element)
 
-    this.saga = this.env.store.sagas.run(saga, this)
+    // this.saga = this.env.store.sagas.run(saga, this)
   }
 
   // *!*
   remove() {
-    this.saga.cancel()
+    // this.saga.cancel()
     unmountComponentAtNode(this.element)
     delete this.root
-    delete this.saga
+    delete this.baseRoot
+    // delete this.saga
 
   }
   // *!*
@@ -115,10 +122,11 @@ export class Reconciler {
     }
   }
 
+  // *!*
   refresh(remote) {
 
     if(!this.root) {
-      console.warn('root missing?')
+      console.warn('root missing?')   // eslint-disable-line no-console
       return
 
     }
@@ -126,7 +134,7 @@ export class Reconciler {
     let answer = this.read(bindParams(c.query, c.params), remote)
 
     if(!this.baseRoot) {
-      console.warn('base root missing?')
+      console.warn('base root missing?')  // eslint-disable-line no-console
     }
     else {
       this.baseRoot.setAnswer(answer)
@@ -153,6 +161,7 @@ export class Reconciler {
   // *!*
   merge(payload) {
     this.env.store.dispatch({ type: ACTIONS.merge, payload })
+    this.refresh()
   }
 
   transactionID = 0
@@ -170,10 +179,6 @@ export class Reconciler {
     }
   }
 
-  // getState = () => {
-  //   return this.store.getState()
-  // }
-
   setRoot(instance) {
     this.root = instance
   }
@@ -188,48 +193,3 @@ export class Reconciler {
 export function makeReconciler(config) {
   return new Reconciler(config)
 }
-
-
-// import {PropTypes, Component, Children} from 'react';
-// import {BEGIN, COMMIT, REVERT} from 'redux-optimist';
-
-// export class Optimist extends Component{
-//   transactionID = 0;
-
-//   optimist = name => {
-//     const id = this.transactionID++;
-//     return {
-//       begin: action => ({
-//         type: name,
-//         ...action,
-//         optimist: {type: BEGIN, id}
-//       }),
-//       commit: action => ({
-//         type: `${name}:commit`,
-//         ...action,
-//         optimist: {type: COMMIT, id}
-//       }),
-//       revert: action => ({
-//         type: `${name}:revert`,
-//         ...action,
-//         optimist: {type: REVERT, id}
-//       })
-//     };
-//   };
-
-//   static childContextTypes = {
-//     optimist: PropTypes.func
-//   };
-
-//   getChildContext(){
-//     return {
-//       optimist: this.optimist
-//     };
-//   }
-
-//   render(){
-//     return Children.only(this.props.children);
-//   }
-// }
-
-

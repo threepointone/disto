@@ -1,9 +1,9 @@
 
 
 QueryRoot
-  = ws '[' ws
-    exprs:QueryExpr*
-    ws ']' ws
+  = ps:ParamSub / (ws '[' ws
+    exprs: QueryExpr*
+    ws ']' ws)
     {return exprs}
 
 
