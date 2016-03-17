@@ -12,6 +12,36 @@ steals ideas from a number of places
 - normalizr
 - redux (mutations, infra, dan's hair cream)
 
+show me what it looks like!
+
+```jsx
+@disto()
+class App extends Component {
+  static query = () => ql`[counter]`
+  onClick = () => this.props.transact({ type: 'tick' })
+  render() {
+    return <div onClick={this.onClick}>
+      clicked { this.props.counter } times
+    </div>
+  }
+}
+
+function read(env, key /*, params */) {
+  return {
+    value: env.get()[key]
+  }
+}
+
+function reduce(state = { counter: 0 }, { type }) {
+  if(type === 'tick') {
+    return { counter : state.counter + 1 }
+  }
+  return state
+}
+
+application({ read, reduce }).add(App, window.app)
+```
+
 features
 ---
 
@@ -37,7 +67,7 @@ application(config)
 creates a root 'app' that you can use to control the app
 
 - `config`
-  - `normalize` - `true` / `false`
+  - `normalize` - `true` (default) / `false`
   - `read(env, key, params)`
   - `reduce(state, action)`
   - `send(remotes, {merge, transact, optimistic})`
@@ -104,8 +134,8 @@ etc
 - streaming results
 - server side rendering
 
-- * ttl caching
-- * pagination
-- * 'precise' rendering
+- ttl caching *
+- pagination *
+- 'precise' rendering *
 
 * - todo
