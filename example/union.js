@@ -1,4 +1,4 @@
-import { ql, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta } from '../src'
+import { ql, makeParser, makeStore, makeReconciler, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta, decorator as disto } from '../src'
 import React, { Component, PropTypes } from 'react'
 
 // helper to do deep 'immutable' update
@@ -44,8 +44,9 @@ const initial = {
   ]
 }
 
+@disto()
 class Post extends Component {
-  static query = () => ql`id type title author content`
+  static query = () => ql`[id type title author content]`
   render() {
     let { title, author, content } = this.props
     return <div>
@@ -57,8 +58,9 @@ class Post extends Component {
   }
 }
 
+@disto()
 class Photo extends Component {
-  static query = () => ql`id type title image caption`
+  static query = () => ql`[id type title image caption]`
   render() {
     let { title, image, caption } = this.props
     return <div>
@@ -69,8 +71,9 @@ class Photo extends Component {
   }
 }
 
+@disto()
 class Graphic extends Component {
-  static query = () => ql`id type title image`
+  static query = () => ql`[id type title image]`
   render() {
     let { title, image } = this.props
     return <div>
@@ -84,6 +87,7 @@ function andKey(key) {
   return withMeta([ ... this, key ], { component: meta(this, 'component') })
 }
 
+@disto()
 class DashboardItem extends Component {
   static ident = ({ type, id }) => [ type, id ]
   static query = () => {
@@ -120,8 +124,9 @@ class DashboardItem extends Component {
   }
 }
 
+@disto()
 class Dashboard extends Component {
-  static query = () => ql`{items ${getQuery(DashboardItem)}}`
+  static query = () => ql`[{items ${getQuery(DashboardItem)}}]`
   render() {
     let { items } = this.props
     return <div>

@@ -91,8 +91,8 @@ export function bindParams(q, params) {
     }
     if(expr instanceof Map) {
       let [ e, qq ] = [ ...expr.entries() ][0]
-      return new Map([ e, Array.isArray(qq) ? bindParams(qq, params) :
-        Object.keys(qq).reduce((o, qqq) => (o[qqq] = bindParams(qq[qqq], params), o), {}) ])
+      return new Map([ [ bindParams([ e ], params)[0], Array.isArray(qq) ? bindParams(qq, params) :
+        Object.keys(qq).reduce((o, qqq) => (o[qqq] = bindParams(qq[qqq], params), o), {}) ] ])
     }
     if(typeof expr === 'symbol' && expr !== Symbol.for('...')) {
       return params[Symbol.keyFor(expr)]

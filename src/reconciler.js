@@ -89,6 +89,7 @@ export class Reconciler {
   transact(action, query, remote = true) { // query === keys to refresh
     // knowing that ut
     this.env.store.dispatch(action)
+    this.refresh()
     if(query) {
       this.read(query, remote) // just for the side effect
     }

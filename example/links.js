@@ -15,7 +15,7 @@ function read(env, key /*, params */) {
 
 class Item extends Component {
   static ident = ctx => [ 'byId', ctx.id ]
-  static query = () => ql`id title [currentUser _]`
+  static query = () => ql`[id title [currentUser _]]`
   render() {
     let { title, currentUser = {} } = this.props
     return <li>
@@ -26,7 +26,7 @@ class Item extends Component {
 }
 
 class List extends Component {
-  static query = () => ql`{items ${getQuery(Item)}}`
+  static query = () => ql`[{items ${getQuery(Item)}}]`
   render() {
     return <div>
       <h2>A List!</h2>
@@ -41,7 +41,7 @@ const normalized = treeToDb(getQuery(List), initial)::log()
 
 let reconciler = makeReconciler({
   parser: makeParser({ read }),
-  store: normalized
+  store: { _: normalized }
 })
 
 reconciler.add(List, window.app)

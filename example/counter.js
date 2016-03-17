@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
-import { ql, makeParser, makeStore, makeReconciler, decorator as $ } from '../src'
+import { ql, makeParser, makeReconciler, decorator as $ } from '../src'
 
 @$()
 class App extends Component {
-  static query = () => ql`counter`
+  static query = () => ql`[counter]`
   onClick = () => this.props.transact({ type: 'tick' })
   render() {
     let { counter } = this.props
@@ -28,7 +28,7 @@ function reduce(state = { counter: 0 }, { type }) {
 
 let reconciler = makeReconciler({
   parser: makeParser({ read }),
-  store: makeStore(reduce)
+  reduce
 })
 
 

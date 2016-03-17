@@ -27,7 +27,7 @@ const initial = {
 @disto()
 class Person extends Component {
   static ident =  ({ name }) => [ 'byname', name ]
-  static query = () => ql`name points age`
+  static query = () => ql`[name points age]`
   onClick = () => {
     this.props.transact({ type: 'increment', payload: { name: this.props.name } })
   }
@@ -54,7 +54,7 @@ class ListView extends Component {
 @disto()
 class RootView extends Component {
   static query = () =>
-    ql`{one ${getQuery(Person)}} {two ${getQuery(Person)}}`
+    ql`[{one ${getQuery(Person)}} {two ${getQuery(Person)}}]`
   render() {
     let { one, two } = this.props
     return <div>
