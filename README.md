@@ -150,13 +150,13 @@ props passed in -
 
 functions
 ---
-- `treeToDb`
-- `dbToTree`
+- `treeToDb(query, state, merge = true)`
+- `dbToTree(query, state, appState)`
 - `makeParser({ read, mutate })`
-- `astTo(ast)` - `ast->expr`
-- `exprTo(expr)` - `expr->ast`
-- `queryTo(query)` - `query->ast`
-- `meta(o, k)/withMeta(o, m)`
+- `astToExpr(ast)` - `ast->expr`
+- `exprToAst(expr)` - `expr->ast`
+- `queryToAst(query)` - `query->ast`
+- `meta(o, key) / withMeta(o, m)`
 - `bindVariables(query, variables)`
 - `getQuery(Component)`
 - `subquery(component, ref, klass)`
