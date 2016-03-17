@@ -73,7 +73,7 @@ export class Reconciler {
 
     let qp = klass.params ? klass.params() : undefined,
       id = klass.ident ? klass.ident(p) : undefined,
-      q = klass.query ? klass.query(this, p) : undefined,
+      q = klass.query ? klass.query(instance, p) : undefined,
       data = {
         ident: id,
         query: q,

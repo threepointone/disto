@@ -122,7 +122,7 @@ export class Root extends Component {
       <Local.Root>
         <Sagas middleware={this.store.sagas}>
           <Optimist>
-            <C {...this.state.answer} onRef={r => {this.props.reconciler.setRoot(r)}}/>
+            <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
           </Optimist>
         </Sagas>
       </Local.Root>

@@ -8,19 +8,20 @@ idents
 query params / set-query
 send / remotes
 optimistic reads / updates
+subquery / routing !!
 
 working on -
-subquery
-normalizing incoming data
-pull out mutations/calls from parser?
-routing
-api endpoint
-
-pagination
-ttl caching
 
 force
 ~ recursive joins
+normalizing incoming data
+pull out mutations/calls from parser?
+allow params in more spots
+api endpoint
+
+long lists perf
+pagination
+ttl caching
 
 dev helper when optimistic actions don't get resolved in x secs
 

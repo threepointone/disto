@@ -524,7 +524,7 @@ export function dbToTree(q, state, appState = state) {
 }
 
 export function subquery(component, ref, klass, props) {
-  if(component && component.refs[ref]) {
+  if(component && component.references[ref]) {
     return component.context.disto.store.getState().components.get(component.refs[ref]).query
   }
 

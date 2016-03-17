@@ -17,8 +17,8 @@ export default function decorator() {
         disto: PropTypes.object
       }
       componentWillMount() {
-        let { disto } = this.context;
-        (this.props.onRef || (() => {}))(this)
+        let { disto } = this.context
+        this.unrefer = (this.props.refer || (() => {}))(this)
         disto.register(this, Disto)
       }
       componentWillReceiveProps(nextProps) {
@@ -46,10 +46,14 @@ export default function decorator() {
         return this.context.disto.optimistic(this, ...args)
       }
 
-      // todo - make this work for subquery
+      references = {}
       makeRef = key => {
-        return (el => this.refs[key] = el)
+        return (el => {
+          this.references[key] = el
+          return () => delete this.references[key]
+        })
       }
+
 
       render() {
         let { query, ident, params, state } = this.context.disto.env.store.getState().components.get(this) || {}
@@ -65,76 +69,18 @@ export default function decorator() {
           optimistic={this.optimistic}
           transact={this.transact}
           makeRef={this.makeRef}
+          __onUnmount={this.__onUnmount}
+
         >{this.props.children}</Target>
       }
       componentWillUnmount() {
         this.context.disto.unregister(this)
+        if(this.unrefer) {
+          this.unrefer()
+          delete this.unrefer
+        }
+
       }
     }
   }
 }
-
-// export default function disto({
-//   ident = null, // optional!!!
-//   query = () => {},
-//   queryParams = () => {}
-// }) {
-
-
-//   return function (Target) {
-//     return class Disto extends Component {
-//       static contextTypes = {
-//         disto: PropTypes.object
-//       }
-//       componentWillMount() {
-//         let { disto } = this.context
-
-//         disto.register(this)
-//         this.setState(this.resolve())
-
-//       }
-//       resolve() {
-//         let { disto } = this.context
-
-//         let qp = queryParams(this.props),
-//           id = ident(this.props),
-//           q = query(this.props, qp),
-//           v = disto.read(q)
-
-//         return {
-//           ident: id,
-//           query: q,
-//           params: qp,
-//           value: v
-//         }
-//       }
-//       setQuery = (query, params) => {
-
-//       }
-//       setQueryParams = params => {
-
-//       }
-//       updateQuery = fn => {
-
-//       }
-//       transact = (action, keys) => {
-//         this.context.disto.transact(this, action, keys)
-//         this.setState(this.resolve())
-//       }
-//       // force?
-//       render() {
-//         return <Target
-//           {...this.props}
-//           {...this.state.value}
-//           ident={this.state.ident}
-//           query={this.state.query}
-//           params={this.state.params}
-//           setQuery={this.setQuery}
-//           updateQuery={this.updateQuery}
-//           transact={this.transact}>
-//           {this.props.children}
-//         </Target>
-//       }
-//     }
-//   }
-// }
