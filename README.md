@@ -49,6 +49,7 @@ features
 - generic graph data model
 - 'precise' requests
 - intelligent data normalization (via normalizr)
+- mutations via actions
 - optimistic updates
 - remote sync
 - sagas
@@ -87,6 +88,11 @@ let query = ql`[
 
 more info [here](https://github.com/threepointone/disto/blob/graffo/docs/query-language.md)
 
+parser
+---
+
+this is fairly similar to om.next's parser, except that mutations are actions, and we use a `reduce` reducer to accept state changes. more on om.next's parser [here](https://github.com/omcljs/om/wiki/Quick-Start-(om.next)#parsing--query-expressions)
+
 application(config)
 ---
 
@@ -95,10 +101,10 @@ creates a root 'app' that you can use to control the app
 - `config`
   - `normalize` - `true` (default) / `false`
   - `read(env, key, params)`
+  - `mutate(env, action)`
   - `reduce(state, action)`
   - `send(remotes, {merge, transact, optimistic})`
   - `store` : object / redux store
-  - `mutate(env, action)`
   - `middleware`
 - `.add(Component, element)`
 - `.remove()`
@@ -152,6 +158,8 @@ functions
 - `queryTo(query)` - `query->ast`
 - `meta(o, k)/withMeta(o, m)`
 - `bindVariables(query, variables)`
+- `getQuery(Component)`
+- `subquery(component, ref, klass)`
 
 etc
 ---
