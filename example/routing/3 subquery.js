@@ -1,15 +1,8 @@
 import React, { Component } from 'react'
 import { log, ql, application, decorator as disto, subquery } from '../../src'
 
-function getIn(o, head, ...tail) {
-  if(tail.length === 0) {
-    return o[head]
-  }
-  return getIn(o[head], ...tail)
-}
-
 function goTo(x, route) {
-  // you might also trigegr a side effect here? history.push
+  // you might also trigegr a side effect here? history.push, etc
   return x.props.transact({ type : 'change/route', payload: route })
 }
 
