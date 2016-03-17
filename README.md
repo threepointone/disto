@@ -64,9 +64,9 @@ rips off om.next/datomic pull syntax to give a generic query language on our 'mo
 ```jsx
 let query = [
   'foo',
-  new Map([['posts', ['id', 'title', 'caption']]]),
+  new Map([['posts', ['id', 'title', Symbol.for('var')]]]),
   ['currentUser', '_'],
-  new Map([['items', {photo: ['id', 'image'], post: ['id', 'text']}]]),
+  new Map([['items', {photo: ['id', 'image'], post: getQuery(Post)}]]),
   // ...
 ]
 ```
@@ -76,13 +76,11 @@ let query = [
 ```jsx
 let query = ql`[
   foo
-  { posts [id title caption] }
+  { posts [id title ?var] }
   [currentUser _]
-  { items { photo [id image] post [id text] } }
+  { items { photo [id image] post ${getQuery(Post)} } }
 ]`
 ```
-
-also -
 
 - variable substitution
 - interpolation
