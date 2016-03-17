@@ -45,6 +45,7 @@
     "jade-strip-comments": "^1.0.0",
     "jison": "^0.4.17",
     "js-atom": "^0.4.0",
+    "jsonp": "^0.2.0",
     "karma": "^0.13.21",
     "karma-chrome-launcher": "^0.2.2",
     "karma-coverage": "^0.5.3",

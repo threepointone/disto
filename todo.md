@@ -7,19 +7,20 @@ mutations
 idents
 query params / set-query
 send / remotes
-optimistic updates
+optimistic reads / updates
 
 working on -
 subquery
-optimistic reads
 normalizing incoming data
 pull out mutations/calls from parser
-routing
+routing/api endpoint
 
 pagination
 ttl caching
 
 force
+
+dev helper when optimistic actions don't get resolved in x secs
 
 precise rendering - only updating the components that change
 server side rendering

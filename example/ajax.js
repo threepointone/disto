@@ -2,14 +2,11 @@ import React from 'react'
 
 import { ql, application, decorator as disto, exprTo } from '../src'
 
-import JSONP from './jsonp'
+import jsonp from 'jsonp'
 
 function searchWiki(query, done) {
   let baseUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&format=json&search='
-  JSONP({
-    url: baseUrl + query,
-    success: data => done(null, { results: data })
-  })
+  jsonp(baseUrl + query, {}, (err, data) => done(err, { results: data }))
 }
 
 @disto()
