@@ -1,15 +1,14 @@
 disto
 ---
 
-[here be dragons]
+[highly experimental, be warned]
 
 <img src='https://i.imgur.com/2sAntqf.jpg' alt='imitation/flattery'/>
 
 steals ideas from a number of places
 - om.next (most of the api is a lift)
-- relay (optimistic updates, pagination*)
-- falcor (ttl*)
-- normalizr
+- relay (colocation, optimistic updates, pagination)
+- falcor (ttl, normalization)
 - redux (mutations, infra, dan's hair cream)
 
 show me what it looks like!
@@ -57,9 +56,38 @@ features
 
 query language
 ---
+
+rips off om.next/datomic pull syntax to give a generic query language on our 'model'
+
+- as data structures
+
 ```jsx
-let query = ql``
+let query = [
+  'foo',
+  new Map([['posts', ['id', 'title', 'caption']]]),
+  ['currentUser', '_'],
+  new Map([['items', {photo: ['id', 'image'], post: ['id', 'text']}]]),
+  // ...
+]
 ```
+
+- or with tagged template literals
+
+```jsx
+let query = ql`[
+  foo
+  { posts [id title caption] }
+  [currentUser _]
+  { items { photo [id image] post [id text] } }
+]`
+```
+
+also -
+
+- variable substitution
+- interpolation
+
+more info [here](https://github.com/threepointone/disto/blob/graffo/docs/query-language.md)
 
 application(config)
 ---
@@ -138,4 +166,8 @@ etc
 - pagination *
 - 'precise' rendering *
 
-* - todo
+(* - todo)
+
+examples
+---
+
