@@ -69,7 +69,6 @@ export default function decorator() {
           optimistic={this.optimistic}
           transact={this.transact}
           makeRef={this.makeRef}
-          __onUnmount={this.__onUnmount}
 
         >{this.props.children}</Target>
       }

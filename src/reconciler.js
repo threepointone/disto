@@ -51,6 +51,10 @@ export class Reconciler {
     global.$$$ = this // dev only, why not
   }
 
+  get() {
+    return this.env.store.getState()._
+  }
+
   // *!*
   read(query, remote) {
     // remotes etc

@@ -15,7 +15,6 @@ there are 5 types of expressions
 
 ### prop
 
-
 a string denoting a 'prop'/ 'key'
 
 ```jsx
@@ -28,6 +27,7 @@ read({ foo: 123, bar: 'abc' }, query)
 ```
 
 ### join
+
 a `Map` with a single pair that denotes a join from one `expression` to another `query`
 
 ```jsx
@@ -60,6 +60,7 @@ let query = ql`[ { items {
 ```
 
 ### parameterized expression
+
 a `Set` with 2 elements; an `expression`, and associated `params` object
 
 ```jsx
@@ -80,6 +81,15 @@ let query = ql`[ [ byname "mary" ] ]`
 // like om.next, you can use '_' to not use an id when doing the lookup
 let query = ql`[ [ currentUser _ ] ]`
 ```
+
+### variable substitution
+
+todoc
+
+#### todo
+---
+
+- recursive joins
 
 
 

@@ -49,7 +49,7 @@ async function send({ remote }, { merge, transact }) {
     merge({ error: error.message })
   }
 
-  transact({ type: 'over' })
+  transact({ type: 'done' })
 }
 
 
@@ -57,7 +57,7 @@ app.get('/api', function (req, res) {
   let $ = application({ read, send, remotes: [ 'remote' ] })
 
   let task = $.run(function*() {
-    yield take('over')
+    yield take('done')
     res.send($.env.store.getState()._)
   })
 

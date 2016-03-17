@@ -20,7 +20,7 @@ force
 normalizing incoming data
 pull out mutations/calls from parser?
 allow params in more spots
-
+`send` should be a saga
 long lists perf
 pagination
 ttl caching
