@@ -1,4 +1,4 @@
-import { ql, application, getQuery, dbToTree, astTo, treeToDb, log } from '../src'
+import { ql, application, getQuery, dbToTree, astToExpr, treeToDb, log } from '../src'
 import React, { Component } from 'react'
 
 
@@ -9,7 +9,7 @@ const initial = {
 
 function read(env, key /*, params */) {
   return {
-    value: dbToTree([ astTo(env.ast) ], env.get())[key]
+    value: dbToTree([ astToExpr(env.ast) ], env.get())[key]
   }
 }
 

@@ -1,12 +1,32 @@
-import { Root, makeStore } from './root'
+import { log, print } from './util'
+import { meta, withMeta, cache } from './meta'
+
+import {
+  ql, bindVariables,
+  astToExpr, exprToAst, queryToAst
+} from './ql'
+
+import {
+  getQuery, subquery,
+  makeParser,
+  dbToTree, treeToDb
+} from './db'
+
+import { application } from './application'
+import { makeStore } from './root'
 import decorator from './decorator'
-import { makeReconciler } from './reconciler'
-// import makeParser from './parser'
-// import reducer from './reducer'
-import { dbToTree, treeToDb, ql, makeParser, getQuery, astTo, log, print, withMeta, meta, bindParams, exprTo, subquery, queryTo } from './ql'
-// import { parse as ql } from './ql'
 
 module.exports = {
-  application: makeReconciler,
-  Root, makeReconciler, treeToDb, dbToTree, ql, makeStore, makeParser, getQuery, astTo, log, print, withMeta, meta, decorator, bindParams, exprTo, subquery, queryTo
+  log, print,
+  meta, withMeta, cache,
+
+  ql,  bindVariables,
+  astToExpr, exprToAst, queryToAst,
+
+  getQuery, subquery,
+  makeParser,
+  dbToTree, treeToDb,
+
+  application, makeStore, decorator
+
 }

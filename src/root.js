@@ -97,7 +97,8 @@ export class Root extends Component {
     })
   }
   state = {
-    answer: this.props.answer
+    answer: this.props.answer,
+    store: this.props.store
   }
   static childContextTypes = {
     disto: PropTypes.object
@@ -115,12 +116,12 @@ export class Root extends Component {
     // this.saga = this.store.sagas.run(saga, this.props.reconciler)
   }
 
-  store = this.props.store
+
   render() {
     let C = this.props.Component
-    return <Provider store={this.store}>
+    return <Provider store={this.state.store}>
       <Local.Root>
-        <Sagas middleware={this.store.sagas}>
+        <Sagas middleware={this.state.store.sagas}>
           <Optimist>
             <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
           </Optimist>

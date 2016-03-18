@@ -3,14 +3,14 @@ import React from 'react'
 import { BEGIN, COMMIT, REVERT } from 'redux-optimist'
 
 import { Root, makeStore } from './root'
-import { getQuery, log, bindParams, makeParser } from './ql'
-import { take } from 'redux-saga/effects'
+import { bindVariables } from './ql'
+import { getQuery, makeParser } from './db'
 
 export const ACTIONS = {
   register: 'disto.register',
   unregister: 'disto.unregister',
   fromHistory: 'disto.fromHistory',
-  setParams: 'disto.setParams',
+  setVariables: 'disto.setVariables',
   setQuery: 'disto.setQuery',
 
   merge: 'disto.merge',
@@ -18,14 +18,6 @@ export const ACTIONS = {
   setState: 'disto.setState'
 
 }
-
-// function * saga(_, r) {
-//   while(true) {
-//     yield take('disto.refresh') // next tick?
-//     r.refresh()
-//   }
-// }
-
 
 export class Reconciler {
 
@@ -46,13 +38,17 @@ export class Reconciler {
       remotes,
       store: store && typeof store.dispatch === 'function' ? store : makeStore(store, reduce, middleware),
       send
-      // getState: () => this.env.store.getState(),
     }
     global.$$$ = this // dev only, why not
   }
 
   get() {
     return this.env.store.getState()._
+  }
+  sendFns = {
+    merge: data => this.merge(data),
+    optimistic: (...args) => this.optimistic(...args),
+    transact: (...args) => this.transact(...args)
   }
 
   // *!*
@@ -63,11 +59,11 @@ export class Reconciler {
 
       let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
       this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
-      let d = {}
-      d.merge = data => this.merge(data)
-      d.optimistic = (...args) => this.optimistic(null, ...args)
-      d.transact = (...args) => this.transact(null, ...args)
-      this.env.send(remotes, d)
+      // let d = {}
+      // d.merge = data => this.merge(data)
+      // d.optimistic = (...args) => this.optimistic(...args)
+      // d.transact = (...args) => this.transact(...args)
+      this.env.send(remotes, this.sendFns)
     }
     return answer
   }
@@ -75,13 +71,13 @@ export class Reconciler {
   // *!*
   register(instance, klass, p = instance.props) {
 
-    let qp = klass.params ? klass.params() : undefined,
+    let vars = klass.variables ? klass.variables() : undefined,
       id = klass.ident ? klass.ident(p) : undefined,
       q = klass.query ? klass.query(instance, p) : undefined,
       data = {
         ident: id,
         query: q,
-        params: qp
+        variables: vars
       }
 
     this.env.store.dispatch({ type: ACTIONS.register, payload: { component: instance, data } })
@@ -118,7 +114,7 @@ export class Reconciler {
 
   }
   // *!*
-  transact(component, action, query, remote = true) { // query === keys to refresh
+  transact(action, query, remote = true) { // query === keys to refresh
     // knowing that ut
     this.env.store.dispatch(action)
     this.refresh()
@@ -136,7 +132,7 @@ export class Reconciler {
 
     }
     let c = this.env.store.getState().components.get(this.root)
-    let answer = this.read(bindParams(c.query, c.params), remote)
+    let answer = this.read(bindVariables(c.query, c.variables), remote)
 
     if(!this.baseRoot) {
       console.warn('base root missing?')  // eslint-disable-line no-console
@@ -148,13 +144,13 @@ export class Reconciler {
   }
 
   // *!*
-  setParams(component, params, remote = true) {
-    this.env.store.dispatch({ type: ACTIONS.setParams, payload: { component, params } })
+  setVariables(component, variables, remote = true) {
+    this.env.store.dispatch({ type: ACTIONS.setVariables, payload: { component, variables } })
     this.refresh(remote)
   }
   // *!*
-  setQuery(component, query, params, remote = true) {
-    this.env.store.dispatch({ type: ACTIONS.setQuery, payload: { component, query, params } })
+  setQuery(component, query, variables, remote = true) {
+    this.env.store.dispatch({ type: ACTIONS.setQuery, payload: { component, query, variables } })
     this.refresh(remote)
   }
 
@@ -170,16 +166,16 @@ export class Reconciler {
   }
 
   transactionID = 0
-  optimistic(component, action, query, remote) {
+  optimistic(action, query, remote) {
     // we don't really use component, just for consistency
     const id = this.transactionID++
-    this.transact(component, { ...action, optimist: { type: BEGIN, id } })
+    this.transact({ ...action, optimist: { type: BEGIN, id } })
     return {
       commit: (a = {}) => {
-        this.transact(component, { ...action, type: `${action.type}:commit`, ...a, optimist: { type: COMMIT, id } }, query, remote)
+        this.transact({ ...action, type: `${action.type}:commit`, ...a, optimist: { type: COMMIT, id } }, query, remote)
       },
       revert: (a = {}) => {
-        this.transact(component, { ...action, type: `${action.type}:revert`, ...a, optimist: { type: REVERT, id } })
+        this.transact({ ...action, type: `${action.type}:revert`, ...a, optimist: { type: REVERT, id } })
       }
     }
   }
@@ -199,6 +195,6 @@ export class Reconciler {
 }
 
 
-export function makeReconciler(config) {
+export function application(config) {
   return new Reconciler(config)
 }

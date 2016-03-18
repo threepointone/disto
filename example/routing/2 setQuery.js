@@ -27,17 +27,17 @@ class About extends Component {
 
 @disto()
 class Root extends Component {
-  static params = () => ({ 'q': [] })
+  static variables = () => ({ 'q': [] })
   static query = () => ql`[ app/route { route/data ?q } ]`
   componentWillMount() {
     let route = this.props['app/route'],
       initialQuery = getQuery(routes[route[0]])
-    this.props.setParams({ 'q': initialQuery })
+    this.props.setVariables({ 'q': initialQuery })
 
   }
   goTo = route => {
     this.props.transact({ type : 'change/route', payload: route })
-    this.props.setParams({ 'q': getQuery(routes[route[0]]) })
+    this.props.setVariables({ 'q': getQuery(routes[route[0]]) })
   }
   render() {
 

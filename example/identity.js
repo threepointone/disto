@@ -1,4 +1,4 @@
-import { ql, application, getQuery, treeToDb, dbToTree, astTo, decorator as disto, log } from '../src'
+import { ql, application, getQuery, treeToDb, dbToTree, astToExpr , decorator as disto, log } from '../src'
 
 import React, { Component } from 'react'
 
@@ -68,7 +68,7 @@ class RootView extends Component {
 
 function read(env, key /*, params */) {
   return {
-    value: dbToTree([ astTo(env.ast) ], env.get())[key]
+    value: dbToTree([ astToExpr(env.ast) ], env.get())[key]
   }
 }
 

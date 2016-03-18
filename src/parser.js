@@ -1,4 +1,4 @@
-module.exports =(function() {
+module.exports = (function() {
   "use strict";
 
   /*
@@ -2227,4 +2227,4 @@ module.exports =(function() {
     SyntaxError: peg$SyntaxError,
     parse:       peg$parse
   };
-})()
+})();

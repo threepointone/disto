@@ -33,10 +33,10 @@ export function components( state = new Map(), { type, payload }) { // weakmap?
     //   return setMap(state, payload.component, { ...state.get(payload.component), ident: payload.ident })
     case 'disto.setState':
       return setMap(state, payload.component, { ...state.get(payload.component), state: payload.state })
-    case 'disto.setParams':
-      return setMap(state, payload.component, { ...state.get(payload.component), params: payload.params })
+    case 'disto.setVariables':
+      return setMap(state, payload.component, { ...state.get(payload.component), variables: payload.variables })
     case 'disto.setQuery':
-      return setMap(state, payload.component, { ...state.get(payload.component), query: payload.query, params: payload.params })
+      return setMap(state, payload.component, { ...state.get(payload.component), query: payload.query, variables: payload.variables })
     case 'disto.unregister':
       return delMap(state, payload.component)
   }

@@ -1,4 +1,4 @@
-import { ql, application, getQuery, dbToTree, astTo, treeToDb, log, withMeta, meta, decorator as disto } from '../src'
+import { ql, application, getQuery, dbToTree, astToExpr, treeToDb, log, withMeta, meta, decorator as disto } from '../src'
 import React, { Component, PropTypes } from 'react'
 
 // helper to do deep 'immutable' update
@@ -138,7 +138,7 @@ class Dashboard extends Component {
 
 function read(env, key /*, params */) {
   return {
-    value: dbToTree([ astTo(env.ast) ], env.get())[key]
+    value: dbToTree([ astToExpr(env.ast) ], env.get())[key]
   }
 }
 

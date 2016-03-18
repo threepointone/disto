@@ -1,7 +1,7 @@
 import 'isomorphic-fetch'
 
 import http from 'http'
-import { application, exprTo, astTo, ql, queryTo, log } from '../src'
+import { application, exprToAst, astToExpr, ql, queryToAst, log } from '../src'
 
 import { take } from 'redux-saga/effects'
 
@@ -31,17 +31,17 @@ async function service2(key, params) {
 function read(env, key) {
   return {
     value: env.get()[key],
-    remote: env.ast
+    remote: true
   }
 }
 
 async function send({ remote }, { merge, transact }) {
   try{
     for(let expr of remote) {
-      let { key, params = {} } = exprTo(expr)
+      let { key, params = {} } = exprToAst(expr)
       let svc = key === 'one' ? service1 : key === 'two' ? service2 : null
       if(svc) {
-        merge({ [key]: (await svc(key, params)) })
+        merge({ [key]: await svc(key, params) })
       }
     }
   }
@@ -58,14 +58,14 @@ app.get('/api', function (req, res) {
 
   let task = $.run(function*() {
     yield take('done')
-    res.send($.env.store.getState()._)
+    res.send($.get())
   })
 
   req.on('close', () => {
     task.cancel()
   })
 
-  $.read(astTo(JSON.parse(req.query.q)), true)
+  $.read(astToExpr(JSON.parse(req.query.q)), true)
 
 })
 
@@ -97,9 +97,9 @@ function normalizePort(val) {
 const port = normalizePort(process.env.PORT || 9123)
 app.set('port', port)
 
-
+// you'd call this from your client
 function exec(q) {
-  fetch('http://localhost:9123/api?q=' + JSON.stringify(queryTo(q)),
+  fetch('http://localhost:9123/api?q=' + JSON.stringify(queryToAst(q)),
     { method: 'get' })
   .then(res => res.json())
   .then(json => console.log('result!', json))   // eslint-disable-line no-console

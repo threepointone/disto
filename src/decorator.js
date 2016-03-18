@@ -1,6 +1,5 @@
 import React, { PropTypes, Component } from 'react'
 
-// import { bindParams } from './ql'
 
 export default function decorator() {
   return function (Target) {
@@ -10,7 +9,7 @@ export default function decorator() {
       // pull some statics from target
       static query = Target.query
       static ident = Target.ident
-      static params = Target.params
+      static variables = Target.variables
       static schemaAttribute = Target.schemaAttribute
 
       static contextTypes = {
@@ -24,13 +23,13 @@ export default function decorator() {
       componentWillReceiveProps(nextProps) {
         // this.context.disto.nextProps(this, nextProps)
       }
-      setQuery = (query, params) => {
+      setQuery = (query, variables) => {
         let { disto } = this.context
-        disto.setParams(this, query, params)
+        disto.setQuery(this, query, variables)
       }
-      setParams = params => {
+      setVariables = vars => {
         let { disto } = this.context
-        disto.setParams(this, params)
+        disto.setVariables(this, vars)
 
       }
       _setState = state => {
@@ -40,10 +39,11 @@ export default function decorator() {
 
       }
       transact = (action, query, remote) => {
-        this.context.disto.transact(this, action, query, remote)
+        // need to annotate action with component
+        this.context.disto.transact(action, query, remote)
       }
       optimistic = (...args) => {
-        return this.context.disto.optimistic(this, ...args)
+        return this.context.disto.optimistic(...args)
       }
 
       references = {}
@@ -56,19 +56,20 @@ export default function decorator() {
 
 
       render() {
-        let { query, ident, params, state } = this.context.disto.env.store.getState().components.get(this) || {}
+        let { query, ident, variables, state } = this.context.disto.env.store.getState().components.get(this) || {}
         return <Target
           {...this.props}
           query={query}
           ident={ident}
-          params={params}
+          variables={variables}
           state={state}
           setQuery={this.setQuery}
-          setParams={this.setParams}
+          setVariables={this.setVariables}
           setState={this._setState}
           optimistic={this.optimistic}
           transact={this.transact}
           makeRef={this.makeRef}
+          // need merge!()
 
         >{this.props.children}</Target>
       }
