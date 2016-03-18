@@ -36,6 +36,9 @@ function read(env, key) {
 }
 
 async function send({ remote }, { merge, transact }) {
+  // you can call merge / transact as many times as you want
+  // so you could stream results, etc etc
+  // fow now we do a simple serial resolve
   try{
     for(let expr of remote) {
       let { key, params = {} } = exprToAst(expr)
@@ -52,7 +55,7 @@ async function send({ remote }, { merge, transact }) {
   transact({ type: 'done' })
 }
 
-
+// reads
 app.get('/api', function (req, res) {
   let $ = application({ read, send, remotes: [ 'remote' ] })
 
@@ -68,6 +71,8 @@ app.get('/api', function (req, res) {
   $.read(astToExpr(JSON.parse(req.query.q)), true)
 
 })
+
+// for mutations, you'd do something similar, and transact in mutate actions to signal to the saga when 'done'
 
 
 // catch 404 and forward to error handler
