@@ -146,7 +146,7 @@ app.add(App, element)
 ```
 
 - `config`
-  - `normalize` - `true` (default) / `false`
+  - `normalize` - `true` (default) / `false` - doesn't work right now :|
   - `read(env, key, params)`
   - `mutate(env, action)`
   - `send(remotes, cb)`
