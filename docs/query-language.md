@@ -17,6 +17,8 @@ there are 5 types of expressions
 
 a string denoting a 'prop'/ 'key'
 
+(like `SELECT name,address`)
+
 ```jsx
 let expr = 'foo'
 // or
@@ -29,6 +31,8 @@ read({ foo: 123, bar: 'abc' }, query)
 ### join
 
 a `Map` with a single pair that denotes a join from one `expression` to another `query`
+
+(think sub-queries, `FROM (SELECT ...)`)
 
 ```jsx
 let expr = new Map([ [ 'foo', [ 'id', 'title' ] ] ])
@@ -73,6 +77,8 @@ let expr = ql`[ ( foo { p1 5 p2 "abc" } ) ]`
 ### idents / 'links'
 a two element array `[ entity, id ]` for referencing an entity in your 'db'
 
+(like foreign keys in a db)
+
 ```jsx
 let expr = [ 'byname', 'mary' ]
 // or
@@ -82,13 +88,23 @@ let query = ql`[ [ byname "mary" ] ]`
 let query = ql`[ [ currentUser _ ] ]`
 ```
 
-### variable substitution
+### mutations
 
-todoc
+a redux style action, with an optional query to be read
+
+(like `INSERT`/`UPDATE`/`DELETE`)
+
+```jsx
+{
+  type: 'increment',
+  payload: 2,
+  query: ql`[counter]`
+}
+```
 
 #### todo
 ---
-
+- variable substitution
 - recursive joins
 
 
