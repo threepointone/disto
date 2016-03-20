@@ -136,6 +136,11 @@ application(config)
 
 creates a root 'app' that you can use to control the app
 
+```jsx
+let app = application({ read, mutate })
+app.add(App, element)
+```
+
 - `config`
   - `normalize` - `true` (default) / `false`
   - `read(env, key, params)`
