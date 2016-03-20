@@ -50,7 +50,7 @@ const routes = {
 }
 
 
-const initial = {
+const store = {
   'app/route': [ 'app/home', '_' ],
   'app/home': {
     'home/title': 'Home page',
@@ -74,11 +74,13 @@ function read(env, key) {
   }
 }
 
-function reduce(state = initial, action) {
-  switch(action.type) {
-    case 'change/route': return { ...state, 'app/route': action.payload }
+function mutate(env, { type, payload }) {
+  if(type === 'change/route') {
+    return {
+      keys: [ 'app/route' ],
+      effect: () => env.store.swap(state => ({ ...state, 'app/route': payload }))
+    }
   }
-  return state
 }
 
-application({ reduce, read }).add(Root, window.app)
+application({ mutate, read, store }).add(Root, window.app)

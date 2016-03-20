@@ -1,4 +1,4 @@
-import React, { Component, PropTypes, Children } from 'react'
+import React, { Component, PropTypes } from 'react'
 
 // redux
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
@@ -11,10 +11,10 @@ import { Sagas } from 'react-redux-saga'
 
 // optimist
 import optimist from 'redux-optimist'
-import { Optimist } from 'react-redux-optimist'
+// import { Optimist } from 'react-redux-optimist'
 
 // redux-react-local
-import Local from 'redux-react-local'
+// import Local from 'redux-react-local'
 
 
 // fsa
@@ -58,7 +58,7 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
     // reducer
     optimist(combineReducers({
       _: reducer(reduce),
-      local: Local.reducer,
+      // local: Local.reducer,
       components
     })),
 
@@ -83,18 +83,26 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
   )
 
   store.sagas = sagaMiddleware
+
+  // helpers
+  // - updateIn
+  // - merge
+
+  store.swap = fn => {
+    store.dispatch({ type: 'disto.swap', payload: fn(store.getState()._) })
+  }
+
   return store
 }
-
 
 export class Root extends Component {
   // optionally accept middleware/reducers to add on to the redux store
   static propTypes = {
-    store: PropTypes.shape({
-      subscribe: PropTypes.func.isRequired,
-      dispatch: PropTypes.func.isRequired,
-      getState: PropTypes.func.isRequired
-    })
+    // store: PropTypes.shape({
+    //   subscribe: PropTypes.func.isRequired,
+    //   dispatch: PropTypes.func.isRequired,
+    //   getState: PropTypes.func.isRequired
+    // })
   }
   state = {
     answer: this.props.answer,
@@ -120,13 +128,9 @@ export class Root extends Component {
   render() {
     let C = this.props.Component
     return <Provider store={this.state.store}>
-      <Local.Root>
-        <Sagas middleware={this.state.store.sagas}>
-          <Optimist>
-            <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
-          </Optimist>
-        </Sagas>
-      </Local.Root>
+      <Sagas middleware={this.state.store.sagas}>
+        <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
+      </Sagas>
     </Provider>
   }
   componentWillUnmount() {

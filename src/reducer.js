@@ -6,6 +6,9 @@ export default function reducer(fn) {
         ...action.payload || {}
       }
     }
+    if(action.type === 'disto.swap') {
+      return action.payload
+    }
 
     return fn(state, action)
   }
@@ -16,7 +19,6 @@ function setMap(m, key, value) {
   let mm = new Map(m.entries()) // mapMap(m)
   mm.set(key, value)
   return mm
-  // return mapMap(m, ([ k, v ]) => [ k, k === key ? value: v ])
 }
 
 function delMap(m, key) {

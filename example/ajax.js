@@ -44,14 +44,12 @@ function read(env, key /* , params */ ) {
 }
 
 
-function send({ search }, { merge /*, dispatch, optimistic */ }) {
+function send({ search }, cb) {
   for(let expr of search) {
     let { key, params } = exprToAst(expr)
     if(key === 'results') {
-      searchWiki(params.query, (err, res) => {
-        if(res) { merge(res) }
-        else{ /* silent fail */ }
-      })
+      searchWiki(params.query,
+        (err, res) => res && cb(res))
     }
   }
 }

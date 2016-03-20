@@ -17,7 +17,10 @@ export default function decorator() {
       }
       componentWillMount() {
         let { disto } = this.context
-        this.unrefer = (this.props.refer || (() => {}))(this)
+        if(this.props.refer) {
+          this.unrefer = this.props.refer(this)
+        }
+
         disto.register(this, Disto)
       }
       componentWillReceiveProps(nextProps) {

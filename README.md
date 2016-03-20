@@ -31,14 +31,16 @@ function read(env, key /*, params */) {
   }
 }
 
-function reduce(state = { counter: 0 }, { type }) {
-  if(type === 'tick') {
-    return { counter : state.counter + 1 }
+function mutate(env, action){
+  if(action.type === 'tick'){
+    return {
+      effect: () => env.store.swap(({ counter }) =>
+        ({ counter: counter + 1 }))
+    }
   }
-  return state
 }
 
-application({ read, reduce }).add(App, window.app)
+application({ read, mutate }).add(App, window.app)
 ```
 
 features
@@ -91,7 +93,39 @@ more info [here](https://github.com/threepointone/disto/blob/graffo/docs/query-l
 parser
 ---
 
-this is fairly similar to om.next's parser, except that mutations are actions, and we use a `reduce` reducer to accept state changes. more on om.next's parser [here](https://github.com/omcljs/om/wiki/Quick-Start-(om.next)#parsing--query-expressions)
+this is fairly similar to om.next's parser, except that mutations are actions. more on om.next's parser [here](https://github.com/omcljs/om/wiki/Quick-Start-(om.next)#parsing--query-expressions)
+
+```jsx
+
+function read(env, key){
+  return {
+    value: env.parser({store: env.get()[key]}, env.query)
+  }
+}
+
+function mutate(action){
+  if(action.type == 'increment'){
+
+  }
+}
+let parser = makeParser({ read, mutate })
+parser({store}, ql`[ { user [name email] } ]`)
+
+// {
+//   user : {
+//     name: 'Slash',
+//     email: 'slash@gnr.com'
+//   }
+// }
+
+store.get().count::log()
+// 0
+parser({store}, { type: 'increment' })
+store.get().count::log()
+// 1
+
+```
+
 
 application(config)
 ---
@@ -102,10 +136,10 @@ creates a root 'app' that you can use to control the app
   - `normalize` - `true` (default) / `false`
   - `read(env, key, params)`
   - `mutate(env, action)`
-  - `reduce(state, action)`
-  - `send(remotes, {merge, transact, optimistic})`
+  - `send(remotes, cb)`
   - `store` : object / redux store
-  - `middleware`
+  - `reduce(state, action)` * optional
+  - `middleware` * optional
 - `.add(Component, element)`
 - `.remove()`
 - `.run(*saga)`
@@ -170,5 +204,5 @@ etc
 - server side rendering
 - ttl caching (todo)
 - pagination (todo)
-- 'precise' rendering (todo)
+- incremental rendering (todo)
 

@@ -6,6 +6,8 @@ import { Root, makeStore } from './root'
 import { bindVariables } from './ql'
 import { getQuery, makeParser } from './db'
 
+import { log } from './util'
+
 export const ACTIONS = {
   register: 'disto.register',
   unregister: 'disto.unregister',
@@ -36,7 +38,7 @@ export class Reconciler {
       normalize,
       parser: parser || makeParser({ read, mutate }),
       remotes,
-      store: store && typeof store.dispatch === 'function' ? store : makeStore(store, reduce, middleware),
+      store: store && typeof store.dispatch === 'function' ? store : makeStore({ _: store }, reduce, middleware),
       send
     }
     global.$$$ = this // dev only, why not
@@ -45,11 +47,11 @@ export class Reconciler {
   get() {
     return this.env.store.getState()._
   }
-  sendFns = {
-    merge: data => this.merge(data),
-    optimistic: (...args) => this.optimistic(...args),
-    transact: (...args) => this.transact(...args)
-  }
+  // sendFns = {
+  //   merge: data => this.merge(data),
+  //   optimistic: (...args) => this.optimistic(...args),
+  //   transact: (...args) => this.transact(...args)
+  // }
 
   // *!*
   read(query, remote) {
@@ -57,16 +59,48 @@ export class Reconciler {
     let answer = this.env.parser(this.env, query)
     if(remote && this.env.remotes.length > 0) {
 
-      let remotes = this.env.remotes.reduce((o, r) => (o[r] = this.env.parser(this.env, query, r), o), {})
-      this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: { remotes } })
-      // let d = {}
-      // d.merge = data => this.merge(data)
-      // d.optimistic = (...args) => this.optimistic(...args)
-      // d.transact = (...args) => this.transact(...args)
-      this.env.send(remotes, this.sendFns)
+      let remotes = this.env.remotes.reduce((o, r) =>
+        (o[r] = this.env.parser(this.env, query, r), o), {})
+
+      this.env.send(remotes, this.sendFn)
+
+      // debug
+      this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: remotes })
+
     }
     return answer
   }
+
+  sendFn = (err, data) => {
+    this.merge(err || data) //to fix
+  }
+
+    // *!*
+  transact(action, query, remote = true) { // query === keys to refresh
+    // knowing that ut
+
+    // if remote, mark all mutations that happen as optimistic
+    let txn = this.env.parser(this.env, action)    // { value : { keys, tempids }} ???
+
+    // debug: dispatch *after* doing the mutation
+    this.env.store.dispatch({ ...action, txn })
+
+    if(remote && this.env.remotes.length > 0) {
+
+      let remotes = this.env.remotes.reduce((o, r) =>
+        (o[r] = this.env.parser(this.env, action, r), o), {})
+
+      // first time it's called, revert all optimistic updates
+      this.env.send(remotes, this.sendFn)
+
+    }
+
+    this.refresh()
+    if(query) {
+      this.read(query, remote) // just for the side effect
+    }
+  }
+
 
   // *!*
   register(instance, klass, p = instance.props) {
@@ -112,15 +146,6 @@ export class Reconciler {
     delete this.root
     delete this.baseRoot
 
-  }
-  // *!*
-  transact(action, query, remote = true) { // query === keys to refresh
-    // knowing that ut
-    this.env.store.dispatch(action)
-    this.refresh()
-    if(query) {
-      this.read(query, remote) // just for the side effect
-    }
   }
 
   // *!*

@@ -4,13 +4,6 @@ import React, { Component } from 'react'
 
 global.DISTO = 'development'
 
-function updateIn(o, [ key, ...rest ], fn) {
-  if(rest.length === 0) {
-    return { ...o, [key]: fn(o[key]) }
-  }
-  return { ...o, [key]: updateIn(o[key], rest, fn) }
-}
-
 const initial = {
   'one': [
     { name: 'john', points: 0 },
@@ -72,18 +65,30 @@ function read(env, key /*, params */) {
   }
 }
 
-const normalized = treeToDb(getQuery(RootView), initial)::log()
-
-function reduce(state = normalized, { type, payload: { name } = {} }) {
-  if(type === 'increment') {
-    return updateIn(state, [ 'byname', name, 'points' ], val => val + 1)
+function updateIn(o, [ key, ...rest ], fn) {
+  if(rest.length === 0) {
+    return { ...o, [key]: fn(o[key]) }
   }
-  return state
+  return { ...o, [key]: updateIn(o[key], rest, fn) }
 }
+
+function mutate(env, action) {
+  if(action.type === 'increment') {
+    let name = action.payload.name
+    return {
+      // read: ql`[byname ${name} points]`,
+      effect: () => env.store.swap (x =>
+        updateIn(x, [ 'byname', name, 'points' ], val => val + 1))
+    }
+  }
+}
+
+// transact is very much like setState in this regard, in that it might not immediately take effect
 
 let app = application({
   read,
-  reduce
+  mutate,
+  store: treeToDb(getQuery(RootView), initial)::log()
 })
 
 app.add(RootView, window.app)

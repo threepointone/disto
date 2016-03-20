@@ -9,6 +9,8 @@ import { Schema, normalize, arrayOf, unionOf } from 'normalizr'
 import ArraySchema from 'normalizr/lib/IterableSchema'
 import UnionSchema from 'normalizr/lib/UnionSchema'
 
+import { log } from './util'
+
 
 function pathMeta() { // eslint-disable-line
 
@@ -31,12 +33,38 @@ export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-lin
       ...env,
       parser: null, // ??
       target,
-      'query-root': 'ROOTROOTROOT',
+      'query-root': Symbol.for('disto.root'),
       path: env.path || [],
       get() { return this.store.getState()['_']}
     }
 
-    function step(ret, expr) {
+    if(isPlainObject(query)) {
+      // mutation
+
+      let action = { ...query, env },
+        res = mutate(env, action)
+      if(target) {
+        if(res[target] === true)
+          return action
+        else
+          return res[target]
+      }
+
+      // let error, result
+      if(res.effect) {
+        try{
+          let result = res.effect()
+          if(result != undefined) {
+            return { result }
+          }
+        }
+        catch(error) { return { error } }
+      }
+      return
+    }
+
+    // else read
+    return query.reduce((ret, expr) => {
       let ast = exprToAst(expr),
         query__ = ast.query,
         { key, dispatch, params } = ast
@@ -52,8 +80,7 @@ export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-lin
         'query-root': Array.isArray(key) ? query : query__
       }
 
-      let { type } = ast, isCall = type === 'call'
-      let res = type === 'call' ? mutate(env__, dispatch, params) : read(env__, dispatch, params)
+      let res = read(env__, dispatch, params)
 
       if(target) {
         let ast__ = res[target]
@@ -65,40 +92,19 @@ export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-lin
         }
       }
 
-      if(!(isCall || (ast.target === undefined) || res.hasOwnProperty('value'))) {
+      if(!((ast.target === undefined) || res.hasOwnProperty('value'))) {
         return ret
       }
-      let error, mutRet
-      if(isCall && res.action) {
-        try{
-          mutRet = res.action()
-        }
-        catch(err) {
-          error = err
-        }
-      }
+
       else {
         let { value } = res
-        if(isCall) {
-          if (value !== undefined && !(value instanceof Map())) {
-            throw new Error('invalid mutation')
-          }
-
-        }
         if(value !== undefined && !target) {
           ret = { ...ret, [key]: value }
-        }
-        if(mutRet) {
-          ret = { ...ret, [key]: { ...ret[key] || {}, result: mutRet } }
-        }
-        if(error) {
-          ret = { ...ret, [key]: { ...ret[key] || {}, '@error': error } }
         }
       }
       return ret
       // todo - path-meta
-    }
-    return query.reduce(step, {})
+    }, target ? [] : {})
 
   }
 }

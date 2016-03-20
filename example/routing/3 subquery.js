@@ -34,14 +34,13 @@ class About extends Component {
 
 @disto()
 class Root extends Component {
-  static query = (ctx) => {
-
-    let subqRef = ctx instanceof Component ?
-        ctx.props['app/route'][0] :
-        'app/home',
+  static query = x => {
+    let subqRef = x instanceof Component ?
+          x.props['app/route'][0] :
+          'app/home',
       subqClass = routes[subqRef]
 
-    return ql`[ app/route { route/data ${subquery(ctx, subqRef, subqClass)} } ]`
+    return ql`[ app/route { route/data ${subquery(x, subqRef, subqClass)} } ]`
   }
   render() {
     let route = this.props['app/route'][0]
@@ -58,7 +57,7 @@ const routes = {
 }
 
 
-const initial = {
+const store = {
   'app/route': [ 'app/home', '_' ],
   'app/home': {
     'home/title': 'Home page',
@@ -82,11 +81,13 @@ function read(env, key) {
   }
 }
 
-function reduce(state = initial, action) {
-  switch(action.type) {
-    case 'change/route': return { ...state, 'app/route': action.payload }
+function mutate(env, { type, payload }) {
+  if(type === 'change/route') {
+    return {
+      effect: () => env.store.swap(x => ({ ...x, 'app/route': payload }) )
+    }
   }
-  return state
+
 }
 
-application({ reduce, read }).add(Root, window.app)
+application({ read, mutate, store }).add(Root, window.app)

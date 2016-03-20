@@ -3,8 +3,6 @@ import 'isomorphic-fetch'
 import http from 'http'
 import { application, exprToAst, astToExpr, ql, queryToAst, log } from '../src'
 
-import { take } from 'redux-saga/effects'
-
 import express from 'express'
 const app = express()
 
@@ -35,40 +33,38 @@ function read(env, key) {
   }
 }
 
-async function send({ remote }, { merge, transact }) {
-  // you can call merge / transact as many times as you want
+function sender(done) {
+  return async function send({ remote }, cb) {
+  // you can call cb as many times as you want
   // so you could stream results, etc etc
   // fow now we do a simple serial resolve
-  try{
-    for(let expr of remote) {
-      let { key, params = {} } = exprToAst(expr)
-      let svc = key === 'one' ? service1 : key === 'two' ? service2 : null
-      if(svc) {
-        merge({ [key]: await svc(key, params) })
+    try{
+      for(let expr of remote) {
+        let { key, params = {} } = exprToAst(expr)
+        let svc =
+          key === 'one' ? service1 :
+          key === 'two' ? service2 :
+          null
+
+        if(svc) { cb({ [key]: await svc(key, params) }) }
       }
     }
-  }
-  catch(error) {
-    merge({ error: error.message })
-  }
+    catch(error) { cb({ error: error.message }) }
 
-  transact({ type: 'done' })
+    done()
+  }
 }
 
 // reads
 app.get('/api', function (req, res) {
-  let $ = application({ read, send, remotes: [ 'remote' ] })
-
-  let task = $.run(function*() {
-    yield take('done')
-    res.send($.get())
+  let $ = application({
+    read,
+    remotes: [ 'remote' ],
+    send: sender(() =>
+      res.send($.get())) // just dump the db when done
   })
 
-  req.on('close', () => {
-    task.cancel()
-  })
-
-  $.read(astToExpr(JSON.parse(req.query.q)), true)
+  $.read(astToExpr(JSON.parse(req.query.q)), true) // trigger remote
 
 })
 
@@ -126,4 +122,3 @@ server.listen(port).on('listening', () => {
   queries.forEach(exec)
 
 })
-

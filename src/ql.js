@@ -120,33 +120,46 @@ function unionToAst(m) {
   }
 }
 
-function callToAst(call) {
-  let [ f, args ] = call
-  // call = [ f, args ]
-
-  if(typeof f === 'symbol') {
-    return {
-      ...exprToAst(args),
-      target: meta(call, 'target') || 'remote'
-    }
-  }
-  let ast  = exprToAst(f)
+function paramToAst(expr) {
+  let [ e, params ] = expr
+  let ast = exprToAst(e)
   ast = {
     ...ast,
     params: {
       ...ast.params,
-      ...args || {}
-    }
-  }
-  if(typeof ast.dispatch === 'symbol') {
-    ast = {
-      ...ast,
-      type: 'call'
+      ...params || {}
     }
   }
   return ast
-
 }
+
+// function callToAst(call) {
+//   let [ f, args ] = call
+//   // call = [ f, args ]
+
+//   if(typeof f === 'symbol') {
+//     return {
+//       ...exprToAst(args),
+//       target: meta(call, 'target') || 'remote'
+//     }
+//   }
+//   let ast  = exprToAst(f)
+//   ast = {
+//     ...ast,
+//     params: {
+//       ...ast.params,
+//       ...args || {}
+//     }
+//   }
+//   if(typeof ast.dispatch === 'symbol') {
+//     ast = {
+//       ...ast,
+//       type: 'call'
+//     }
+//   }
+//   return ast
+
+// }
 
 export function queryToAst(query) {
   return  {
@@ -208,8 +221,11 @@ export function exprToAst(expr) {
     return identToAst(expr)
   }
   if(expr instanceof Set) {
-    return callToAst(expr)
+    return paramToAst(expr)
   }
+  // if(expr instanceof Set) {
+  //   return callToAst(expr)
+  // }
   else {
     throw new Error('invalid expression', expr)
   }

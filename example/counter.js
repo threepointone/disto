@@ -18,12 +18,16 @@ function read(env, key /*, params */) {
   }
 }
 
-function reduce(state = { counter: 0 }, { type }) {
-  if(type === 'tick') {
-    return { counter : state.counter + 1 }
+function mutate(env, { type }) {
+  if (type ==='tick') {
+    return {
+      // value: { keys:[ 'counter' ] }, // not needed here because it's already part of the root component query?
+      effect: () => env.store.swap(({ counter }) =>
+        ({ counter: counter + 1 }))
+    }
   }
-  return state
 }
 
-application({ read, reduce }).add(App, window.app)
+
+application({ read, mutate, store: { counter: 0 } }).add(App, window.app)
 

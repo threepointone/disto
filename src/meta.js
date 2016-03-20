@@ -1,9 +1,9 @@
 export const cache = new WeakMap()
 
 export function meta(o, k) {
-  if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
-    return
-  }
+  // if(typeof o === 'symbol' || typeof o === 'string' || typeof o === 'number') {
+  //   return
+  // }
   if(!cache.has(o)) {
     cache.set(o, {})
   }

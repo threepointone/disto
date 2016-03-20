@@ -1,3 +1,8 @@
+// doesn't work right now!!!
+// doesn't work right now!!!
+// doesn't work right now!!!
+// doesn't work right now!!!
+
 import React, { Component } from 'react'
 import { ql, application, decorator as disto } from '../src'
 
@@ -6,23 +11,14 @@ class Counter extends Component {
   static query = () => ql`[count errors attempts]`
 
   onClick = () => {
-
-    let txn = this.props.optimistic({ type: 'increment' })
-
-    // fake a service that fails half the time
-    setTimeout(() =>
-      Math.random() > 0.5 ?
-        txn.commit() :
-        txn.revert({ error: new Error('failed to count') }),
-    1000)
-
+    this.props.transact({ type: 'increment' })
   }
 
   render() {
+    let { count, errors = [], attempts } = this.props
     return <div onClick={this.onClick}>
-      clicked {this.props.count} times <br/>
-      {this.props.attempts} attempts : {this.props.errors.length} errors so far
-
+      clicked {count} times <br/>
+      {attempts} attempts : {errors.length} errors
     </div>
   }
 }
@@ -31,17 +27,42 @@ function read(env, key) {
   return { value: env.get()[key] }
 }
 
-function reduce(state = { count: 0, errors: [], attempts: 0 }, action) {
-  switch(action.type) {
-    case 'increment': return { ...state, count: state.count + 1 }
-    // notice there no code to 'decrement' the counter in case the 'service' fails.
-    // this update gets automatically reverted on increment:revert
-
-    // the following two are optional, we include it to count attempts/errors
-    case 'increment:commit': return { ...state, attempts: state.attempts + 1 }
-    case 'increment:revert': return { ...state, attempts: state.attempts + 1 , errors: [ ...state.errors, action.error ] }
+function mutate(env, action) {
+  if(action.type === 'increment') {
+    return {
+      remote: true,
+      effect: () => env.store.swap(x =>
+        ({ ...x, count: x.count + 1 }))
+    }
   }
-  return state
 }
 
-application({ read, reduce }).add(Counter, window.app)
+
+// remote data
+let ctr = 0
+function incrementService(cb) {
+  setTimeout(() => {
+    Math.random() > 0.5 ?
+      cb(null, ++ctr) :
+      cb(new Error('failed to count'))
+  }, 1000)
+}
+
+// this is wrong, doesn't do optimistic updates right now!!!
+function send({ remote }, cb) {
+  if(!Array.isArray(remote)) { // mutation, not read
+    let { errors, attempts, count } = remote.env.get()
+    incrementService((err, res) => cb( err ?
+      { count:  count - 1, errors: [ ...errors, err ] } :
+      { count: res, attempts: attempts + 1 }
+    ))
+  }
+}
+
+application({
+  read,
+  mutate,
+  store: { count: 0, errors: [], attempts: 0 },
+  send,
+  remotes: [ 'remote' ]
+}).add(Counter, window.app)

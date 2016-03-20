@@ -1,16 +1,16 @@
 
 
 QueryRoot
-  = ps:ParamSub / (ws '[' ws
+  = ps:Variable / (ws '[' ws
     exprs: QueryExpr*
     ws ']' ws)
-    {return exprs}
+    {return ps || exprs}
 
 
 QueryExpr
   = x:(JoinExpr
   / ParamExpr
-  / ParamSub
+  / Variable
   / IdentExpr
   / KeyWord)
   { return x }
@@ -32,7 +32,7 @@ ParamMapExpr
 
 Param
   = k:KeyWord
-    j:(Value / ParamSub)
+    j:(Value / Variable)
     ws
     { return {[k]: j}}
 
@@ -79,7 +79,7 @@ IdentExpr
     ws ']' ws
     {return [k, v]}
 
-ParamSub
+Variable
   = ws '?'
   k: [A-Za-z0-9\\\/\-]+
   ws

@@ -37,11 +37,11 @@ class List extends Component {
   }
 }
 
-const normalized = treeToDb(getQuery(List), initial)::log()
+const store = treeToDb(getQuery(List), initial)::log()
 
 let app = application({
   read,
-  store: { _: normalized }
+  store
 })
 
 app.add(List, window.app)

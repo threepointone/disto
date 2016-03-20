@@ -142,18 +142,18 @@ function read(env, key /*, params */) {
   }
 }
 
-const normalized = treeToDb(getQuery(Dashboard), initial)
-
-function reduce(state = normalized, { type, payload }) {
+function mutate(env, { type, payload }) {
   if(type === 'favorite') {
-    return updateIn(state, [ payload[0], payload[1], 'favorites' ], v => v + 1)
+    let [ type, name ] = payload
+    return {
+      effect: () => env.store.swap(x =>
+        updateIn(x, [ type, name, 'favorites' ], v => v + 1))
+    }
   }
-  return state
 }
 
-let app = application({
-  read,
-  reduce
-})
+const store = treeToDb(getQuery(Dashboard), initial)
+
+let app = application({ read, mutate, store })
 
 app.add(Dashboard, window.app)
