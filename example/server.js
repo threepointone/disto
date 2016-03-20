@@ -103,7 +103,7 @@ function exec(q) {
   fetch('http://localhost:9123/api?q=' + JSON.stringify(queryToAst(q)),
     { method: 'get' })
   .then(res => res.json())
-  .then(json => console.log('result!', json))   // eslint-disable-line no-console
+  .then(json => json::log('result!')::log())
   .catch(error => console.error(error)) // eslint-disable-line no-console
 }
 
@@ -116,8 +116,8 @@ let queries = [
 const server = http.createServer(app)
 
 server.listen(port).on('listening', () => {
-  const addr = server.address()
-  console.log('Listening on ' + (addr.port || addr))  // eslint-disable-line no-console
+  const addr = server.address(); // eslint-disable-line semi
+  `Listening on ${addr.port || addr}`::log()
 
   queries.forEach(exec)
 
