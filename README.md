@@ -52,9 +52,7 @@ features
 - 'precise' requests
 - intelligent data normalization (via normalizr)
 - mutations via actions
-- optimistic updates
 - remote sync
-- sagas
 
 
 query language
@@ -185,7 +183,6 @@ props passed in -
 - `setQuery(query, vars)/setVariables(vars)` - update the query/variables for the component
 - `transact(action, query, remote = false)`
 - `merge(state)`
-- `optimistic(action, query, remote = false)`
 - `makeRef(key)` - use with `refer={}` to make references to be used with `subquery` etc
 
 
@@ -206,8 +203,10 @@ etc
 ---
 
 - hot loading
+- sagas
 - streaming results
-- server side rendering
+- server side rendering (todo)
+- optimistic updates (todo)
 - ttl caching (todo)
 - pagination (todo)
 - incremental rendering (todo)
