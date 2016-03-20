@@ -6,6 +6,7 @@ disto
 <img src='https://i.imgur.com/2sAntqf.jpg' alt='imitation/flattery'/>
 
 steals ideas from a number of places
+- [the big idea is messaging](http://c2.com/cgi/wiki?AlanKayOnMessaging)
 - om.next (most of the api is a lift)
 - relay (colocation, optimistic updates, pagination)
 - falcor (ttl, normalization)
@@ -34,6 +35,9 @@ function read(env, key /*, params */) {
 function mutate(env, action){
   if(action.type === 'tick'){
     return {
+      value: {
+        keys: ['count']
+      },
       effect: () => env.store.swap(({ count }) =>
         ({ count: count + 1 }))
     }
