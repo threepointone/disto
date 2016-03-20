@@ -16,11 +16,11 @@ show me what it looks like!
 ```jsx
 @disto()
 class App extends Component {
-  static query = () => ql`[counter]`
+  static query = () => ql`[count]`
   onClick = () => this.props.transact({ type: 'tick' })
   render() {
     return <div onClick={this.onClick}>
-      clicked { this.props.counter } times
+      clicked { this.props.count } times
     </div>
   }
 }
@@ -34,8 +34,8 @@ function read(env, key /*, params */) {
 function mutate(env, action){
   if(action.type === 'tick'){
     return {
-      effect: () => env.store.swap(({ counter }) =>
-        ({ counter: counter + 1 }))
+      effect: () => env.store.swap(({ count }) =>
+        ({ count: count + 1 }))
     }
   }
 }
@@ -103,9 +103,15 @@ function read(env, key){
   }
 }
 
-function mutate(action){
+function mutate(env, action){
   if(action.type == 'increment'){
-
+    return {
+      value: {
+        keys: ['count']
+      },
+      effect: () => env.store.swap(state =>
+        ({ ...state, count: state.count + 1 }))
+    }
   }
 }
 let parser = makeParser({ read, mutate })
