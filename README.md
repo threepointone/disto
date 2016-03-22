@@ -153,6 +153,7 @@ app.add(App, element)
   - `send(remotes, cb)`
 - `.add(Component, element)`
 - `.remove()`
+- `.merge(novelty)`
 - `.transact(action)`
 
 @disto()
