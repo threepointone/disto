@@ -147,14 +147,14 @@ app.add(App, element)
 
 - `config`
   - `store` : object / redux store
-  - `read(env, key, params)`
+  - `read(env, key [, params])`
   - `mutate(env, action)`
   - `normalize` - `true` (default) / `false` - doesn't work right now :|
-  - `send(remotes, cb)`
+  - `send(remotes, merge)`
 - `.add(Component, element)`
 - `.remove()`
 - `.merge(novelty)`
-- `.transact(action)`
+- `.transact(action [, forceRemote])`
 
 @disto()
 ---
