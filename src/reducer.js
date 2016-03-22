@@ -1,17 +1,93 @@
+import { log } from './util.js'
+
 export default function reducer(fn) {
-  return function (state = fn(undefined, { type: '@@disto/probe' }), action) {
+  let exported = function (state = fn(undefined, { type: '@@disto/probe' }), action) {
+
     if(action.type === 'disto.merge') {
       return {
         ...state,
-        ...action.payload || {}
+        ...action.payload(state) || {},
+        txns: state.txns || {}
       }
     }
-    if(action.type === 'disto.swap') {
-      return action.payload
+    else if(action.type === 'disto.swap') {
+      return { ...action.payload(state), txns: state.txns || {} }
+    }
+    else if(action.type === 'disto.optimistic.start') {
+      state = { ...state, txns: { ...state.txns || {}, [action.payload.id] : { state, actions: [] } } }
+
     }
 
-    return fn(state, action)
+    else if(action.type === 'disto.optimistic.revert') {
+      // state::log()
+      let key = action.payload.id
+      if(!state.txns[key]) {
+        console.warn(state.txns, key)
+        return state
+      }
+      let st = state.txns[key].state,
+        actions = state.txns[key].actions
+
+      let start = 0
+      while (start < actions.length &&
+        actions[start].type!== 'disto.optimistic.stop' &&
+        actions[start].payload.id !== key) {
+        start ++
+      }
+
+      while(start < actions.length) {
+        // st::log()
+        st = exported(st, actions[start])
+        start ++
+      }
+
+
+      state = st
+      state = {
+        ...state,
+        txns: state.txns::without(key)
+      }
+      // return state
+
+
+      // start with state
+      // skip until optimistic.stop
+      // 'replay' the rest
+      // remove from txns
+      // carry on
+
+    }
+
+    else {
+      state = fn(state, action)
+    }
+
+
+    let txns = state.txns || {}
+    Object.keys(txns).forEach(key =>
+      state = {
+        ...state,
+        txns: {
+          ...txns,
+          [key]: {
+            ...txns[key] || {},
+            actions: [ ...(txns[key] || {}).actions || [], action ]
+          }
+        }
+      }
+    )
+    return state
   }
+  return exported
+}
+
+function without(obj, key) {
+  return Object.keys(obj).reduce((o, k) => {
+    if (k!== key) {
+      return { ...o, [k]: obj[k] }
+    }
+    return o
+  }, {})
 }
 
 

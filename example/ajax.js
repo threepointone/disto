@@ -49,7 +49,7 @@ function send({ search }, cb) {
     let { key, params } = exprToAst(expr)
     if(key === 'results') {
       searchWiki(params.query,
-        (err, res) => res && cb(res))
+        (err, res) => res && cb(() => res))
     }
   }
 }

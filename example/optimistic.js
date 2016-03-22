@@ -1,9 +1,7 @@
-// doesn't work right now!!!
-// doesn't work right now!!!
-// doesn't work right now!!!
-// doesn't work right now!!!
+// buggy !!!
 
 import React, { Component } from 'react'
+import isPlainObject from 'lodash.isplainobject'
 import { ql, application, decorator as disto } from '../src'
 
 @disto()
@@ -27,16 +25,25 @@ function read(env, key) {
   return { value: env.get()[key] }
 }
 
-function mutate(env, action) {
+function mutate({ store }, action) {
   if(action.type === 'increment') {
     return {
       remote: true,
-      effect: () => env.store.swap(x =>
+      effect: () => store.swap(x =>
         ({ ...x, count: x.count + 1 }))
     }
   }
 }
 
+
+function send({ remote }, cb) {
+  if(isPlainObject(remote)) { // mutation
+    incrementService((err, res) => cb(x => err ?
+      { errors: [ ...x.errors, err ], attempts: x.attempts + 1 } :
+      { count: res, attempts: x.attempts + 1 }
+    ))
+  }
+}
 
 // remote data
 let ctr = 0
@@ -48,16 +55,6 @@ function incrementService(cb) {
   }, 1000)
 }
 
-// this is wrong, doesn't do optimistic updates right now!!!
-function send({ remote }, cb) {
-  if(!Array.isArray(remote)) { // mutation, not read
-    let { errors, attempts, count } = remote.env.get()
-    incrementService((err, res) => cb( err ?
-      { count:  count - 1, errors: [ ...errors, err ] } :
-      { count: res, attempts: attempts + 1 }
-    ))
-  }
-}
 
 application({
   read,

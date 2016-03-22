@@ -2,15 +2,15 @@ import React, { Component, PropTypes } from 'react'
 
 // redux
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
-import { Provider } from 'react-redux'
+// import { Provider } from 'react-redux'
 
 // redux-saga
-import createSagaMiddleware from 'redux-saga'
+// import createSagaMiddleware from 'redux-saga'
 // import { take } from 'redux-saga/effects'
-import { Sagas } from 'react-redux-saga'
+// import { Sagas } from 'react-redux-saga'
 
 // optimist
-import optimist from 'redux-optimist'
+// import optimist from 'redux-optimist'
 // import { Optimist } from 'react-redux-optimist'
 
 // redux-react-local
@@ -52,15 +52,16 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
     reduce = initial
     initial = {}
   }
-  let sagaMiddleware = createSagaMiddleware()
+  // let sagaMiddleware = createSagaMiddleware()
   // create a redux store
   const store = createStore(
     // reducer
-    optimist(combineReducers({
-      _: reducer(reduce),
-      // local: Local.reducer,
-      components
-    })),
+    // optimist(
+      combineReducers({
+        _: reducer(reduce),
+        // local: Local.reducer,
+        components
+      }),
 
     // initial state
     initial || {},
@@ -69,7 +70,7 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
     compose(
       applyMiddleware(...(function *() {
         yield* middleware
-        yield sagaMiddleware
+        // yield sagaMiddleware
         if (process.env.NODE_ENV === 'development') {
           yield ensureFSA
         }
@@ -82,14 +83,14 @@ export function makeStore(initial = {}, reduce = (x = {}) => x, middleware = [])
         rafUpdateBatcher : unstable_batchedUpdates))
   )
 
-  store.sagas = sagaMiddleware
+  // store.sagas = sagaMiddleware
 
   // helpers
   // - updateIn
   // - merge
 
   store.swap = fn => {
-    store.dispatch({ type: 'disto.swap', payload: fn(store.getState()._) })
+    store.dispatch({ type: 'disto.swap', payload: fn })
   }
 
   return store
@@ -127,11 +128,9 @@ export class Root extends Component {
 
   render() {
     let C = this.props.Component
-    return <Provider store={this.state.store}>
-      <Sagas middleware={this.state.store.sagas}>
-        <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
-      </Sagas>
-    </Provider>
+    return <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
+
+
   }
   componentWillUnmount() {
     // if(this.saga) {
@@ -140,3 +139,8 @@ export class Root extends Component {
     // }
   }
 }
+
+// <Sagas middleware={this.state.store.sagas}>
+// </Sagas>
+// <Provider store={this.state.store}>
+// </Provider>
