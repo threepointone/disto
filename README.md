@@ -146,18 +146,14 @@ app.add(App, element)
 ```
 
 - `config`
-  - `normalize` - `true` (default) / `false` - doesn't work right now :|
+  - `store` : object / redux store
   - `read(env, key, params)`
   - `mutate(env, action)`
+  - `normalize` - `true` (default) / `false` - doesn't work right now :|
   - `send(remotes, cb)`
-  - `store` : object / redux store
-  - `reduce(state, action)` * optional
-  - `middleware` * optional
 - `.add(Component, element)`
 - `.remove()`
-- `.run(*saga)`
-- `.read(query, remote = false)`
-- `.transact(action, query, remote = false)`
+- `.transact(action)`
 
 @disto()
 ---
