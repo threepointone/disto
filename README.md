@@ -191,7 +191,7 @@ props passed in -
 - `setState(state)` - sets 'local' state
 - `setQuery(query, vars)/setVariables(vars)` - update the query/variables for the component
 - `transact(action, query, remote = false)`
-- `merge(state)`
+- `merge(() => slice)`
 - `makeRef(key)` - use with `refer={}` to make references to be used with `subquery` etc
 
 
