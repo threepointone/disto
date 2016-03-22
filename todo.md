@@ -12,15 +12,13 @@ server side reads
 fix mutations api/flow
 
 working on -
-optimistic updates
+~ optimistic updates
 server side writes
 force
 common mutations for store - merge, updateIn, etc
 ~ recursive joins
 normalizing incoming data
-pull out mutations/calls from parser?
-allow params in more spots
-`send` should be a saga
+allow variables in more spots
 long lists perf
 pagination
 ttl caching
