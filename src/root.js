@@ -3,6 +3,7 @@ import React, { Component, PropTypes } from 'react'
 // redux
 import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
 // import { Provider } from 'react-redux'
+import { log } from './util'
 
 // redux-saga
 // import createSagaMiddleware from 'redux-saga'
@@ -110,12 +111,50 @@ export class Root extends Component {
     store: this.props.store
   }
   static childContextTypes = {
-    disto: PropTypes.object
+    disto: PropTypes.object,
+    'disto:path': PropTypes.array,
+    'disto:register':  PropTypes.func,
+    'disto:unregister': PropTypes.func
   }
   getChildContext() {
     return {
-      disto: this.props.reconciler
+      disto: this.props.reconciler,
+      'disto:path': [ ],
+      'disto:register':  this.register,
+      'disto:unregister': this.unregister
     }
+  }
+  registered = []
+  register = (path, instance, klass) => {
+    let vars = klass.variables ? klass.variables() : undefined,
+      id = klass.ident ? klass.ident(instance.props) : undefined,
+      q = klass.query ? klass.query(instance, instance.props) : undefined,
+      data = {
+        ident: id,
+        query: q,
+        variables: vars,
+        klass
+      }
+
+    // function pathToString(path) {
+    //   return path.map(p => p[0]).join('˚')
+    // }
+    // path)::log()
+    // pathToString(path)::log()
+    // this.registered.push([ path, data ])
+    // console.log('registered', this.registered.length)
+    // warn for duplicate defers
+
+    // console.log('register', path, data)
+
+    this.state.store.dispatch({ type: 'disto.register', payload: [ path, data ] })
+    // update indices
+  }
+  unregister = (path, instance, klass) => {
+    // todo
+    // this.registered = this.registered.filter(([ pp, data ]) => pp.map(p => p[0]).join('π') !== path.map(p => p[0]).join('π'))
+    // console.log('unregister', { path, klass })
+    // this.env.store.dispatch({ type: 'disto.unregister', payload: { path, data: { klass } } })
   }
 
   setAnswer(answer) {
@@ -128,9 +167,9 @@ export class Root extends Component {
 
   render() {
     let C = this.props.Component
-    return <C {...this.state.answer} refer={r => this.props.reconciler.setRoot(r)}/>
-
-
+    return <C {...this.state.answer}
+              refer={'root:view'}
+            />
   }
   componentWillUnmount() {
     // if(this.saga) {
@@ -139,6 +178,8 @@ export class Root extends Component {
     // }
   }
 }
+
+
 
 // <Sagas middleware={this.state.store.sagas}>
 // </Sagas>

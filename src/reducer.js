@@ -6,77 +6,16 @@ export default function reducer(fn) {
     if(action.type === 'disto.merge') {
       return {
         ...state,
-        ...action.payload(state) || {},
-        txns: state.txns || {}
+        ...action.payload(state) || {}
       }
     }
     else if(action.type === 'disto.swap') {
-      return { ...action.payload(state), txns: state.txns || {} }
-    }
-    else if(action.type === 'disto.optimistic.start') {
-      state = { ...state, txns: { ...state.txns || {}, [action.payload.id] : { state, actions: [] } } }
-
-    }
-
-    else if(action.type === 'disto.optimistic.revert') {
-      // state::log()
-      let key = action.payload.id
-      if(!state.txns[key]) {
-        console.warn(state.txns, key)
-        return state
-      }
-      let st = state.txns[key].state,
-        actions = state.txns[key].actions
-
-      let start = 0
-      while (start < actions.length &&
-        actions[start].type!== 'disto.optimistic.stop' &&
-        actions[start].payload.id !== key) {
-        start ++
-      }
-
-      while(start < actions.length) {
-        // st::log()
-        st = exported(st, actions[start])
-        start ++
-      }
-
-
-      state = st
-      state = {
-        ...state,
-        txns: state.txns::without(key)
-      }
-      // return state
-
-
-      // start with state
-      // skip until optimistic.stop
-      // 'replay' the rest
-      // remove from txns
-      // carry on
-
+      return action.payload(state)
     }
 
     else {
-      state = fn(state, action)
+      return fn(state, action)
     }
-
-
-    let txns = state.txns || {}
-    Object.keys(txns).forEach(key =>
-      state = {
-        ...state,
-        txns: {
-          ...txns,
-          [key]: {
-            ...txns[key] || {},
-            actions: [ ...(txns[key] || {}).actions || [], action ]
-          }
-        }
-      }
-    )
-    return state
   }
   return exported
 }
@@ -103,20 +42,59 @@ function delMap(m, key) {
   return mm
 }
 
-export function components( state = new Map(), { type, payload }) { // weakmap?
+function replaceInArray(arr, pos, val) {
+  return [ ...arr.slice(0, pos),  val, ...arr.slice(pos+1) ]
+}
+
+function updateIn(arr, path, fn) {
+  let i = arr::findIndex(c => {
+    return comparePaths(c[0], path)
+  })
+  return replaceInArray(arr, i, fn(arr[i]))
+}
+
+export function components( state = [], { type, payload }) { // weakmap?
   switch(type) {
     case 'disto.register':
-      return setMap(state, payload.component, payload.data || {})
+      // todo - don't register if already 'exists'
+      return [ ...state, payload ]
     // case 'disto.setIdent':
     //   return setMap(state, payload.component, { ...state.get(payload.component), ident: payload.ident })
-    case 'disto.setState':
-      return setMap(state, payload.component, { ...state.get(payload.component), state: payload.state })
+    // case 'disto.setState':
+    //   return setMap(state, payload.component, { ...state.get(payload.component), state: payload.state })
     case 'disto.setVariables':
-      return setMap(state, payload.component, { ...state.get(payload.component), variables: payload.variables })
+      return updateIn(state, payload.path, c => [ c[0], { ...c[1], ...payload } ])
     case 'disto.setQuery':
-      return setMap(state, payload.component, { ...state.get(payload.component), query: payload.query, variables: payload.variables })
-    case 'disto.unregister':
-      return delMap(state, payload.component)
+      return updateIn(state, payload.path, c => [ c[0], { ...c[1], ...payload } ])
+    // case 'disto.unregister':
+    //   return []delMap(state, payload.component)
   }
   return state
+}
+
+// export function txns(state = {}, action) {
+//   // if marked with transaction.start
+// }
+
+
+function comparePaths(a, b) {
+  let matches = true
+  if(a.length !== b.length) {
+    return false
+  }
+  for(let i= 0; i< a.length; i++) {
+    if(a[i][0] !== b[i][0] && a[i][1] !== b[i][1]) {
+      matches = false
+      break
+    }
+  }
+  return matches
+}
+
+function findIndex(fn) {
+  for(let i = 0; i< this.length; i++) {
+    if(fn(this[i])) {
+      return i
+    }
+  }
 }

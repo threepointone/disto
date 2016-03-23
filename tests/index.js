@@ -1,7 +1,7 @@
 /* global describe, it */
 import expect from 'expect'
 
-import { ql } from '../src'
+import { ql, makeStore, log } from '../src'
 describe('ql', () => {
   describe('syntax', () => {
     it('prop', () => {
@@ -40,4 +40,22 @@ describe('parser', () => {
   // read
   // mutate
 })
+
+// describe('reducer', () => {
+//   it.only('optimistic updates', () => {
+//     let s = makeStore({ _: { count: 0 } })
+
+//     s.getState()._::log()
+//     s.swap(x => ({ count: x.count + 1 }))
+//     s.dispatch({ type: 'disto.optimistic.start', payload: { id: 0 } })
+//     s.swap(x => ({ count: x.count + 1 }))
+//     s.swap(x => ({ count: x.count + 1 }))
+//     s.dispatch({ type: 'disto.optimistic.stop', payload: { id: 0 } })
+//     s.swap(x => ({ count: x.count + 1 }))
+//     s.dispatch({ type: 'disto.optimistic.revert', payload: { id: 0 } })
+//     s.swap(x => ({ count: x.count + 1 }))
+//     s.getState()._::log()
+
+//   })
+// })
 

@@ -40,13 +40,13 @@ class Root extends Component {
           'app/home',
       subqClass = routes[subqRef]
 
-    return ql`[ app/route { route/data ${subquery(x, subqRef, subqClass)} } ]`
+    return ql`[ app/route { route/data ${subquery(x, subqRef, subqClass)::log()} } ]`
   }
   render() {
     let route = this.props['app/route'][0]
     let C = routes[route]
     return <div>
-      <C refer={this.props.makeRef(route)} {...this.props['route/data']}/>
+      <C refer={route} {...this.props['route/data']}/>
     </div>
   }
 }

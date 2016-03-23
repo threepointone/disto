@@ -1,6 +1,6 @@
 import { render, unmountComponentAtNode } from 'react-dom'
 import React from 'react'
-import { BEGIN, COMMIT, REVERT } from 'redux-optimist'
+// import { BEGIN, COMMIT, REVERT } from 'redux-optimist'
 
 import { Root, makeStore } from './root'
 import { bindVariables } from './ql'
@@ -9,17 +9,22 @@ import { getQuery, makeParser } from './db'
 import { log } from './util'
 
 export const ACTIONS = {
-  register: 'disto.register',
-  unregister: 'disto.unregister',
-  fromHistory: 'disto.fromHistory',
   setVariables: 'disto.setVariables',
   setQuery: 'disto.setQuery',
-
   merge: 'disto.merge',
   remoteSend: 'disto.remoteSend',
   setState: 'disto.setState'
 
 }
+
+function find(fn) {
+  for(let i = 0; i< this.length; i++) {
+    if(fn(this[i])) {
+      return this[i]
+    }
+  }
+}
+
 
 export class Reconciler {
 
@@ -65,33 +70,55 @@ export class Reconciler {
       this.env.send(remotes, this.sendFn)
 
       // debug
-      this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: remotes })
+      // this.env.store.dispatch({ type: ACTIONS.remoteSend, payload: remotes })
 
     }
     return answer
   }
 
-  sendFn = (err, data) => {
-    this.merge(err || data) //to fix
+  sendFn = (fn) => {
+    this.merge(fn) //to fix
   }
 
     // *!*
-  transact(action, query, remote = true) { // query === keys to refresh
+  transactionID = 0
+  transact(component, action, query, remote = true) { // query === keys to refresh
     // knowing that ut
 
-    // if remote, mark all mutations that happen as optimistic
-    let txn = this.env.parser(this.env, action)    // { value : { keys, tempids }} ???
+    // let txn = this.env.parser(this.env, action)    // { value : { keys, tempids }} ???
 
-    // debug: dispatch *after* doing the mutation
-    this.env.store.dispatch({ ...action, txn })
+    // // debug: dispatch *after* doing the mutation
+    // this.env.store.dispatch({ ...action, txn })
 
     if(remote && this.env.remotes.length > 0) {
+      // if remote, mark all mutations that happen as optimistic
+      // let id = this.transactionID++
+      // need to mark whatever mutation happens next as optimistic
+      this.env.parser(this.env, action)    // { value : { keys, tempids }} ???
+
+      // debug: dispatch *after* doing the mutation
+      // this.env.store.dispatch({ ...action, txn })
 
       let remotes = this.env.remotes.reduce((o, r) =>
+
         (o[r] = this.env.parser(this.env, action, r), o), {})
 
       // first time it's called, revert all optimistic updates
-      this.env.send(remotes, this.sendFn)
+      // let reverted = false
+      this.env.send(remotes, (fn) => {
+        // if(!reverted) {
+        //   this.env.store.dispatch({ type: 'disto.optimistic.revert' , payload: { id } })
+        //   reverted = true
+        // }
+
+        this.sendFn(fn)
+      })
+
+    }
+    else {
+      let txn = this.env.parser(this.env, action)    // { value : { keys, tempids }} ???
+      // debug: dispatch *after* doing the mutation
+      // this.env.store.dispatch({ ...action, txn })
 
     }
 
@@ -103,30 +130,13 @@ export class Reconciler {
 
 
   // *!*
-  register(instance, klass, p = instance.props) {
-
-    let vars = klass.variables ? klass.variables() : undefined,
-      id = klass.ident ? klass.ident(p) : undefined,
-      q = klass.query ? klass.query(instance, p) : undefined,
-      data = {
-        ident: id,
-        query: q,
-        variables: vars
-      }
-
-    this.env.store.dispatch({ type: ACTIONS.register, payload: { component: instance, data } })
-    // update indices
-  }
-  unregister(instance) {
-    this.env.store.dispatch({ type: ACTIONS.unregister, payload: { component: instance } })
-  }
-
-  // *!*
   add(Component, element) {
     this.element = element
     this.Component = Component
     let answer = this.read(getQuery(Component), true)
     render(this.createElement(Component, answer), element)
+    // this.env.store.dispatch({ type: 'disto.register', payload: this.baseRoot.registered })
+    // update view query in state
   }
 
   createElement(Component, answer) {
@@ -143,20 +153,22 @@ export class Reconciler {
   remove() {
 
     unmountComponentAtNode(this.element)
-    delete this.root
+    // delete this.root
     delete this.baseRoot
 
   }
 
   // *!*
   refresh(remote) {
+    // this has to become a 'scheduler'
+    // if(!this.root) {
+    //   // console.warn('root missing?')   // eslint-disable-line no-console
+    //   return
 
-    if(!this.root) {
-      // console.warn('root missing?')   // eslint-disable-line no-console
-      return
-
-    }
-    let c = this.env.store.getState().components.get(this.root)
+    // }
+    // we should store this query locally?
+    // rather, under 'root'
+    let c = this.env.store.getState().components::find(p => p[0][0][0] === 'root:view')[1]
     let answer = this.read(bindVariables(c.query, c.variables), remote)
 
     if(!this.baseRoot) {
@@ -170,52 +182,39 @@ export class Reconciler {
 
   // *!*
   setVariables(component, variables, remote = true) {
-    this.env.store.dispatch({ type: ACTIONS.setVariables, payload: { component, variables } })
+    this.env.store.dispatch({ type: ACTIONS.setVariables, payload: { path: component['disto:path'], variables } })
     this.refresh(remote)
   }
   // *!*
   setQuery(component, query, variables, remote = true) {
-    this.env.store.dispatch({ type: ACTIONS.setQuery, payload: { component, query, variables } })
+    this.env.store.dispatch({ type: ACTIONS.setQuery, payload: { path: component['disto:path'], query, variables } })
     this.refresh(remote)
   }
 
   // *!*
-  setState(component, state) {
-    this.env.store.dispatch({ type: ACTIONS.setState, payload: { component, state } })
-  }
+  // setState(component, state) {
+  //   this.env.store.dispatch({ type: ACTIONS.setState, payload: { component, state } })
+  // }
 
   // *!*
-  merge(payload) {
-    this.env.store.dispatch({ type: ACTIONS.merge, payload })
+  merge(novelty) {
+    // todo - normalize etc
+    this.env.store.dispatch({ type: ACTIONS.merge, novelty })
     this.refresh()
   }
 
-  transactionID = 0
-  optimistic(action, query, remote) {
-    // we don't really use component, just for consistency
-    const id = this.transactionID++
-    this.transact({ ...action, optimist: { type: BEGIN, id } })
-    return {
-      commit: (a = {}) => {
-        this.transact({ ...action, type: `${action.type}:commit`, ...a, optimist: { type: COMMIT, id } }, query, remote)
-      },
-      revert: (a = {}) => {
-        this.transact({ ...action, type: `${action.type}:revert`, ...a, optimist: { type: REVERT, id } })
-      }
-    }
-  }
 
-  run(saga, ...args) {
-    return this.env.store.sagas.run(saga, ...args)
-  }
+  // run(saga, ...args) {
+  //   return this.env.store.sagas.run(saga, ...args)
+  // }
 
-  setRoot(instance) {
-    this.root = instance
-  }
+  // setRoot(instance) {
+  //   this.root = instance
+  // }
 
-  fromHistory(r, uuid) {
-    this.store.dispatch({ type: ACTIONS.fromHistory, payload: uuid })
-  }
+  // fromHistory(r, uuid) {
+  //   this.store.dispatch({ type: ACTIONS.fromHistory, payload: uuid })
+  // }
 
 }
 

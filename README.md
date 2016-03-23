@@ -1,4 +1,4 @@
-disto
+sudisto
 ---
 
 [highly experimental, be warned]
@@ -189,7 +189,6 @@ props passed in -
 - `setQuery(query, vars)/setVariables(vars)` - update the query/variables for the component
 - `transact(action, query, remote = false)`
 - `merge(() => slice)`
-- `makeRef(key)` - use with `refer={}` to make references to be used with `subquery` etc
 
 
 functions

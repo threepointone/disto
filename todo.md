@@ -22,6 +22,7 @@ allow variables in more spots
 long lists perf
 pagination
 ttl caching
+optimistic commits (so you don't lose optimistic effects)
 
 dev helper when optimistic actions don't get resolved in x secs
 
@@ -31,5 +32,9 @@ focus query
 server side rendering
 tempids
 tests
+compose applications?
 
 flow / typescript annotation
+nicer parser/error messages :|
+
+throw error on setting query on component withour ref / non root

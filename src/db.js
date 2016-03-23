@@ -27,6 +27,9 @@ export function getQuery(Component, props) {
   return withMeta(q, { component: Component })
 }
 
+export function getComponentTree(instance) {
+}
+
 export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-line
   return function (env, query, target) {
     env = {
@@ -254,12 +257,47 @@ export function dbToTree(q, state, appState = state) {
   return schemaToTree(ast, state, appState, appState.schema)
 }
 
+function comparePaths(a, b) {
+  let matches = true
+  if(a.length !== b.length) {
+    return false
+  }
+  for(let i= 0; i< a.length; i++) {
+    if(a[i][0] !== b[i][0] && a[i][1] !== b[i][1]) {
+      matches = false
+      break
+    }
+  }
+  return matches
+}
+
+import React from 'react'
+
 export function subquery(component, ref, klass, props) {
-  if(component && component.references[ref]) {
-    return component.context.disto.store.getState().components.get(component.refs[ref]).query
+  if(component instanceof React.Component) {
+    if(!ref) {
+      throw new Error('missing ref for subquery')
+    }
+    let { components } = component.context.disto.env.store.getState()
+    let targetPath = [ ...component['disto:path'], [ ref || '*', klass ] ]
+    let found = components::find(c => comparePaths(targetPath, c[0]))
+    if(found) {
+      return found[1].query
+    }
+
   }
 
-  else {
-    return getQuery(klass, props)
+  return getQuery(klass, props)
+}
+
+// function pathToString(path) {
+//   return path.map(p => p[0]).join('˚')
+// }
+
+function find(fn) {
+  for(let i = 0; i< this.length; i++) {
+    if(fn(this[i])) {
+      return this[i]
+    }
   }
 }

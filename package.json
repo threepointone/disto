@@ -7,7 +7,7 @@
     "build": "npm run parser && NODE_ENV=production babel src -d lib",
     "parser": "pegjs --extra-options-file pegjs.config.json src/ql.pegjs src/parser.js ",
     "start": "webpack-dev-server --hot --inline --port 3000 --config webpack.config.js",
-    "test": "NODE_ENV=test babel-node ./node_modules/.bin/karma start tests/karma.conf.js --single-run"
+    "test": "NODE_ENV=test babel-node ./node_modules/.bin/karma start tests/karma.conf.js"
   },
   "keywords": [
     "react",
@@ -38,6 +38,7 @@
     "expect": "^1.14.0",
     "expect-jsx": "^2.3.0",
     "express": "^4.13.4",
+    "history": "^2.0.1",
     "immutable": "^3.7.6",
     "isomorphic-fetch": "^2.2.1",
     "isparta-loader": "^2.0.0",

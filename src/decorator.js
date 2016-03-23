@@ -13,55 +13,67 @@ export default function decorator() {
       static schemaAttribute = Target.schemaAttribute
 
       static contextTypes = {
-        disto: PropTypes.object
+        disto: PropTypes.object,
+        'disto:path': PropTypes.array,
+        'disto:register': PropTypes.func,
+        'disto:unregister': PropTypes.func
+      }
+      static childContextTypes = {
+        'disto:path': PropTypes.array
+      }
+      getChildContext() {
+        return {
+          'disto:path': this._path()
+        }
+      }
+      _path() {
+        return [ ...this.context['disto:path'], [ this.props.refer || '*', Disto ] ]
       }
       componentWillMount() {
-        let { disto } = this.context
-        if(this.props.refer) {
-          this.unrefer = this.props.refer(this)
-        }
-
-        disto.register(this, Disto)
+        this['disto:path']  = this._path()
+        this.context['disto:register'](this['disto:path'], this, Disto)
       }
       componentWillReceiveProps(nextProps) {
         // this.context.disto.nextProps(this, nextProps)
       }
       setQuery = (query, variables) => {
-        let { disto } = this.context
-        disto.setQuery(this, query, variables)
+        this.context.disto.setQuery(this, query, variables)
       }
       setVariables = vars => {
-        let { disto } = this.context
-        disto.setVariables(this, vars)
-
+        this.context.disto.setVariables(this, vars)
       }
       _setState = state => {
         this.context.disto.setState(this, state)
       }
-      updateQuery = fn => {
+      // updateQuery = fn => {
 
-      }
-      transact = (action, query, remote) => {
+      // }
+      transact = (action, force) => {
         // need to annotate action with component
-        this.context.disto.transact(action, query, remote)
-      }
-      optimistic = (...args) => {
-        return this.context.disto.optimistic(...args)
+        this.context.disto.transact(this, action, force)
       }
 
-      references = {}
-      makeRef = key => {
-        return (el => {
-          this.references[key] = el
-          return () => delete this.references[key]
-        })
-      }
+      // optimistic = (...args) => {
+      //   return this.context.disto.optimistic(this, ...args)
+      // }
+
+      // references = {}
+      // makeRef = key => {
+      //   return (el => {
+      //     this.references[key] = el
+      //     return () => delete this.references[key]
+      //   })
+      // }
 
 
       render() {
-        let { query, ident, variables, state } = this.context.disto.env.store.getState().components.get(this) || {}
+        let p = this['disto:path'].join('π')
+        let { query, ident, variables, state } =
+          this.context.disto.env.store.getState().components::find(x =>
+            x[0].join('π') === p && x[1] === Disto) || {}
         return <Target
           {...this.props}
+          distoPath={this['disto:path']}
           query={query}
           ident={ident}
           variables={variables}
@@ -69,21 +81,32 @@ export default function decorator() {
           setQuery={this.setQuery}
           setVariables={this.setVariables}
           setState={this._setState}
-          optimistic={this.optimistic}
           transact={this.transact}
-          makeRef={this.makeRef}
+          disto={this.context.disto}
           // need merge!()
 
         >{this.props.children}</Target>
       }
       componentWillUnmount() {
-        this.context.disto.unregister(this)
-        if(this.unrefer) {
-          this.unrefer()
-          delete this.unrefer
-        }
+        // this.context.disto.unregister(this.context['disto:path'], this, Disto)
+        this.context['disto:unregister'](this['disto:path'], this, Disto)
+        delete this['disto:path'] //  = this._path()
+
+        // this.context.disto.unregister(this)
+        // if(this.unrefer) {
+        //   this.unrefer()
+        //   delete this.unrefer
+        // }
 
       }
+    }
+  }
+}
+
+function find(fn) {
+  for(let i = 0; i< this.length; i++) {
+    if(fn(this[i])) {
+      return this[i]
     }
   }
 }

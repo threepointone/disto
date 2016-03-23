@@ -1,4 +1,4 @@
-import { ql, application, getQuery, treeToDb, dbToTree, astToExpr , decorator as disto, log } from '../src'
+import { ql, application, getQuery, treeToDb, dbToTree, astToExpr , decorator as disto, subquery, log } from '../src'
 
 import React, { Component } from 'react'
 
@@ -34,6 +34,7 @@ class Person extends Component {
   }
 }
 
+@disto()
 class ListView extends Component {
   render() {
     let { list } = this.props
@@ -48,13 +49,18 @@ class ListView extends Component {
 class RootView extends Component {
   static query = () =>
     ql`[{one ${getQuery(Person)}} {two ${getQuery(Person)}}]`
+
+  componentDidMount() {
+    setTimeout(() => subquery(this, 'list/one', ListView)::log(), 1000)
+
+  }
   render() {
     let { one, two } = this.props
     return <div>
       <h2>List A</h2>
-      <ListView list={one} />
+      <ListView refer='list/one' list={one} />
       <h2>List B</h2>
-      <ListView list={two} />
+      <ListView refer='list/two' list={two} />
     </div>
   }
 }

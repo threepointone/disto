@@ -20,7 +20,7 @@ architectures and whatnot
   function step(action){
     // possible side effects //
     state = reduce(state, action)
-    render(view(state), element)
+    render(view(state), element)    
   }
 
   // then call `step` on every `action`
@@ -37,37 +37,62 @@ architectures and whatnot
   the core idea is - `state = model.read(view.query())`
 
   ```jsx
-  // longer flow
-
   let read = (state, query, params) => {}
-  let mutate = (state, action) => {}
-  let remote = (query/action, merge) => {}
+  let mutate = (state, mutation) => {}
+  let remote = (query/mutation, merge) => {}
 
-  let model = { read, mutate, data, remote }
+  let model = ({ read, mutate, data, remote })
 
-  // initial read/render
-  let state = model.read(view.query())
-  render(view(state), element)
-
-  function step(action){
-    if(action.type === 'read'){
-      state = merge(state, model.read(action.query || view.query()))
-      // the above *might* trigger remote reads which might merge asynchronously
-    }
-    else if(action.type === 'mutate') {
-      model.mutate(action)
-      // as above, might trigger a remote mutation
-
-      if(action.query){ // optional reads
-        step({ type: 'read', query: action.query})
-      }
-    }
-    render(view(state), element)
+  function step(mutation){  
+    model.transact(mutation) // possible side effects, remote syncs
+    let state = model.read(view.query()) // possible remote reads
+    render(view(state), element)    
   }
   ```
   - `read` / `mutate` are pure!
   - in practice, you'd rarely trigger reads manually, mostly mutations. data fetching for free!
-  - `view.query()` is a simple data structure, which can be optimized, serialized, etc
+  - `view.query()` is a simple data structure, which can be optimized, serialized, etc  
   - we can now use the view's `query` to hold a bunch of ui 'state' we'd have otherwise saved in the store
   - via relay - `view` can expect `state` to be in the shape of its `query`
   - can do incremental rendering based on what reads were asked, etc
+
+
+### pieces 
+
+  query = [...expr] || ql`[shorthand]`
+
+  mutation = { type, payload [, reads] }
+
+  action = query | mutation
+
+  read = ƒ(env, key, params) => {
+    remote: true | falsy | name,
+    value : {/* in desired shape */}
+  }
+
+  mutate = ƒ(env, mutation) => {
+    remote: true | falsy | name,
+    value: { keys: [k...], tempids: [] },
+    effect: () => { /* side effect */ }
+  }
+
+  send = ƒ({ ...remotes }, merge)
+
+  merge = ƒ(state => /* data to merge */)
+
+  model = ƒ(read, mutate) =>
+    ƒ(env, action, remote = false)
+
+  reconciler = ƒ(parser, data, send)
+
+    .add(Component, element)
+    .remove()
+    .merge(novelty)
+    .transact(action, forceRemote)
+
+
+  as a developer,
+   - define `read`, `mutate`, `send`.
+   - then set up your components and their query/variables/idents
+   - finally, add `transact`/`setQuery`/`setVariables` calls for state changes
+   - iterate :)

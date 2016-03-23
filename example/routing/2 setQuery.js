@@ -66,11 +66,14 @@ const store = {
   }
 }
 
+function pick(obj, keys) {
+  return keys.reduce((o, k) => (o[k] = obj[k], o), {})
+}
 
-function read(env, key) {
+function read(env, key, params) {
   if(key === 'route/data') {
     return {
-      value: env.get()[env.get()['app/route'][0]]
+      value: env.get()[env.get()['app/route'][0]]::log()//, env.query::log() // this is broken right now
     }
   }
   return {
