@@ -27,8 +27,6 @@ export function getQuery(Component, props) {
   return withMeta(q, { component: Component })
 }
 
-export function getComponentTree(instance) {
-}
 
 export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-line
   return function (env, query, target) {
@@ -45,7 +43,7 @@ export function makeParser({ read, mutate, elidePaths }) { // eslint-disable-lin
       // mutation
 
       let action = { ...query, env },
-        res = mutate(env, action)
+        res = mutate(env, action) || {}
       if(target) {
         if(res[target] === true)
           return action

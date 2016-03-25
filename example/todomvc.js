@@ -1,155 +1,217 @@
-import { ql, application, getQuery, decorator as disto, log
-  // , treeToDb, dbToTree, ,
-} from '../src'
+import { ql, application, getQuery, decorator as disto, log, treeToDb } from '../src'
 
 import React, { Component } from 'react'
 
-const store = {
-  active: 'all',
-  todos: [
-    { id: 0, text: 'asdsad' },
-    { id: 1, text: 'sadfsdf' },
-    { id: 2, text: 'sdfdsf' },
-    { id: 3, text: 'sdfsdf' }
-  ]
+// a couple of functional helpers
+function toObject() {
+  // converts an array of [k: string, v] entries into an object
+  return this.reduce((o, [k, v]) => (o[k] = v, o), {}); // eslint-disable-line
+}
+
+function updateIn(o, [ head, ...tail ], fn) {
+  // deep update a nested object at path
+  if(tail.length === 0) {
+    return { ...o, [head] : fn(o[head]) }
+  }
+  return { ...o, [head]: updateIn(o[head], tail, fn) }
 }
 
 @disto()
 class App extends Component {
+  static variables = () => ({ type: 'all' })
   static query = () => ql`[
-    { byType [ { [filter _] ${getQuery(Item)} } ] }
-    { footer ${getQuery(Footer)} }
+    ( { todos ${getQuery(Item)} } { type ?type } )
+    length
+    remaining
   ]`
-  onChange = e => {
+  state = {
+    input: ''
+  }
 
+  onSelect = type => {
+    this.props.setVariables({ type })
   }
   render() {
-    let { byType, footer } = this.props
+    let { todos, length, remaining, variables = {} } = this.props
+    // this.props::log()
     return <div>
-      <input onChange={this.onChange} />
-      { byType.map(todo => <Item {...todo}/>) }
-      <Footer {...footer}/>
+      <Input {...{ remaining, length }} />
+      { Object.entries(todos).map(([ k, v ]) =>
+        <Item key={k} {...v} />) }
+
+      <Footer length={length} remaining={remaining} selected={variables.type} onSelect={this.onSelect}/>
+    </div>
+  }
+}
+
+@disto()
+class Input extends Component {
+  state = {
+    input: ''
+  }
+  onChange = ({ target: { value } }) => {
+    this.setState({ input: value })
+  }
+  onKeyPress = e => {
+    if(e.keyCode === 13) {
+      this.props.transact({ type: 'add:todo', payload: { text: this.state.input } })
+      this.setState({ input: '' })
+    }
+  }
+  toggleAll = () => {
+    this.props.transact({ type: 'toggle:all' })
+  }
+  render() {
+    let { remaining, length } = this.props
+    return <div>
+      <button disabled={!(length > 1 && (remaining === 0 || remaining === length))} onClick={this.toggleAll}>
+        toggle all
+      </button>
+      <input onChange={this.onChange} onKeyUp={this.onKeyPress} value={this.state.input} />
     </div>
   }
 }
 
 @disto()
 class Item extends Component {
+  static ident = x => [ 'byId', x.id ]
   static query = () => ql`[id text done]`
+  onToggle = () => {
+    let { id } = this.props
+    this.props.transact({ type: 'toggle:todo', payload: { id } })
+  }
+  onRemove = () => {
+    let { id } = this.props
+    this.props.transact({ type: 'remove:todo', payload: { id } })
+  }
   render() {
     let { id, text, done } = this.props
     return <div>
-      id: {id} text: {text} done: {!!done}
+      <input id={`todo-${id}`} type="checkbox" checked={done} onChange={this.onToggle} />
+      <label htmlFor={`todo-${id}`}>{text}</label>
+      <div onClick={this.onRemove}>x</div>
     </div>
   }
+}
+
+function capitalize() {
+  return this.charAt(0).toUpperCase() + this.slice(1)
 }
 
 @disto()
 class Footer extends Component {
-  static query = () => ql`[[filter _] total remaining ]`
+  onSelect = e => {
+    this.props.onSelect(e.target.getAttribute('data-type'))
+  }
+  onClearCompleted = () => {
+    this.props.transact({ type: 'clear:completed' })
+  }
   render() {
-    let { filter, total, remaining } = this.props
-    return <div>
-      footer {filter} {total} {remaining}
+    let { remaining, selected, length } = this.props
+    return <div className='footer'>
+      <div className='left'>{remaining} item{remaining !== 1 ? 's' : ''} left</div>
+      <div className='types'>
+        {[ 'all', 'completed', 'active' ].map(type => <div key={type}>
+          <span data-type={type} onClick={this.onSelect} className={ selected === type ? 'selected' : null }>
+            {type::capitalize()}
+          </span>
+        </div>)}
+      </div>
+      { length - remaining > 0 ?
+        <div className='clear' onClick={this.onClearCompleted}>
+          clear completed
+        </div> :
+        null }
     </div>
   }
 }
 
-function read(env, key, params) {
-  if(key === 'byType') {
-    let value = Object.entries(env.get().byId).filter(([ k, v ]) => {
-      // k::log() 
-      switch (params.type) {
-        case 'active':
-          return !v.done
-        case 'completed':
-          return !!v.done
-        default:
-          return true
-      }
-    })
-    return { value }
-  }
-  if(key === 'footer') {
-    return {
-      value: {
 
+function read(env, key, params) {
+  let entries = Object.entries(env.get().byId)
+  switch(key) {
+    case 'todos':
+      return {
+        value: entries.filter(([ k, v ]) => { // eslint-disable-line
+          switch (params.type) {
+            case 'active': return !v.done
+            case 'completed': return !!v.done
+            default: return true
+          }
+        })::toObject()
       }
-    }
+    case 'length':
+      return {
+        value: entries.length
+      }
+    case 'remaining':
+      return {
+        value: entries.filter(([ k, v ]) => !v.done).length // eslint-disable-line
+      }
+  }
+}
+
+let ctr = 5
+function create(coll, payload) {
+  let id = ctr++
+  return { ...coll, [id]: { ...payload, id } }
+}
+
+function toggle(coll, payload) {
+  return updateIn(coll, [ payload.id, 'done' ], x => !x)
+}
+
+function clearCompleted(coll) {
+  return Object.entries(coll).filter(([ k, v ]) => !v.done)::toObject() //eslint-disable-line
+}
+
+function remove(coll, payload) {
+  return Object.entries(coll).filter(([ k, v ]) => v.id !== payload.id)::toObject()::log() //eslint-disable-line
+}
+
+function toggleAll(coll) {
+  // should we first check if all are of same `done`?
+  return Object.entries(coll).map(([ k, v ]) =>
+    [ k, { ...v, done: !v.done } ])::toObject()::log()
+}
+
+// keepin' it dry
+function todoMutation(env, func, payload) {
+  return {
+    value: { keys: [ 'byId' ] },
+    effect: () => env.store.swap(x => ({
+      ...x, byId: func(x.byId, payload)
+    }))
   }
 }
 
 function mutate(env, { type, payload }) {
   switch(type) {
     case 'add:todo':
-      return {
-        effect: () => env.store.swap(x => ({
-          ...x,
-          byId: {
-            ...x.byId,
-            [payload.id]: payload
-          }
-        }))
-      }
-    case 'finish:todo':
-      return {
-        effect: () => env.store.swap(x => ({
-          ...x,
-          byId: {
-            ...x.byId,
-            [payload.id]: { ...x.byId[payload.id], done: true }
-          }
-        }))
-      }
-    case 'unfinish:todo':
-      return {
-        effect: () => env.store.swap(x => ({
-          ...x,
-          byId: {
-            ...x.byId,
-            [payload.id]: { ...x.byId[payload.id], done: false }
-          }
-        }))
-      }
+      return todoMutation(env, create, payload)
+    case 'toggle:todo':
+      return todoMutation(env, toggle, payload)
     case 'clear:completed':
-      return {
-        effect: () => env.store.swap(x => ({
-          ...x,
-          byId: Object.entries(x).reduce((o, [ k, v ]) => {
-            if(!v.done) { o[k] = v }
-            return o
-          }, {})
-        }))
-      }
+      return todoMutation(env, clearCompleted)
+    case 'remove:todo':
+      return todoMutation(env, remove, payload)
+    case 'toggle:all':
+      return todoMutation(env, toggleAll)
   }
 }
 
-application({ read, mutate, store }).add(App, window.app)
+// we use this to populate our db
+// then whenever a 'read' to 'todos' occurs,
+// we intercept and use our normalized data instead
 
-//
-// `
-//   {
-//     filter: all | completed | active
-//     todos
-//       [Item]
-//     byType {
-//       all
-//       active
-//       completed
-//     }
-//     Item:byId {
-//       id string/number
-//       text string
-//       done boolean = false
-//     }
-//     footer {
-//       active
-//       total
-//       remaining
-//     }
-//   }
-// `
-// add:todo {text}
-// finish:todo {id}
-// unfinish:todo {id}
-//
+const initial = {
+  todos: [
+    { id: 0, text: 'asdsad', done: true },
+    { id: 1, text: 'sadfsdf' },
+    { id: 2, text: 'sdfdsf' },
+    { id: 3, text: 'sdfsdf' }
+  ]
+}
+
+const store = treeToDb(getQuery(App), initial)::log()
+application({ read, mutate, store }).add(App, window.app)

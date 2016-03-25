@@ -6,7 +6,7 @@
     "react/jsx-uses-react": 1,
     "react/jsx-no-undef": 2,
     "react/jsx-uses-vars": 2,
-    "jsx-quotes": 2
+    "jsx-quotes": 0
   },
   "plugins": [
     "react"
