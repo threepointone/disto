@@ -1,7 +1,7 @@
 const path = require('path')
 module.exports = {
   entry: {
-    app: [ 'babel-polyfill', './example/routing/2 setQuery.js' ]
+    app: [ 'babel-polyfill', './example/todomvc/index.js' ]
   },
   output: {
     path: path.join(__dirname, './example'),
@@ -17,4 +17,3 @@ module.exports = {
     ]
   }
 }
-

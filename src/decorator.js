@@ -1,5 +1,7 @@
 import React, { PropTypes, Component } from 'react'
 
+import { log } from './util'
+
 
 export default function decorator() {
   return function (Target) {
@@ -53,24 +55,11 @@ export default function decorator() {
         this.context.disto.transact(this, action, force)
       }
 
-      // optimistic = (...args) => {
-      //   return this.context.disto.optimistic(this, ...args)
-      // }
-
-      // references = {}
-      // makeRef = key => {
-      //   return (el => {
-      //     this.references[key] = el
-      //     return () => delete this.references[key]
-      //   })
-      // }
-
-
       render() {
-        let p = this['disto:path'].join('π')
+        let p = this['disto:path']
         let { query, ident, variables, state } =
-          this.context.disto.env.store.getState().components::find(x =>
-            x[0].join('π') === p && x[1] === Disto) || {}
+          (this.context.disto.env.store.getState().components::find(x =>
+            comparePaths(x[0], p)) || [])[1] || {}
         return <Target
           {...this.props}
           distoPath={this['disto:path']}
@@ -92,12 +81,6 @@ export default function decorator() {
         this.context['disto:unregister'](this['disto:path'], this, Disto)
         delete this['disto:path'] //  = this._path()
 
-        // this.context.disto.unregister(this)
-        // if(this.unrefer) {
-        //   this.unrefer()
-        //   delete this.unrefer
-        // }
-
       }
     }
   }
@@ -109,4 +92,20 @@ function find(fn) {
       return this[i]
     }
   }
+}
+
+function comparePaths(p1, p2) {
+
+  if(p1.length !== p2.length) {
+    return false
+  }
+  let ctr = 0, matches = true
+  while(ctr < p1.length) {
+    if(p1[ctr][0] !== p2[ctr][0] || p1[ctr][1] !== p2[ctr][1]) {
+      matches = false
+      break
+    }
+    ctr++
+  }
+  return matches
 }

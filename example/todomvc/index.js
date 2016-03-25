@@ -1,4 +1,6 @@
-import { ql, application, getQuery, decorator as disto, log, treeToDb } from '../src'
+import { ql, application, getQuery, decorator as disto, log, treeToDb } from '../../src'
+import './normalize.css'
+import styles from './style.css'
 
 import React, { Component } from 'react'
 
@@ -24,50 +26,47 @@ class App extends Component {
     length
     remaining
   ]`
-  state = {
-    input: ''
-  }
-
-  onSelect = type => {
+  onSelect = type =>
     this.props.setVariables({ type })
-  }
   render() {
-    let { todos, length, remaining, variables = {} } = this.props
-    // this.props::log()
-    return <div>
+    let { todos, length, remaining, variables } = this.props
+    return <div className={styles.app}>
       <Input {...{ remaining, length }} />
       { Object.entries(todos).map(([ k, v ]) =>
         <Item key={k} {...v} />) }
-
-      <Footer length={length} remaining={remaining} selected={variables.type} onSelect={this.onSelect}/>
+      <Footer selected={variables.type}
+        length={length}
+        remaining={remaining}
+        onSelect={this.onSelect} />
     </div>
   }
 }
 
 @disto()
 class Input extends Component {
-  state = {
-    input: ''
-  }
-  onChange = ({ target: { value } }) => {
+  state = { input: '' }
+  onChange = ({ target: { value } }) =>
     this.setState({ input: value })
-  }
   onKeyPress = e => {
     if(e.keyCode === 13) {
       this.props.transact({ type: 'add:todo', payload: { text: this.state.input } })
       this.setState({ input: '' })
     }
   }
-  toggleAll = () => {
+  toggleAll = () =>
     this.props.transact({ type: 'toggle:all' })
-  }
   render() {
     let { remaining, length } = this.props
-    return <div>
-      <button disabled={!(length > 1 && (remaining === 0 || remaining === length))} onClick={this.toggleAll}>
-        toggle all
+    return <div className={styles['input-cnt']}>
+      <button className={styles['input-cnt_toggle-all']}
+        disabled={!(length > 1 && (remaining === 0 || remaining === length))}
+        onClick={this.toggleAll}>
+          v
       </button>
-      <input onChange={this.onChange} onKeyUp={this.onKeyPress} value={this.state.input} />
+      <input className={styles['input-cnt_input']}
+        onChange={this.onChange}
+        onKeyUp={this.onKeyPress}
+        value={this.state.input} />
     </div>
   }
 }
@@ -76,20 +75,25 @@ class Input extends Component {
 class Item extends Component {
   static ident = x => [ 'byId', x.id ]
   static query = () => ql`[id text done]`
-  onToggle = () => {
-    let { id } = this.props
-    this.props.transact({ type: 'toggle:todo', payload: { id } })
-  }
-  onRemove = () => {
-    let { id } = this.props
-    this.props.transact({ type: 'remove:todo', payload: { id } })
-  }
+  onToggle = () =>
+    this.props.transact({ type: 'toggle:todo', payload: { id: this.props.id } })
+  onRemove = () =>
+    this.props.transact({ type: 'remove:todo', payload: { id: this.props.id } })
   render() {
     let { id, text, done } = this.props
-    return <div>
-      <input id={`todo-${id}`} type="checkbox" checked={done} onChange={this.onToggle} />
-      <label htmlFor={`todo-${id}`}>{text}</label>
-      <div onClick={this.onRemove}>x</div>
+    return <div className={styles.item}>
+      <div className={styles.item_content}>
+        <input className={styles.item_content_checkbox}
+          id={`todo-${id}`}
+          type="checkbox"
+          checked={done}
+          onChange={this.onToggle} />
+        <label className={styles.item_content_label}
+          htmlFor={`todo-${id}`}>
+            {text}
+        </label>
+      </div>
+      <div className={styles.item_remove} onClick={this.onRemove}>x</div>
     </div>
   }
 }
@@ -100,25 +104,27 @@ function capitalize() {
 
 @disto()
 class Footer extends Component {
-  onSelect = e => {
+  onSelect = e =>
     this.props.onSelect(e.target.getAttribute('data-type'))
-  }
-  onClearCompleted = () => {
+  onClearCompleted = () =>
     this.props.transact({ type: 'clear:completed' })
-  }
   render() {
     let { remaining, selected, length } = this.props
-    return <div className='footer'>
-      <div className='left'>{remaining} item{remaining !== 1 ? 's' : ''} left</div>
-      <div className='types'>
-        {[ 'all', 'completed', 'active' ].map(type => <div key={type}>
-          <span data-type={type} onClick={this.onSelect} className={ selected === type ? 'selected' : null }>
-            {type::capitalize()}
-          </span>
-        </div>)}
+    return <div className={styles.footer}>
+      <div className={styles['footer_left']}>
+        {remaining} item{remaining !== 1 ? 's' : ''} left
+      </div>
+      <div className={styles['footer_types']}>
+        {[ 'all', 'completed', 'active' ].map(type =>
+          <span key={type}
+            data-type={type}
+            onClick={this.onSelect}
+            className={ styles.footer_type + ' ' +  (selected === type ? styles['footer_selected'] : null) }>
+              {type::capitalize()}
+          </span>)}
       </div>
       { length - remaining > 0 ?
-        <div className='clear' onClick={this.onClearCompleted}>
+        <div className={styles['footer_clear-completed']} onClick={this.onClearCompleted}>
           clear completed
         </div> :
         null }
@@ -162,17 +168,19 @@ function toggle(coll, payload) {
 }
 
 function clearCompleted(coll) {
-  return Object.entries(coll).filter(([ k, v ]) => !v.done)::toObject() //eslint-disable-line
+  return Object.entries(coll)
+    .filter(([ k, v ]) => !v.done)::toObject() //eslint-disable-line
 }
 
 function remove(coll, payload) {
-  return Object.entries(coll).filter(([ k, v ]) => v.id !== payload.id)::toObject()::log() //eslint-disable-line
+  return Object.entries(coll)
+    .filter(([ k, v ]) => v.id !== payload.id)::toObject() //eslint-disable-line
 }
 
 function toggleAll(coll) {
   // should we first check if all are of same `done`?
-  return Object.entries(coll).map(([ k, v ]) =>
-    [ k, { ...v, done: !v.done } ])::toObject()::log()
+  return Object.entries(coll)
+    .map(([ k, v ]) => [ k, { ...v, done: !v.done } ])::toObject()
 }
 
 // keepin' it dry

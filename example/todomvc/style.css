@@ -1,0 +1,79 @@
+.app {
+  width: 500px;
+  margin: 20px auto
+
+}
+
+
+.input-cnt {
+  display: flex;
+}
+
+.input-cnt_toggle-all {
+  width: 40px;
+  height: 40px;
+  display: block;
+  float: left;
+}
+
+.input-cnt_input {
+  height: 40px;
+  flex: 1
+}
+
+.item {
+  height: 40px;
+  display: block;
+  display: flex;
+}
+
+.item_content {
+  flex: 1;
+  align-items: center;
+  display: flex;
+}
+
+.item_content_checkbox {
+  margin-right: 10px
+}
+
+.item_content_label {
+  flex: 1
+}
+
+.item_remove {
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer {
+  display: flex
+}
+
+.footer_left {
+  width: 100px;
+}
+
+.footer_types {
+  flex: 1;
+  display: flex;
+
+}
+
+.footer_type {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  line-height: 36px;
+  outline: 1px solid #ccc;
+}
+
+.footer_selected {
+
+}
+
+.footer_clear-completed {
+  width: 100px
+}
